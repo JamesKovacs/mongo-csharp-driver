@@ -1,8 +1,9 @@
-#addin "nuget:?package=Cake.FileHelpers&version=3.1.0"
-#addin "nuget:?package=Cake.Git&version=0.19.0"
-#addin "nuget:?package=Cake.Incubator&version=3.1.0"
-#tool "nuget:?package=GitVersion.CommandLine&version=4.0.0"
-#tool "nuget:?package=xunit.runner.console"
+#module nuget:?package=Cake.DotNetTool.Module&version=0.4.0
+#addin nuget:?package=Cake.FileHelpers&version=3.3.0
+#addin nuget:?package=Cake.Git&version=0.22.0
+#addin nuget:?package=Cake.Incubator&version=5.1.0
+#tool dotnet:?package=GitVersion.Tool&version=5.3.7
+#tool nuget:?package=xunit.runner.console
 
 using System.Text.RegularExpressions;
 using System.Linq;
@@ -73,7 +74,7 @@ Task("BuildArtifacts")
     .IsDependentOn("Build")
     .Does(() =>
     {
-        foreach (var targetFramework in new[] { "net452", "netstandard1.5", "netstandard2.0" })
+        foreach (var targetFramework in new[] { "net452", "netstandard1.5", "netstandard2.0", "netstandard2.1" })
         {
             var toDirectory = artifactsBinDirectory.Combine(targetFramework);
             CleanDirectory(toDirectory);
@@ -148,6 +149,7 @@ Task("Test")
             case "testnet452": settings.Framework = "net452"; break;
             case "testnetstandard15": settings.Framework = "netcoreapp1.1"; break;
             case "testnetstandard20": settings.Framework = "netcoreapp2.1"; break;
+            case "testnetstandard21": settings.Framework = "netcoreapp3.1"; break;
         }
         DotNetCoreTest(
             testProject.FullPath,
@@ -158,6 +160,7 @@ Task("Test")
 Task("TestNet452").IsDependentOn("Test");
 Task("TestNetStandard15").IsDependentOn("Test");
 Task("TestNetStandard20").IsDependentOn("Test");
+Task("TestNetStandard21").IsDependentOn("Test");
 
 Task("TestAwsAuthentication")
     .IsDependentOn("Build")
@@ -173,6 +176,42 @@ Task("TestAwsAuthentication")
                     Configuration = configuration,
                     ArgumentCustomization = args => args.Append("-- RunConfiguration.TargetPlatform=x64"),
                     Filter = "Category=\"AwsMechanism\""
+                }
+            );
+        });
+
+Task("TestPlainAuthentication")
+    .IsDependentOn("Build")
+    .DoesForEach(
+        GetFiles("./**/MongoDB.Driver.Tests.csproj"),
+        testProject =>
+        {
+            DotNetCoreTest(
+                testProject.FullPath,
+                new DotNetCoreTestSettings {
+                    NoBuild = true,
+                    NoRestore = true,
+                    Configuration = configuration,
+                    ArgumentCustomization = args => args.Append("-- RunConfiguration.TargetPlatform=x64"),
+                    Filter = "Category=\"PlainMechanism\""
+                }
+            );
+        });
+
+Task("TestGSSAPIAuthentication")
+    .IsDependentOn("Build")
+    .DoesForEach(
+        GetFiles("./**/MongoDB.Driver.Tests.csproj"),
+        testProject =>
+        {
+            DotNetCoreTest(
+                testProject.FullPath,
+                new DotNetCoreTestSettings {
+                    NoBuild = true,
+                    NoRestore = true,
+                    Configuration = configuration,
+                    ArgumentCustomization = args => args.Append("-- RunConfiguration.TargetPlatform=x64"),
+                    Filter = "Category=\"GssapiMechanism\""
                 }
             );
         });

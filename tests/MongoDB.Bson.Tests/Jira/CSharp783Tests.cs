@@ -250,13 +250,13 @@ namespace MongoDB.Bson.Tests.Jira.CSharp783
             var c = new C { S = new SortedSet<int> { x, y } };
             var json = c.ToJson();
             var expected = string.Format("{{ 'S' : [1, 2] }}").Replace("'", "\""); // always sorted
-            Assert.Equal(expected, json);
-
+            //Assert.Equal(expected, json);
             var r = BsonSerializer.Deserialize<C>(json);
             Assert.NotNull(r.S);
-            Assert.IsType<HashSet<int>>(r.S);
-            Assert.Equal(2, r.S.Count);
-            r.S.Should().BeEquivalentTo(c.S);
+            throw new System.Exception("r.s:" + r.S.GetType().FullName + ", HashSet<int>:" + typeof(HashSet<int>).FullName);
+            //Assert.IsType<HashSet<int>>(r.S);
+            //Assert.Equal(2, r.S.Count);
+            //r.S.Should().BeEquivalentTo(c.S);
         }
     }
 
