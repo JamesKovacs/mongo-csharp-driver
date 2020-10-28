@@ -17,7 +17,9 @@ using System;
 using System.Linq;
 using FluentAssertions;
 using MongoDB.Bson;
+using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Conventions;
 using Xunit;
 
@@ -181,6 +183,89 @@ namespace MongoDB.Bson.Tests.Serialization.Conventions
             convention.Apply(classMap);
             Assert.True(classMap.HasCreatorMaps);
             Assert.Equal(1, classMap.CreatorMaps.Count());
+        }
+
+        [BsonDiscriminator(RootClass=true)]
+        [BsonKnownTypes(typeof(Apple))]
+        private abstract class Fruit
+        {
+            [BsonIgnore]
+            public abstract string Colour { get; }
+        }
+
+        private class Apple : Fruit
+        {
+            [BsonConstructor]
+            public Apple(int seeds)
+            {
+                Seeds = seeds;
+            }
+
+            public int Seeds { get; }
+
+            [BsonIgnore]
+            public override string Colour => "Red";
+        }
+
+        [Fact]
+        public void CanMapImmutableFruit()
+        {
+            var convention1 = new ImmutableTypeClassMapConvention();
+            var convention2 = new NamedParameterCreatorMapConvention();
+            var classMap = new BsonClassMap<Apple>();
+            convention1.Apply(classMap);
+            foreach (var creatorMap in classMap.CreatorMaps)
+            {
+                convention2.Apply(creatorMap);
+            }
+            Assert.True(classMap.HasCreatorMaps);
+            Assert.Single(classMap.CreatorMaps);
+
+            classMap.Freeze();
+            var serializer = new BsonClassMapSerializer<Apple>(classMap);
+
+            const int numSeeds = 42;
+            var reader = new BsonDocumentReader(new BsonDocument {{"Seeds", numSeeds}, {"Colour", "green"}});
+            var context = BsonDeserializationContext.CreateRoot(reader);
+            var apple = serializer.Deserialize(context);
+            Assert.Equal(numSeeds, apple.Seeds);
+        }
+
+        private class ImmutableClassWithConstants
+        {
+            public ImmutableClassWithConstants(int someInteger)
+            {
+                SomeInteger = someInteger;
+            }
+
+            public int SomeInteger { get; private set; }
+
+            [BsonIgnore]
+            public string Greeting => "Hello, world!";
+        }
+
+        [Fact]
+        public void CanMapImmutableClassWithConstants()
+        {
+            var convention1 = new ImmutableTypeClassMapConvention();
+            var convention2 = new NamedParameterCreatorMapConvention();
+            var classMap = new BsonClassMap<ImmutableClassWithConstants>();
+            convention1.Apply(classMap);
+            foreach (var creatorMap in classMap.CreatorMaps)
+            {
+                convention2.Apply(creatorMap);
+            }
+            Assert.True(classMap.HasCreatorMaps);
+            Assert.Single(classMap.CreatorMaps);
+
+            classMap.Freeze();
+            var serializer = new BsonClassMapSerializer<ImmutableClassWithConstants>(classMap);
+
+            const int dbConstant = 42;
+            var reader = new BsonDocumentReader(new BsonDocument {{"SomeInteger", dbConstant}});
+            var context = BsonDeserializationContext.CreateRoot(reader);
+            var obj = serializer.Deserialize(context);
+            Assert.Equal(dbConstant, obj.SomeInteger);
         }
     }
 }

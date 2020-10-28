@@ -11,7 +11,7 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-* 
+*
 */
 
 using System;
@@ -51,13 +51,15 @@ namespace MongoDB.Bson.Serialization.Conventions
                     continue; // do not consider private constructors
                 }
 
+                /*
                 var parameters = ctor.GetParameters();
                 if (parameters.Length != properties.Length)
                 {
                     continue; // only consider constructors that have sufficient parameters to initialize all properties
                 }
+                */
 
-                var matches = parameters
+                var matches = ctor.GetParameters()
                     .GroupJoin(properties,
                         parameter => parameter.Name,
                         property => property.Name,
