@@ -14,15 +14,20 @@
 */
 
 using System;
+using System.Collections.Generic;
 #if !NETCOREAPP1_1
 using System.ComponentModel;
 #endif
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson.Serialization.Options;
 using MongoDB.Bson.Serialization.Serializers;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace MongoDB.Bson.Tests.Serialization
 {
@@ -137,7 +142,7 @@ namespace MongoDB.Bson.Tests.Serialization
         }
 
 #if !NETCOREAPP1_1
-        public class InventoryItem 
+        public class InventoryItem
             : ISupportInitialize
         {
             public int Price { get; set; }
@@ -188,6 +193,100 @@ namespace MongoDB.Bson.Tests.Serialization
             var actualType = BsonSerializer.LookupActualType(typeof(A), BsonValue.Create("C"));
 
             Assert.Equal(typeof(C), actualType);
+        }
+
+
+    }
+    public class CSHARP3263Repro
+    {
+        private readonly ITestOutputHelper _testOutputHelper;
+
+        public CSHARP3263Repro(ITestOutputHelper testOutputHelper)
+        {
+            _testOutputHelper = testOutputHelper;
+        }
+
+        public class Root
+        {
+            // Initialized type doesn't match declared type!!!
+            public IDictionary<int, Node> Nodes { get; set; } = new SortedDictionary<int, Node>();
+        }
+
+        public class Node
+        {
+            public string Name { get; set; }
+        }
+
+        [Fact]
+        public void CSHARP3263ReproTest()
+        {
+            BsonSerializer.RegisterSerializer(typeof(IDictionary<int, Node>), GetInterfaceBasedSerializer<Node>());
+            // BsonSerializer.RegisterSerializer(typeof(IDictionary<int, Node>), GetImpliedSerializer<Node>());
+            // BsonSerializer.RegisterSerializer(typeof(Dictionary<int, Node>), GetClassBasedSerializer<Node>());
+            // BsonSerializer.RegisterSerializer(typeof(SortedDictionary<int, Node>), GetSortedClassBasedSerializer<Node>());
+
+            var root = new Root();
+            root.Nodes.Add(0, new Node { Name = "Test" });
+
+            using (var stringWriter = new StringWriter())
+            {
+                using (var writer = new JsonWriter(stringWriter))
+                {
+                    BsonSerializer.Serialize(writer, root);
+                    _testOutputHelper.WriteLine("Valid Root: {0}", stringWriter);
+                }
+            }
+
+        }
+
+        [Fact]
+        public void ReadItBack()
+        {
+            BsonSerializer.RegisterSerializer(typeof(Dictionary<int, Node>), GetClassBasedSerializer<Node>());
+
+            var input = "{ Nodes : { \"0\" : { Name : \"Test\" } } }";
+            var rehydrated = BsonSerializer.Deserialize<Root>(input);
+
+        }
+
+        private static IBsonSerializer GetInterfaceBasedSerializer<TValue>()
+        {
+            return new DictionaryInterfaceImplementerSerializer<IDictionary<int, TValue>, int, TValue>(
+                DictionaryRepresentation.Document,
+                new Int32Serializer(BsonType.String),
+                BsonSerializer.SerializerRegistry.GetSerializer<TValue>());
+        }
+
+        // private static IBsonSerializer GetImpliedSerializer<TValue>()
+        // {
+        //     var serializer = GetClassBasedSerializer<TValue>();
+        //     return new ImpliedImplementationInterfaceSerializer<IDictionary<int, TValue>, Dictionary<int, TValue>>(serializer);
+        // }
+
+        private static IBsonSerializer<Dictionary<int, TValue>> GetClassBasedSerializer<TValue>()
+        {
+            return new DictionaryInterfaceImplementerSerializer<Dictionary<int, TValue>, int, TValue>(
+                DictionaryRepresentation.Document,
+                new Int32Serializer(BsonType.String),
+                BsonSerializer.SerializerRegistry.GetSerializer<TValue>());
+        }
+
+        private static IBsonSerializer<SortedDictionary<int, TValue>> GetSortedClassBasedSerializer<TValue>()
+        {
+            return new DictionaryInterfaceImplementerSerializer<SortedDictionary<int, TValue>, int, TValue>(
+                DictionaryRepresentation.Document,
+                new Int32Serializer(BsonType.String),
+                BsonSerializer.SerializerRegistry.GetSerializer<TValue>());
+        }
+    }
+
+    public class CustomDictionarySerializer<TValue> : DictionaryInterfaceImplementerSerializer<Dictionary<int, TValue>, int, TValue>
+    {
+        public CustomDictionarySerializer()
+            : base(DictionaryRepresentation.Document,
+                new Int32Serializer(BsonType.String),
+                BsonSerializer.SerializerRegistry.GetSerializer<TValue>())
+        {
         }
     }
 }
