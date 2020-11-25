@@ -593,9 +593,7 @@ namespace MongoDB.Driver.Core.Configuration
             }
 
             var txtRecords = _dnsResolver.ResolveTxtRecords(host, cancellationToken);
-            var options = GetOptionsFromTxtRecords(txtRecords);
-
-            var resolvedOptions = GetResolvedOptions(options);
+            var resolvedOptions = GetResolvedOptionsFromTxtRecords(txtRecords);
 
             return BuildResolvedConnectionString(resolvedScheme, hosts, resolvedOptions);
         }
@@ -643,9 +641,7 @@ namespace MongoDB.Driver.Core.Configuration
             }
 
             var txtRecords = await _dnsResolver.ResolveTxtRecordsAsync(host, cancellationToken).ConfigureAwait(false);
-            var options = GetOptionsFromTxtRecords(txtRecords);
-
-            var resolvedOptions = GetResolvedOptions(options);
+            var resolvedOptions = GetResolvedOptionsFromTxtRecords(txtRecords);
 
             return BuildResolvedConnectionString(resolvedScheme, hosts, resolvedOptions);
         }
@@ -686,13 +682,6 @@ namespace MongoDB.Driver.Core.Configuration
                 }
             }
 
-            foreach (var key in resolvedOptions.AllKeys)
-            {
-                resolvedOptions[key] = Uri.EscapeDataString(resolvedOptions[key]);
-            }
-
-            // _allOptions are the escaped options from the original connection string.
-            // Add them after escaping the resolvedOptions from the TXT record to avoid double-escaping.
             resolvedOptions.Add(_allOptions);
 
             var mergedOptions = new List<string>();
@@ -701,7 +690,7 @@ namespace MongoDB.Driver.Core.Configuration
                 .AllKeys
                 .SelectMany(key => resolvedOptions
                     .GetValues(key)
-                    .Select(value => $"{key}={value}")));
+                    .Select(value => $"{key}={Uri.EscapeDataString(value)}")));
 
             if (mergedOptions.Count > 0)
             {
@@ -776,8 +765,10 @@ namespace MongoDB.Driver.Core.Configuration
             foreach (Capture option in match.Groups["option"].Captures)
             {
                 var parts = option.Value.Split('=');
-                _allOptions.Add(parts[0], parts[1]);
-                ParseOption(parts[0].Trim(), Uri.UnescapeDataString(parts[1].Trim()));
+                var name = parts[0].Trim();
+                var value = Uri.UnescapeDataString(parts[1].Trim());
+                _allOptions.Add(name, value);
+                ParseOption(name, value);
             }
         }
 
@@ -1301,23 +1292,20 @@ namespace MongoDB.Driver.Core.Configuration
             return hosts;
         }
 
-        private List<string> GetOptionsFromTxtRecords(List<TxtRecord> txtRecords)
+        private NameValueCollection GetResolvedOptionsFromTxtRecords(IReadOnlyCollection<TxtRecord> txtRecords)
         {
             if (txtRecords.Count > 1)
             {
                 throw new MongoConfigurationException("Only 1 TXT record is allowed when using the SRV protocol.");
             }
 
-            return txtRecords.Select(tr => tr.Strings.Aggregate("", (acc, s) => acc + Uri.UnescapeDataString(s))).ToList();
-        }
+            var txtRecord = txtRecords.FirstOrDefault();
 
-        private NameValueCollection GetResolvedOptions(List<string> options)
-        {
             // Build a dummy connection string in order to parse the options
             var dummyConnectionString = "mongodb://localhost/";
-            if (options.Count > 0)
+            if (txtRecord != null)
             {
-                dummyConnectionString += "?" + string.Join("&", options);
+                dummyConnectionString += "?" + string.Join("", txtRecord.Strings);
             }
             var dnsConnectionString = new ConnectionString(dummyConnectionString);
             ValidateResolvedOptions(dnsConnectionString.AllOptionNames);
