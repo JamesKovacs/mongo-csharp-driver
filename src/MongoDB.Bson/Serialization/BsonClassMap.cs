@@ -78,6 +78,8 @@ namespace MongoDB.Bson.Serialization
             _declaredMemberMaps = new List<BsonMemberMap>();
             _elementTrie = new BsonTrie<int>();
 
+            //ClassTypeInfo = _classType.GetTypeInfo();
+
             Reset();
         }
 
@@ -115,6 +117,22 @@ namespace MongoDB.Bson.Serialization
         public Type ClassType
         {
             get { return _classType; }
+        }
+
+        private TypeInfo _t;
+
+        /// <summary>
+        /// Gets the class type.
+        /// </summary>
+        public TypeInfo ClassTypeInfo
+        {
+            get
+            {
+                if (_t == null)
+                    _t = ClassType.GetTypeInfo();
+
+                return _t;
+            }
         }
 
         /// <summary>

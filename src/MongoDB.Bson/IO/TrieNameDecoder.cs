@@ -13,10 +13,6 @@
 * limitations under the License.
 */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace MongoDB.Bson.IO
@@ -40,6 +36,8 @@ namespace MongoDB.Bson.IO
         public TrieNameDecoder(BsonTrie<TValue> trie)
         {
             _trie = trie;
+            _found = false;
+            _value = default;
         }
 
         // public properties
@@ -100,6 +98,15 @@ namespace MongoDB.Bson.IO
         public void Inform(string name)
         {
             _found = _trie.TryGetValue(name, out _value);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Reset()
+        {
+            _found = false;
+            _value = default;
         }
     }
 }

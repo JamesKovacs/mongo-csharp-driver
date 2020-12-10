@@ -202,7 +202,7 @@ namespace MongoDB.Bson.Serialization
             }
             if (_isFrozen) { ThrowFrozenException(); }
 
-            var classTypeInfo = _classMap.ClassType.GetTypeInfo();
+            var classTypeInfo = _classMap.ClassTypeInfo;
             var arguments = new List<MemberInfo>();
             foreach (var argumentName in argumentNames)
             {
