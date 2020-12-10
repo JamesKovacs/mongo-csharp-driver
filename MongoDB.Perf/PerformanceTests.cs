@@ -17,7 +17,6 @@ namespace MongoDB.Perf
         public class B : A
         {
             public string B1 { get; set; } = "b1adsfsdafsdaf";
-
         }
 
         public class C
@@ -89,7 +88,7 @@ namespace MongoDB.Perf
 
             var ms = Environment.TickCount;
 
-             var tasks = Enumerable.Range(0, threadsCount).Select(e => RunTest(e)).ToArray();
+            var tasks = Enumerable.Range(0, threadsCount).Select(e => RunTest(e)).ToArray();
 
             await Task.WhenAll(tasks);
 
