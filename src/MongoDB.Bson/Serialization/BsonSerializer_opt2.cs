@@ -27,7 +27,7 @@ using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.IdGenerators;
 
-#if true
+#if false
 
 namespace MongoDB.Bson.Serialization
 {
