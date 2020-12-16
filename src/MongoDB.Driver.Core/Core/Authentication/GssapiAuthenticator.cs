@@ -15,11 +15,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Security;
 using System.Text;
-using MongoDB.Driver.Core.Authentication.Sspi;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Misc;
 
@@ -237,7 +235,7 @@ namespace MongoDB.Driver.Core.Authentication
         {
             private readonly string _authorizationId;
             private byte[] _bytesToSendToServer;
-            private readonly Sspi.SecurityContext _context;
+            private ISecurityContext _context;
             private readonly SecureString _password;
             private readonly string _servicePrincipalName;
 
@@ -251,24 +249,14 @@ namespace MongoDB.Driver.Core.Authentication
                     _servicePrincipalName += "@" + realm;
                 }
 
-                SecurityCredential securityCredential;
+                _context = SecurityContextFactory.InitializeSecurityContext(conversation, _servicePrincipalName, _authorizationId, _password);
                 try
                 {
-                    securityCredential = SecurityCredential.Acquire(SspiPackage.Kerberos, _authorizationId, _password);
-                    conversation.RegisterItemForDisposal(securityCredential);
+                    _bytesToSendToServer = _context.Next(null);
                 }
-                catch (Win32Exception ex)
+                catch (Exception ex)
                 {
-                    throw new MongoAuthenticationException(conversation.ConnectionId, "Unable to acquire security credential.", ex);
-                }
-
-                try
-                {
-                    _context = Sspi.SecurityContext.Initialize(securityCredential, _servicePrincipalName, null, out _bytesToSendToServer);
-                }
-                catch (Win32Exception ex)
-                {
-                    if (_password != null)
+                    if (password != null)
                     {
                         throw new MongoAuthenticationException(conversation.ConnectionId, "Unable to initialize security context. Ensure the username and password are correct.", ex);
                     }
@@ -294,9 +282,9 @@ namespace MongoDB.Driver.Core.Authentication
                 byte[] bytesToSendToServer;
                 try
                 {
-                    _context.Initialize(_servicePrincipalName, bytesReceivedFromServer, out bytesToSendToServer);
+                    bytesToSendToServer = _context.Next(bytesReceivedFromServer);
                 }
-                catch (Win32Exception ex)
+                catch (Exception ex)
                 {
                     throw new MongoAuthenticationException(conversation.ConnectionId, "Unable to initialize security context", ex);
                 }
@@ -313,11 +301,11 @@ namespace MongoDB.Driver.Core.Authentication
         private class InitializeStep : ISaslStep
         {
             private readonly string _authorizationId;
-            private readonly Sspi.SecurityContext _context;
+            private readonly ISecurityContext _context;
             private readonly byte[] _bytesToSendToServer;
             private readonly string _servicePrincipalName;
 
-            public InitializeStep(string servicePrincipalName, string authorizationId, Sspi.SecurityContext context, byte[] bytesToSendToServer)
+            public InitializeStep(string servicePrincipalName, string authorizationId, ISecurityContext context, byte[] bytesToSendToServer)
             {
                 _servicePrincipalName = servicePrincipalName;
                 _authorizationId = authorizationId;
@@ -340,9 +328,9 @@ namespace MongoDB.Driver.Core.Authentication
                 byte[] bytesToSendToServer;
                 try
                 {
-                    _context.Initialize(_servicePrincipalName, bytesReceivedFromServer, out bytesToSendToServer);
+                    bytesToSendToServer = _context.Next(bytesReceivedFromServer);
                 }
-                catch (Win32Exception ex)
+                catch (Exception ex)
                 {
                     throw new MongoAuthenticationException(conversation.ConnectionId, "Unable to initialize security context", ex);
                 }
@@ -359,10 +347,10 @@ namespace MongoDB.Driver.Core.Authentication
         private class NegotiateStep : ISaslStep
         {
             private readonly string _authorizationId;
-            private readonly Sspi.SecurityContext _context;
+            private readonly ISecurityContext _context;
             private readonly byte[] _bytesToSendToServer;
 
-            public NegotiateStep(string authorizationId, Sspi.SecurityContext context, byte[] bytesToSendToServer)
+            public NegotiateStep(string authorizationId, ISecurityContext context, byte[] bytesToSendToServer)
             {
                 _authorizationId = authorizationId;
                 _context = context;
@@ -384,11 +372,11 @@ namespace MongoDB.Driver.Core.Authentication
                 byte[] decryptedBytes;
                 try
                 {
-                    _context.DecryptMessage(0, bytesReceivedFromServer, out decryptedBytes);
+                    decryptedBytes = _context.DecryptMessage(0, bytesReceivedFromServer);
                 }
-                catch (Win32Exception ex)
+                catch (Exception ex)
                 {
-                    throw new MongoAuthenticationException(conversation.ConnectionId, "Unabled to decrypt message.", ex);
+                    throw new MongoAuthenticationException(conversation.ConnectionId, "Unable to decrypt message.", ex);
                 }
 
                 int length = 4;
@@ -412,11 +400,11 @@ namespace MongoDB.Driver.Core.Authentication
                 byte[] bytesToSendToServer;
                 try
                 {
-                    _context.EncryptMessage(bytesReceivedFromServer, out bytesToSendToServer);
+                    bytesToSendToServer = _context.EncryptMessage(bytesReceivedFromServer);
                 }
-                catch (Win32Exception ex)
+                catch (Exception ex)
                 {
-                    throw new MongoAuthenticationException(conversation.ConnectionId, "Unabled to encrypt message.", ex);
+                    throw new MongoAuthenticationException(conversation.ConnectionId, "Unable to encrypt message.", ex);
                 }
 
                 return new CompletedStep(bytesToSendToServer);
