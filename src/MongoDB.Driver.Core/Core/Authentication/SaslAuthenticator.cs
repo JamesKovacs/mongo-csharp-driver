@@ -213,7 +213,7 @@ namespace MongoDB.Driver.Core.Authentication
         /// <summary>
         /// Represents a SASL conversation.
         /// </summary>
-        public sealed class SaslConversation : IDisposable
+        protected internal sealed class SaslConversation : IDisposable
         {
             // fields
             private readonly ConnectionId _connectionId;
