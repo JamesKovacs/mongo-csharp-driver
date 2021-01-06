@@ -21,7 +21,7 @@ using System.Runtime.InteropServices;
 
 namespace MongoDB.Driver.Core.Authentication.Sspi
 {
-    internal static class NativeMethods
+    internal static class SspiNativeMethods
     {
         // public constants
         public const int MAX_TOKEN_SIZE = 12288;

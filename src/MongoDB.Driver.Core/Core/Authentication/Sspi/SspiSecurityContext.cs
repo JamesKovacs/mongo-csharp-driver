@@ -29,7 +29,7 @@ namespace MongoDB.Driver.Core.Authentication.Sspi
 
         // fields
         private readonly string _servicePrincipalName;
-        private SecurityCredential _credential;
+        private SspiSecurityCredential _credential;
         private SspiHandle _sspiHandle;
         private bool _isInitialized;
         private bool _isDisposed;
@@ -40,7 +40,7 @@ namespace MongoDB.Driver.Core.Authentication.Sspi
             __maxTokenSize = GetMaxTokenSize();
         }
 
-        public SspiSecurityContext(string servicePrincipalName, SecurityCredential credential)
+        public SspiSecurityContext(string servicePrincipalName, SspiSecurityCredential credential)
             : base(IntPtr.Zero, true)
         {
             _servicePrincipalName = servicePrincipalName;
@@ -104,15 +104,15 @@ namespace MongoDB.Driver.Core.Authentication.Sspi
                 try
                 {
                     uint quality;
-                    var result = NativeMethods.DecryptMessage(
+                    var result = SspiNativeMethods.DecryptMessage(
                         ref _sspiHandle,
                         ref descriptor,
                         0,
                         out quality);
 
-                    if (result != NativeMethods.SEC_E_OK)
+                    if (result != SspiNativeMethods.SEC_E_OK)
                     {
-                        throw NativeMethods.CreateException(result, "Unable to decrypt message.");
+                        throw SspiNativeMethods.CreateException(result, "Unable to decrypt message.");
                     }
 
                     decryptedBytes = descriptor.ToByteArray();
@@ -154,16 +154,16 @@ namespace MongoDB.Driver.Core.Authentication.Sspi
             }
             finally
             {
-                uint result = NativeMethods.QueryContextAttributes(
+                uint result = SspiNativeMethods.QueryContextAttributes(
                     ref _sspiHandle,
                     QueryContextAttributes.Sizes,
                     out sizes);
 
                 DangerousRelease();
 
-                if (result != NativeMethods.SEC_E_OK)
+                if (result != SspiNativeMethods.SEC_E_OK)
                 {
-                    throw NativeMethods.CreateException(result, "Unable to get the query context attribute sizes.");
+                    throw SspiNativeMethods.CreateException(result, "Unable to get the query context attribute sizes.");
                 }
             }
 
@@ -199,7 +199,7 @@ namespace MongoDB.Driver.Core.Authentication.Sspi
             {
                 try
                 {
-                    uint result = NativeMethods.EncryptMessage(
+                    uint result = SspiNativeMethods.EncryptMessage(
                         ref _sspiHandle,
                         EncryptQualityOfProtection.WrapNoEncrypt,
                         ref descriptor,
@@ -207,9 +207,9 @@ namespace MongoDB.Driver.Core.Authentication.Sspi
 
                     DangerousRelease();
 
-                    if (result != NativeMethods.SEC_E_OK)
+                    if (result != SspiNativeMethods.SEC_E_OK)
                     {
-                        throw NativeMethods.CreateException(result, "Unable to encrypt message.");
+                        throw SspiNativeMethods.CreateException(result, "Unable to encrypt message.");
                     }
 
                     outBytes = descriptor.ToByteArray();
@@ -269,7 +269,7 @@ namespace MongoDB.Driver.Core.Authentication.Sspi
                     var credentialHandle = _credential._sspiHandle;
                     if (challenge == null || challenge.Length == 0)
                     {
-                        result = NativeMethods.InitializeSecurityContext(
+                        result = SspiNativeMethods.InitializeSecurityContext(
                             ref credentialHandle,
                             IntPtr.Zero,
                             _servicePrincipalName,
@@ -288,7 +288,7 @@ namespace MongoDB.Driver.Core.Authentication.Sspi
                         var serverToken = new SecurityBufferDescriptor(challenge);
                         try
                         {
-                            result = NativeMethods.InitializeSecurityContext(
+                            result = SspiNativeMethods.InitializeSecurityContext(
                                 ref credentialHandle,
                                 ref _sspiHandle,
                                 _servicePrincipalName,
@@ -311,13 +311,13 @@ namespace MongoDB.Driver.Core.Authentication.Sspi
                     _credential.DangerousRelease();
                     DangerousRelease();
 
-                    if (result != NativeMethods.SEC_E_OK && result != NativeMethods.SEC_I_CONTINUE_NEEDED)
+                    if (result != SspiNativeMethods.SEC_E_OK && result != SspiNativeMethods.SEC_I_CONTINUE_NEEDED)
                     {
-                        throw NativeMethods.CreateException(result, "Unable to initialize security context.");
+                        throw SspiNativeMethods.CreateException(result, "Unable to initialize security context.");
                     }
 
                     outBytes = outputBuffer.ToByteArray();
-                    _isInitialized = result == NativeMethods.SEC_E_OK;
+                    _isInitialized = result == SspiNativeMethods.SEC_E_OK;
                 }
                 finally
                 {
@@ -331,7 +331,7 @@ namespace MongoDB.Driver.Core.Authentication.Sspi
         // protected methods
         protected override bool ReleaseHandle()
         {
-            return NativeMethods.DeleteSecurityContext(ref _sspiHandle) == 0;
+            return SspiNativeMethods.DeleteSecurityContext(ref _sspiHandle) == 0;
         }
 
         protected override void Dispose(bool disposing)
@@ -353,10 +353,10 @@ namespace MongoDB.Driver.Core.Authentication.Sspi
 
             try
             {
-                var result = NativeMethods.EnumerateSecurityPackages(ref count, ref array);
-                if (result != NativeMethods.SEC_E_OK)
+                var result = SspiNativeMethods.EnumerateSecurityPackages(ref count, ref array);
+                if (result != SspiNativeMethods.SEC_E_OK)
                 {
-                    return NativeMethods.MAX_TOKEN_SIZE;
+                    return SspiNativeMethods.MAX_TOKEN_SIZE;
                 }
 
                 var current = new IntPtr(array.ToInt64());
@@ -379,17 +379,17 @@ namespace MongoDB.Driver.Core.Authentication.Sspi
                     current = new IntPtr(current.ToInt64() + size);
                 }
 
-                return NativeMethods.MAX_TOKEN_SIZE;
+                return SspiNativeMethods.MAX_TOKEN_SIZE;
             }
             catch
             {
-                return NativeMethods.MAX_TOKEN_SIZE;
+                return SspiNativeMethods.MAX_TOKEN_SIZE;
             }
             finally
             {
                 try
                 {
-                    NativeMethods.FreeContextBuffer(array);
+                    SspiNativeMethods.FreeContextBuffer(array);
                 }
                 catch
                 { }
