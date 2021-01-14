@@ -56,7 +56,7 @@ namespace MongoDB.Driver.Core.Authentication.Sspi
                 uint result;
                 if (password == null)
                 {
-                    result = SspiNativeMethods.AcquireCredentialsHandle(
+                    result = NativeMethods.AcquireCredentialsHandle(
                         null,
                         package.ToString(),
                         SecurityCredentialUse.Outbound,
@@ -72,7 +72,7 @@ namespace MongoDB.Driver.Core.Authentication.Sspi
                     using (var authIdentity = new AuthIdentity(username, password))
                     {
                         // TODO: make this secure by using SecurePassword
-                        result = SspiNativeMethods.AcquireCredentialsHandle(
+                        result = NativeMethods.AcquireCredentialsHandle(
                             null,
                             package.ToString(),
                             SecurityCredentialUse.Outbound,
@@ -84,10 +84,10 @@ namespace MongoDB.Driver.Core.Authentication.Sspi
                             out timestamp);
                     }
                 }
-                if (result != SspiNativeMethods.SEC_E_OK)
+                if (result != NativeMethods.SEC_E_OK)
                 {
                     credential.SetHandleAsInvalid();
-                    throw SspiNativeMethods.CreateException(result, "Unable to acquire credential.");
+                    throw NativeMethods.CreateException(result, "Unable to acquire credential.");
                 }
             }
             return credential;
@@ -102,7 +102,7 @@ namespace MongoDB.Driver.Core.Authentication.Sspi
         /// </returns>
         protected override bool ReleaseHandle()
         {
-            return SspiNativeMethods.FreeCredentialsHandle(ref _sspiHandle) == 0;
+            return NativeMethods.FreeCredentialsHandle(ref _sspiHandle) == 0;
         }
     }
 }

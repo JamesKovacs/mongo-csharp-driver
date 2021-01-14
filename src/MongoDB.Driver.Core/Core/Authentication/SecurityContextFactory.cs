@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using System;
 using System.Runtime.InteropServices;
 using System.Security;
 using MongoDB.Driver.Core.Authentication.Libgssapi;
@@ -39,7 +40,16 @@ namespace MongoDB.Driver.Core.Authentication
             }
             else
             {
-                return new GssapiSecurityContext();
+                try
+                {
+                    var credential = SspiSecurityCredential.Acquire(SspiPackage.Kerberos, authorizationId, password);
+                    conversation.RegisterItemForDisposal(credential);
+                    return new GssapiSecurityContext();
+                }
+                catch (Exception ex)
+                {
+                    throw new MongoAuthenticationException(conversation.ConnectionId, "Unable to acquire security credential.", ex);
+                }
             }
         }
     }
