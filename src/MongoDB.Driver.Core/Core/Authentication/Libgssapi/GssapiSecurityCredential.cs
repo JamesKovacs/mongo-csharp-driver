@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Security;
+using MongoDB.Shared;
 
 namespace MongoDB.Driver.Core.Authentication.Libgssapi
 {
@@ -17,22 +18,33 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
         /// <returns></returns>
         public static GssapiSecurityCredential Acquire(string username, SecureString password)
         {
-            uint minorStatus, majorStatus;
-            GssInputBuffer nameBuffer;
-
             IntPtr gssName = IntPtr.Zero;
             IntPtr gssCanonicalizedName = IntPtr.Zero;
             try
             {
+                GssInputBuffer nameBuffer;
                 using (nameBuffer = new GssInputBuffer(username))
                 {
+                    uint minorStatus, majorStatus;
                     majorStatus = NativeMethods.ImportName(out minorStatus, ref nameBuffer, ref Oid.NtUserName, out gssName);
                     Gss.ThrowIfError(majorStatus, minorStatus);
 
                     majorStatus = NativeMethods.CanonicalizeName(out minorStatus, gssName, ref Oid.MechKrb5, out gssCanonicalizedName);
                     Gss.ThrowIfError(majorStatus, minorStatus);
 
-                    majorStatus = NativeMethods.AcquireCredential(out minorStatus, gssCanonicalizedName, uint.MaxValue, IntPtr.Zero, GssCredentialUsage.Initiate, out IntPtr credentialHandle, out OidSet actualMechanisms, out uint timeReceived);
+                    IntPtr credentialHandle;
+                    if (password != null)
+                    {
+                        GssInputBuffer passwordBuffer;
+                        using (passwordBuffer = new GssInputBuffer(SecureStringHelper.ToInsecureString(password)))
+                        {
+                            majorStatus = NativeMethods.AcquireCredentialWithPassword(out minorStatus, gssCanonicalizedName, ref passwordBuffer, uint.MaxValue, IntPtr.Zero, GssCredentialUsage.Initiate, out credentialHandle, out OidSet _, out uint _);
+                        }
+                    }
+                    else
+                    {
+                        majorStatus = NativeMethods.AcquireCredential(out minorStatus, gssCanonicalizedName, uint.MaxValue, IntPtr.Zero, GssCredentialUsage.Initiate, out credentialHandle, out OidSet _, out uint _);
+                    }
                     Gss.ThrowIfError(majorStatus, minorStatus);
                     return new GssapiSecurityCredential(credentialHandle);
                 }
