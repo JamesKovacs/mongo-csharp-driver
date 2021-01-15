@@ -23,10 +23,33 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
     {
         public ulong length;
         public IntPtr value;
+        private bool _isDisposed;
+
+        public byte[] ToByteArray()
+        {
+            if (length > int.MaxValue)
+            {
+                throw new InvalidOperationException("GssBuffer too large to convert to array.");
+            }
+
+            if (length == 0 || value == IntPtr.Zero)
+            {
+                throw new ArgumentException($"GssBuffer was unexpectedly empty: {length} / {value}");
+            }
+            var result = new byte[length];
+            Marshal.Copy(value, result, 0, (int)length);
+            return result;
+        }
 
         public void Dispose()
         {
-            NativeMethods.ReleaseBuffer(out _, this);
+            if (!_isDisposed)
+            {
+                NativeMethods.ReleaseBuffer(out _, this);
+                length = 0;
+                value = IntPtr.Zero;
+                _isDisposed = true;
+            }
         }
     }
 }

@@ -26,8 +26,25 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
 
         public GssInputBuffer(string inputString)
         {
-            length = (ulong) inputString.Length;
+            length = (ulong)inputString.Length;
             value = Marshal.StringToHGlobalAnsi(inputString);
+        }
+
+        public GssInputBuffer(byte[] inputBytes)
+        {
+            if (inputBytes == null)
+            {
+                length = 0;
+                value = default;
+                return;
+            }
+
+            int numBytes = inputBytes.Length;
+            var unmanagedArray = Marshal.AllocHGlobal(numBytes);
+            Marshal.Copy(inputBytes, 0, unmanagedArray, numBytes);
+
+            length = (ulong)numBytes;
+            value = unmanagedArray;
         }
 
         public void Dispose()

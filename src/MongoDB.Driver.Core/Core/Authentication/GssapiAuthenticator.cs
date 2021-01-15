@@ -249,7 +249,7 @@ namespace MongoDB.Driver.Core.Authentication
                     _servicePrincipalName += "@" + realm;
                 }
 
-                _context = SecurityContextFactory.InitializeSecurityContext(conversation, _servicePrincipalName, _authorizationId, _password);
+                _context = SecurityContextFactory.InitializeSecurityContext(conversation.ConnectionId, _servicePrincipalName, _authorizationId, _password);
                 try
                 {
                     _bytesToSendToServer = _context.Next(null);

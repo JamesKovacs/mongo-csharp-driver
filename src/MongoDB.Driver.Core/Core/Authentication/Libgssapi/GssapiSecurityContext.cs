@@ -15,24 +15,80 @@
 
 using System;
 using System.Runtime.InteropServices;
+using MongoDB.Driver.Core.Authentication.Sspi;
 
 namespace MongoDB.Driver.Core.Authentication.Libgssapi
 {
     internal class GssapiSecurityContext : SafeHandle, ISecurityContext
     {
-        public bool IsInitialized { get; }
-        public override bool IsInvalid { get; }
+        private readonly string _servicePrincipalName;
+        private SspiSecurityCredential _credential;
+        private bool _isDisposed;
 
-        public GssapiSecurityContext() : base(IntPtr.Zero, true)
+        public bool IsInitialized { get; private set; }
+
+        public override bool IsInvalid
         {
+            get { return base.IsClosed || handle == IntPtr.Zero; }
         }
 
-        protected override bool ReleaseHandle() => throw new NotImplementedException();
+        public GssapiSecurityContext(string servicePrincipalName, SspiSecurityCredential credential) : base(IntPtr.Zero, true)
+        {
+            _servicePrincipalName = servicePrincipalName;
+            _credential = credential;
+        }
 
-        public byte[] Next(byte[] challenge) => throw new NotImplementedException();
+        protected override bool ReleaseHandle()
+        {
+            var majorStatus = NativeMethods.ReleaseCredential(out var minorStatus, handle);
+            return majorStatus == 0 && minorStatus == 0;
+        }
+
+        public byte[] Next(byte[] challenge)
+        {
+            GssOutputBuffer outputToken = new GssOutputBuffer();
+            try
+            {
+                GssInputBuffer spnBuffer, inputToken;
+                using (spnBuffer = new GssInputBuffer(_servicePrincipalName))
+                using (inputToken = new GssInputBuffer(challenge))
+                {
+                    uint majorStatus, minorStatus;
+
+                    majorStatus = NativeMethods.ImportName(out minorStatus, ref spnBuffer, ref Oid.NtHostBasedService, out var spnName);
+                    Gss.ThrowIfError(majorStatus, minorStatus);
+                    majorStatus = NativeMethods.CanonicalizeName(out minorStatus, spnName, ref Oid.MechKrb5, out var spnCanonicalizedName);
+                    Gss.ThrowIfError(majorStatus, minorStatus);
+
+                    var context = IntPtr.Zero;
+                    const GssFlags authenticationFlags = GssFlags.Mutual | GssFlags.Sequence;
+                    majorStatus = NativeMethods.InitializeSecurityContext(out minorStatus, handle, ref context, spnCanonicalizedName, IntPtr.Zero, authenticationFlags, 0, IntPtr.Zero, ref inputToken, out var _, out outputToken, out var _, out var _);
+                    Gss.ThrowIfError(majorStatus, minorStatus);
+
+                    var output = outputToken.ToByteArray();
+                    IsInitialized = true;
+                    return output;
+                }
+            }
+            finally
+            {
+                outputToken.Dispose();
+            }
+        }
 
         public byte[] DecryptMessage(int messageLength, byte[] encryptedBytes) => throw new NotImplementedException();
 
         public byte[] EncryptMessage(byte[] plainTextBytes) => throw new NotImplementedException();
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_isDisposed && disposing)
+            {
+                _credential?.Dispose();
+                _credential = null;
+                _isDisposed = true;
+            }
+            base.Dispose(disposing);
+        }
     }
 }
