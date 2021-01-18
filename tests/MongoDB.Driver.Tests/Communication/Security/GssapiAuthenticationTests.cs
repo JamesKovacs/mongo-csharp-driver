@@ -30,7 +30,7 @@ namespace MongoDB.Driver.Tests.Communication.Security
         [SkippableFact]
         public void TestNoCredentials()
         {
-            RequireEnvironment.Check().EnvironmentVariable("EXPLICIT");
+            RequireEnvironment.Check().EnvironmentVariable("GSSAPI_TESTS_ENABLED");
 
             var mongoUrl = CreateMongoUrl();
             var clientSettings = MongoClientSettings.FromUrl(mongoUrl);
@@ -47,7 +47,7 @@ namespace MongoDB.Driver.Tests.Communication.Security
         [SkippableFact]
         public void TestSuccessfulAuthentication()
         {
-            RequireEnvironment.Check().EnvironmentVariable("EXPLICIT");
+            RequireEnvironment.Check().EnvironmentVariable("GSSAPI_TESTS_ENABLED");
 
             var mongoUrl = CreateMongoUrl();
             var client = new MongoClient(mongoUrl);
@@ -63,7 +63,7 @@ namespace MongoDB.Driver.Tests.Communication.Security
         [SkippableFact]
         public void TestBadPassword()
         {
-            RequireEnvironment.Check().EnvironmentVariable("EXPLICIT");
+            RequireEnvironment.Check().EnvironmentVariable("GSSAPI_TESTS_ENABLED");
 
             var mongoUrl = CreateMongoUrl();
             var currentCredentialUsername = mongoUrl.Username;

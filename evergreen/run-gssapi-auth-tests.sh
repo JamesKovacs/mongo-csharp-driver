@@ -12,17 +12,34 @@ set -o errexit  # Exit the script with error if any of the commands fail
 ############################################
 echo "Running GSSAPI authentication tests"
 
-# Provision the correct connection string and set up SSL if needed
-for var in TMP TEMP NUGET_PACKAGES NUGET_HTTP_CACHE_PATH APPDATA; do setx $var z:\\data\\tmp; export $var=z:\\data\\tmp; done
+export GSSAPI_TESTS_ENABLED=true
 
 if [ "Windows_NT" = "$OS" ]; then
   cmd /c "REG ADD HKLM\SYSTEM\ControlSet001\Control\Lsa\Kerberos\Domains\LDAPTEST.10GEN.CC /v KdcNames /d ldaptest.10gen.cc /t REG_MULTI_SZ /f"
   echo "LDAPTEST.10GEN.CC registry has been added"
-  
+
   cmd /c "REG ADD HKLM\SYSTEM\ControlSet001\Control\Lsa\Kerberos\Domains\LDAPTEST2.10GEN.CC /v KdcNames /d ldaptest.10gen.cc /t REG_MULTI_SZ /f"
   echo "LDAPTEST2.10GEN.CC registry has been added"
+
+  for var in TMP TEMP NUGET_PACKAGES NUGET_HTTP_CACHE_PATH APPDATA; do
+    setx $var z:\\data\\tmp
+    export $var=z:\\data\\tmp
+  done
+
+  powershell.exe .\\build.ps1 -target TestGssapi
+else
+  touch ${PROJECT_DIRECTORY}/.evergreen/krb5.conf.empty
+  export KRB5_CONFIG=${PROJECT_DIRECTORY}/.evergreen/krb5.conf.empty
+
+  echo "Writing keytab"
+  echo ${KEYTAB_BASE64} | base64 -d > ${PROJECT_DIRECTORY}/.evergreen/drivers.keytab
+  echo "Running kinit"
+  kinit -k -t ${PROJECT_DIRECTORY}/.evergreen/drivers.keytab -p ${PRINCIPAL}
+
+  for var in TMP TEMP NUGET_PACKAGES NUGET_HTTP_CACHE_PATH APPDATA; do
+    export $var=/data/tmp;
+  done
+
+  ./build.sh -target=TestGssapi
 fi;
 
-export EXPLICIT=true
-
-powershell.exe .\\build.ps1 -target TestGssapi
