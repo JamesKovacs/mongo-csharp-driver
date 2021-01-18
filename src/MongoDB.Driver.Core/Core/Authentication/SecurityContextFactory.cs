@@ -41,10 +41,10 @@ namespace MongoDB.Driver.Core.Authentication
             }
             else
             {
-                SspiSecurityCredential credential = null;
+                GssapiSecurityCredential credential = null;
                 try
                 {
-                    credential = SspiSecurityCredential.Acquire(SspiPackage.Kerberos, authorizationId, password);
+                    credential = GssapiSecurityCredential.Acquire(authorizationId, password);
                     return new GssapiSecurityContext(servicePrincipalName, credential);
                 }
                 catch (LibgssapiException ex)

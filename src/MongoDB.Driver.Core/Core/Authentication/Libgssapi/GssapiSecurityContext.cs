@@ -22,7 +22,7 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
     internal class GssapiSecurityContext : SafeHandle, ISecurityContext
     {
         private readonly string _servicePrincipalName;
-        private SspiSecurityCredential _credential;
+        private GssapiSecurityCredential _credential;
         private bool _isDisposed;
 
         public bool IsInitialized { get; private set; }
@@ -32,7 +32,7 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
             get { return base.IsClosed || handle == IntPtr.Zero; }
         }
 
-        public GssapiSecurityContext(string servicePrincipalName, SspiSecurityCredential credential) : base(IntPtr.Zero, true)
+        public GssapiSecurityContext(string servicePrincipalName, GssapiSecurityCredential credential) : base(IntPtr.Zero, true)
         {
             _servicePrincipalName = servicePrincipalName;
             _credential = credential;
