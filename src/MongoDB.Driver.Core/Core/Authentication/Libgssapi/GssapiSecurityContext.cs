@@ -23,6 +23,7 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
     {
         private readonly string _servicePrincipalName;
         private GssapiSecurityCredential _credential;
+        private IntPtr _context;
         private bool _isDisposed;
 
         public bool IsInitialized { get; private set; }
@@ -36,6 +37,7 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
         {
             _servicePrincipalName = servicePrincipalName;
             _credential = credential;
+            _context = IntPtr.Zero;
         }
 
         protected override bool ReleaseHandle()
@@ -60,9 +62,8 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
                     majorStatus = NativeMethods.CanonicalizeName(out minorStatus, spnName, ref Oid.MechKrb5, out var spnCanonicalizedName);
                     Gss.ThrowIfError(majorStatus, minorStatus);
 
-                    var context = IntPtr.Zero;
                     const GssFlags authenticationFlags = GssFlags.Mutual | GssFlags.Sequence;
-                    majorStatus = NativeMethods.InitializeSecurityContext(out minorStatus, handle, ref context, spnCanonicalizedName, IntPtr.Zero, authenticationFlags, 0, IntPtr.Zero, ref inputToken, out var _, out outputToken, out var _, out var _);
+                    majorStatus = NativeMethods.InitializeSecurityContext(out minorStatus, handle, ref _context, spnCanonicalizedName, IntPtr.Zero, authenticationFlags, 0, IntPtr.Zero, ref inputToken, out var _, out outputToken, out var _, out var _);
                     Gss.ThrowIfError(majorStatus, minorStatus);
 
                     var output = outputToken.ToByteArray();
@@ -76,9 +77,43 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
             }
         }
 
-        public byte[] DecryptMessage(int messageLength, byte[] encryptedBytes) => throw new NotImplementedException();
+        public byte[] DecryptMessage(int messageLength, byte[] encryptedBytes)
+        {
+            GssOutputBuffer outputBuffer = new GssOutputBuffer();
+            try
+            {
+                GssInputBuffer inputBuffer;
+                using (inputBuffer = new GssInputBuffer(encryptedBytes))
+                {
+                    var majorStatus = NativeMethods.UnwrapMessage(out uint minorStatus, ref _context, ref inputBuffer, out outputBuffer, out int _, out int _);
+                    Gss.ThrowIfError(majorStatus, minorStatus);
+                    return outputBuffer.ToByteArray();
+                }
+            }
+            finally
+            {
+                outputBuffer.Dispose();
+            }
+        }
 
-        public byte[] EncryptMessage(byte[] plainTextBytes) => throw new NotImplementedException();
+        public byte[] EncryptMessage(byte[] plainTextBytes)
+        {
+            GssOutputBuffer outputBuffer = new GssOutputBuffer();
+            try
+            {
+                GssInputBuffer inputBuffer;
+                using (inputBuffer = new GssInputBuffer(plainTextBytes))
+                {
+                    var majorStatus = NativeMethods.WrapMessage(out uint minorStatus, ref _context, 0, 0, ref inputBuffer, out int _, out outputBuffer);
+                    Gss.ThrowIfError(majorStatus, minorStatus);
+                    return outputBuffer.ToByteArray();
+                }
+            }
+            finally
+            {
+                outputBuffer.Dispose();
+            }
+        }
 
         protected override void Dispose(bool disposing)
         {
