@@ -13,13 +13,37 @@
 * limitations under the License.
 */
 
+using System;
+
 namespace MongoDB.Driver.Core.Authentication
 {
-    internal interface ISecurityContext
+    /// <summary>
+    /// Represents the security context being used for authentication.
+    /// </summary>
+    public interface ISecurityContext : IDisposable
     {
+        /// <summary>
+        /// Negotiates the steps of an authentication handshake.
+        /// </summary>
+        /// <param name="challenge"></param>
+        /// <returns></returns>
         byte[] Next(byte[] challenge);
+        /// <summary>
+        /// Whether the security context has been initialized.
+        /// </summary>
         bool IsInitialized { get; }
+        /// <summary>
+        /// Decrypts ciphertext to plaintext.
+        /// </summary>
+        /// <param name="messageLength"></param>
+        /// <param name="encryptedBytes"></param>
+        /// <returns></returns>
         byte[] DecryptMessage(int messageLength, byte[] encryptedBytes);
+        /// <summary>
+        /// Encrypts plaintext to ciphertext.
+        /// </summary>
+        /// <param name="plainTextBytes"></param>
+        /// <returns></returns>
         byte[] EncryptMessage(byte[] plainTextBytes);
     }
 }

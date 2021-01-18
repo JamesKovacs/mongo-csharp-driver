@@ -66,33 +66,36 @@ namespace MongoDB.Driver.Core.Authentication
             Ensure.IsNotNull(connection, nameof(connection));
             Ensure.IsNotNull(description, nameof(description));
 
-            ISaslStep currentStep;
-            BsonDocument command;
-            var conversation = new SaslConversation(description.ConnectionId);
-            var speculativeAuthenticateResult = description.IsMasterResult.SpeculativeAuthenticate;
-            if (_speculativeFirstStep != null && speculativeAuthenticateResult != null)
+            using (var conversation = new SaslConversation(description.ConnectionId))
             {
-                currentStep = Transition(conversation, _speculativeFirstStep, speculativeAuthenticateResult, out command);
-            }
-            else
-            {
-                currentStep = _mechanism.Initialize(connection, conversation, description);
-                command = CreateStartCommand(currentStep);
-            }
-            while (currentStep != null)
-            {
-                BsonDocument result;
-                try
+                ISaslStep currentStep;
+                BsonDocument command;
+                var speculativeAuthenticateResult = description.IsMasterResult.SpeculativeAuthenticate;
+                if (_speculativeFirstStep != null && speculativeAuthenticateResult != null)
                 {
-                    var protocol = CreateCommandProtocol(command);
-                    result = protocol.Execute(connection, cancellationToken);
+                    currentStep = Transition(conversation, _speculativeFirstStep, speculativeAuthenticateResult, out command);
                 }
-                catch (MongoCommandException ex)
+                else
                 {
-                    throw CreateException(connection, ex);
+                    currentStep = _mechanism.Initialize(connection, conversation, description);
+                    command = CreateStartCommand(currentStep);
                 }
 
-                currentStep = Transition(conversation, currentStep, result, out command);
+                while (currentStep != null)
+                {
+                    BsonDocument result;
+                    try
+                    {
+                        var protocol = CreateCommandProtocol(command);
+                        result = protocol.Execute(connection, cancellationToken);
+                    }
+                    catch (MongoCommandException ex)
+                    {
+                        throw CreateException(connection, ex);
+                    }
+
+                    currentStep = Transition(conversation, currentStep, result, out command);
+                }
             }
         }
 
@@ -102,33 +105,36 @@ namespace MongoDB.Driver.Core.Authentication
             Ensure.IsNotNull(connection, nameof(connection));
             Ensure.IsNotNull(description, nameof(description));
 
-            ISaslStep currentStep;
-            BsonDocument command;
-            var conversation = new SaslConversation(description.ConnectionId);
-            var speculativeAuthenticateResult = description.IsMasterResult.SpeculativeAuthenticate;
-            if (_speculativeFirstStep != null && speculativeAuthenticateResult != null)
+            using (var conversation = new SaslConversation(description.ConnectionId))
             {
-                currentStep = Transition(conversation, _speculativeFirstStep, speculativeAuthenticateResult, out command);
-            }
-            else
-            {
-                currentStep = _mechanism.Initialize(connection, conversation, description);
-                command = CreateStartCommand(currentStep);
-            }
-            while (currentStep != null)
-            {
-                BsonDocument result;
-                try
+                ISaslStep currentStep;
+                BsonDocument command;
+                var speculativeAuthenticateResult = description.IsMasterResult.SpeculativeAuthenticate;
+                if (_speculativeFirstStep != null && speculativeAuthenticateResult != null)
                 {
-                    var protocol = CreateCommandProtocol(command);
-                    result = await protocol.ExecuteAsync(connection, cancellationToken).ConfigureAwait(false);
+                    currentStep = Transition(conversation, _speculativeFirstStep, speculativeAuthenticateResult, out command);
                 }
-                catch (MongoCommandException ex)
+                else
                 {
-                    throw CreateException(connection, ex);
+                    currentStep = _mechanism.Initialize(connection, conversation, description);
+                    command = CreateStartCommand(currentStep);
                 }
 
-                currentStep = Transition(conversation, currentStep, result, out command);
+                while (currentStep != null)
+                {
+                    BsonDocument result;
+                    try
+                    {
+                        var protocol = CreateCommandProtocol(command);
+                        result = await protocol.ExecuteAsync(connection, cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (MongoCommandException ex)
+                    {
+                        throw CreateException(connection, ex);
+                    }
+
+                    currentStep = Transition(conversation, currentStep, result, out command);
+                }
             }
         }
 
@@ -207,10 +213,12 @@ namespace MongoDB.Driver.Core.Authentication
         /// <summary>
         /// Represents a SASL conversation.
         /// </summary>
-        protected sealed class SaslConversation
+        protected internal sealed class SaslConversation : IDisposable
         {
             // fields
             private readonly ConnectionId _connectionId;
+            private ISecurityContext _securityContext;
+            private bool _isDisposed;
 
             // constructors
             /// <summary>
@@ -232,6 +240,34 @@ namespace MongoDB.Driver.Core.Authentication
             public ConnectionId ConnectionId
             {
                 get { return _connectionId; }
+            }
+
+            // methods
+            /// <inheritdoc/>
+            public void Dispose()
+            {
+                Dispose(true);
+                GC.SuppressFinalize(this);
+            }
+
+            /// <summary>
+            /// Registers an <see cref="ISecurityContext"/> for disposal.
+            /// </summary>
+            /// <param name="securityContext"></param>
+            public void RegisterSecurityContext(ISecurityContext securityContext)
+            {
+                _securityContext = securityContext;
+            }
+
+            private void Dispose(bool disposing)
+            {
+                if (!disposing || _isDisposed)
+                {
+                    return;
+                }
+
+                _securityContext?.Dispose();
+                _isDisposed = true;
             }
         }
 

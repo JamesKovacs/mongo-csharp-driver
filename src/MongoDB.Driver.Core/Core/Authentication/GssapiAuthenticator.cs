@@ -234,8 +234,8 @@ namespace MongoDB.Driver.Core.Authentication
         private class FirstStep : ISaslStep
         {
             private readonly string _authorizationId;
-            private byte[] _bytesToSendToServer;
-            private ISecurityContext _context;
+            private readonly byte[] _bytesToSendToServer;
+            private readonly ISecurityContext _context;
             private readonly SecureString _password;
             private readonly string _servicePrincipalName;
 
@@ -249,9 +249,10 @@ namespace MongoDB.Driver.Core.Authentication
                     _servicePrincipalName += "@" + realm;
                 }
 
-                _context = SecurityContextFactory.InitializeSecurityContext(conversation.ConnectionId, _servicePrincipalName, _authorizationId, _password);
                 try
                 {
+                    _context = SecurityContextFactory.InitializeSecurityContext(conversation.ConnectionId, _servicePrincipalName, _authorizationId, _password);
+                    conversation.RegisterSecurityContext(_context);
                     _bytesToSendToServer = _context.Next(null);
                 }
                 catch (Exception ex)
