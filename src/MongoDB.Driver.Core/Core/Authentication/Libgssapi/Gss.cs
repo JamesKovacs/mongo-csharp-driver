@@ -37,7 +37,7 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
                 NativeMethods.ReleaseBuffer(out _, outputBuffer);
             }
 
-            if (majorMessage != null || minorMessage != null)
+            if (!string.IsNullOrEmpty(majorMessage) || !string.IsNullOrEmpty(minorMessage))
             {
                 throw new LibgssapiException(majorMessage, minorMessage);
             }
