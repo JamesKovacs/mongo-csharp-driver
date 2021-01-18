@@ -20,8 +20,8 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
     internal static class Gss {
         public static void ThrowIfError(uint majorStatus, uint minorStatus)
         {
-            var minorMessage = "";
-            var majorMessage = "";
+            string majorMessage = null;
+            string minorMessage = null;
 
             if (majorStatus != 0)
             {
