@@ -25,21 +25,13 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
 #endif
     public class LibgssapiException : Exception
     {
-        private readonly string _majorErrorMessage;
-        private readonly string _minorErrorMessage;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="LibgssapiException"/> class.
         /// </summary>
         /// <param name="majorErrorMessage"></param>
         /// <param name="minorErrorMessage"></param>
-        public LibgssapiException(string majorErrorMessage, string minorErrorMessage)
+        public LibgssapiException(string majorErrorMessage, string minorErrorMessage) : base($"Libgssapi failure - majorStatus: {majorErrorMessage}; minorStatus: {minorErrorMessage}")
         {
-            _majorErrorMessage = majorErrorMessage;
-            _minorErrorMessage = minorErrorMessage;
         }
-
-        /// <inheritdoc />
-        public override string ToString() => $"Libgssapi failure - majorStatus: {_majorErrorMessage}; minorStatus: {_minorErrorMessage}";
     }
 }
