@@ -70,9 +70,8 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
                     majorStatus = NativeMethods.InitializeSecurityContext(out minorStatus, credentialHandle, ref handle, spnCanonicalizedName, IntPtr.Zero, authenticationFlags, 0, IntPtr.Zero, ref inputToken, out var _, out outputToken, out var _, out var _);
                     Gss.ThrowIfError(majorStatus, minorStatus);
 
-                    var output = outputToken.ToByteArray();
                     IsInitialized = true;
-                    return output;
+                    return outputToken.ToByteArray();
                 }
             }
             finally
