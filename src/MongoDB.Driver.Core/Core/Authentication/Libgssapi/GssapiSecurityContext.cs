@@ -60,7 +60,7 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
                     Gss.ThrowIfError(majorStatus, minorStatus);
 
                     NativeMethods.DisplayName(out _, spnCanonicalizedName, out var debugBuffer, out _);
-                    var canonicalized = Marshal.PtrToStringAnsi(debugBuffer.value);
+                    var canonicalized = Marshal.PtrToStringAnsi(debugBuffer.Value);
 
                     // TODO: We should protect access via DangerousAddRef() and DangerousRelease()
                     var credentialHandle = _credential.DangerousGetHandle();
@@ -87,7 +87,7 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
                 GssInputBuffer inputBuffer;
                 using (inputBuffer = new GssInputBuffer(encryptedBytes))
                 {
-                    var majorStatus = NativeMethods.UnwrapMessage(out uint minorStatus, ref handle, ref inputBuffer, out outputBuffer, out int _, out int _);
+                    var majorStatus = NativeMethods.UnwrapMessage(out uint minorStatus, handle, ref inputBuffer, out outputBuffer, out int _, out int _);
                     Gss.ThrowIfError(majorStatus, minorStatus);
                     return outputBuffer.ToByteArray();
                 }
@@ -106,7 +106,7 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
                 GssInputBuffer inputBuffer;
                 using (inputBuffer = new GssInputBuffer(plainTextBytes))
                 {
-                    var majorStatus = NativeMethods.WrapMessage(out uint minorStatus, ref handle, 0, 0, ref inputBuffer, out int _, out outputBuffer);
+                    var majorStatus = NativeMethods.WrapMessage(out uint minorStatus, handle, 0, 0, ref inputBuffer, out int _, out outputBuffer);
                     Gss.ThrowIfError(majorStatus, minorStatus);
                     return outputBuffer.ToByteArray();
                 }

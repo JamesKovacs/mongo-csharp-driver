@@ -24,14 +24,14 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
             GssOutputBuffer outputBuffer;
             Oid outputNameType;
             majorStatus = NativeMethods.DisplayName(out minorStatus, gssName, out outputBuffer, out outputNameType);
-            var nameFromGss = Marshal.PtrToStringAnsi(outputBuffer.value);
+            var nameFromGss = Marshal.PtrToStringAnsi(outputBuffer.Value);
             Console.WriteLine($"{majorStatus}:{minorStatus} - name from ptr: {nameFromGss}");
 
             majorStatus = NativeMethods.CanonicalizeName(out minorStatus, gssName, ref Oid.MechKrb5, out var gssCanonicalizedName);
             Console.WriteLine($"{majorStatus}:{minorStatus} - ptr to canonicalized name: {gssCanonicalizedName}");
 
             majorStatus = NativeMethods.DisplayName(out minorStatus, gssName, out outputBuffer, out outputNameType);
-            var canonicalizedNameFromGss = Marshal.PtrToStringAnsi(outputBuffer.value);
+            var canonicalizedNameFromGss = Marshal.PtrToStringAnsi(outputBuffer.Value);
             Console.WriteLine($"{majorStatus}:{minorStatus} - name from canonicalized ptr: {canonicalizedNameFromGss}");
 
             OidSet actualMechanisms;
@@ -50,14 +50,14 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
             majorStatus = NativeMethods.ImportName(out minorStatus, ref spnBuffer, ref Oid.NtHostBasedService, out var spnName);
             majorStatus = NativeMethods.CanonicalizeName(out minorStatus, spnName, ref Oid.MechKrb5, out var spnCanonicalizedName);
             majorStatus = NativeMethods.DisplayName(out minorStatus, spnCanonicalizedName, out outputBuffer, out outputNameType);
-            var canonicalizedSpn = Marshal.PtrToStringAnsi(outputBuffer.value);
+            var canonicalizedSpn = Marshal.PtrToStringAnsi(outputBuffer.Value);
             Console.WriteLine($"{majorStatus}:{minorStatus} - canonicalized spn: {canonicalizedSpn}");
 
             var context = IntPtr.Zero;
             var input = new GssInputBuffer();
             GssOutputBuffer output;
             majorStatus = NativeMethods.InitializeSecurityContext(out minorStatus, credentialHandle, ref context, spnName, IntPtr.Zero, GssFlags.Mutual | GssFlags.Sequence, 0, IntPtr.Zero, ref input, out var _, out output, out var _, out var _);
-            Console.WriteLine($"{majorStatus}:{minorStatus} - response from empty challenge: byte[] of size {output.length} and ptr {output.value}");
+            Console.WriteLine($"{majorStatus}:{minorStatus} - response from empty challenge: byte[] of size {output.Length} and ptr {output.Value}");
 
             Gss.ThrowIfError(majorStatus, minorStatus);
 

@@ -370,10 +370,11 @@ namespace MongoDB.Driver.Core.Authentication
 
             public ISaslStep Transition(SaslConversation conversation, byte[] bytesReceivedFromServer)
             {
-                byte[] decryptedBytes;
                 try
                 {
-                    decryptedBytes = _context.DecryptMessage(0, bytesReceivedFromServer);
+                    // NOTE: We simply check whether we can successfully decrypt the message,
+                    //       but don't do anything with the decrypted plaintext
+                    _context.DecryptMessage(0, bytesReceivedFromServer);
                 }
                 catch (Exception ex)
                 {
