@@ -61,7 +61,7 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
 
             Gss.ThrowIfError(majorStatus, minorStatus);
 
-            Marshal.FreeHGlobal(nameBuffer.value);
+            Marshal.FreeHGlobal(nameBuffer.Value);
         }
     }
 }

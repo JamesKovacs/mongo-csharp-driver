@@ -38,7 +38,7 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
         public static extern uint AcquireCredential(out uint minorStatus, IntPtr name, uint timeRequested, IntPtr desiredMechanisms, GssCredentialUsage credentialUsage, out IntPtr credentialHandle, out OidSet actualMechanisms, out uint timeReceived);
 
         [DllImport(GSSAPI_LIBRARY, EntryPoint = "gss_init_sec_context")]
-        public static extern uint InitializeSecurityContext(out uint minorStatus, IntPtr credentialHandle, ref IntPtr context, IntPtr spnName, IntPtr inputMechType, GssFlags requestFlags, uint timeRequested, IntPtr inputChannelBindings, ref GssInputBuffer inputToken, out IntPtr actualMechType, out GssOutputBuffer outputToken, out GssFlags returnedFlags, out uint timeReceived);
+        public static extern uint InitializeSecurityContext(out uint minorStatus, IntPtr credentialHandle, ref IntPtr securityContextHandle, IntPtr spnName, IntPtr inputMechType, GssFlags requestFlags, uint timeRequested, IntPtr inputChannelBindings, ref GssInputBuffer inputToken, out IntPtr actualMechType, out GssOutputBuffer outputToken, out GssFlags returnedFlags, out uint timeReceived);
 
         [DllImport(GSSAPI_LIBRARY, EntryPoint = "gss_display_status")]
         public static extern uint DisplayStatus(out uint minorStatus, uint status, GssCode statusType, ref IntPtr mechType, out uint messageContext, out GssOutputBuffer statusString);
@@ -47,7 +47,7 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
         public static extern uint ReleaseName(out uint minorStatus, IntPtr name);
 
         [DllImport(GSSAPI_LIBRARY, EntryPoint = "gss_release_buffer")]
-        public static extern uint ReleaseBuffer(out uint minorStatus, GssOutputBuffer buffer);
+        public static extern uint ReleaseBuffer(out uint minorStatus, ref GssOutputBuffer buffer);
 
         [DllImport(GSSAPI_LIBRARY, EntryPoint = "gss_release_cred")]
         public static extern uint ReleaseCredential(out uint minorStatus, IntPtr credentialHandle);

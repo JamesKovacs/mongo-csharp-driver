@@ -16,10 +16,13 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication.Libgssapi
 
         public GssapiSecurityCredentialTests()
         {
-            var authGssapi = GetEnvironmentVariable("AUTH_GSSAPI");
-            var authParts = authGssapi.Split(":");
-            _username = authParts[0];
-            _password = authParts[1];
+            var authGssapi = Environment.GetEnvironmentVariable("AUTH_GSSAPI");
+            if (!string.IsNullOrEmpty(authGssapi))
+            {
+                var authParts = authGssapi.Split(':');
+                _username = Uri.UnescapeDataString(authParts[0]);
+                _password = Uri.UnescapeDataString(authParts[1]);
+            }
         }
 
         [SkippableFact]
@@ -51,7 +54,5 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication.Libgssapi
             var exception = Record.Exception(() => GssapiSecurityCredential.Acquire(_username, securePassword));
             exception.Should().BeOfType<LibgssapiException>();
         }
-
-        private string GetEnvironmentVariable(string name) => Environment.GetEnvironmentVariable(name) ?? throw new Exception($"{name} has not been configured.");
     }
 }

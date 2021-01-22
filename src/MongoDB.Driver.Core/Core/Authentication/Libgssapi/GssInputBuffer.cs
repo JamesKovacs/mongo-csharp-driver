@@ -21,21 +21,21 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
     [StructLayout(LayoutKind.Sequential)]
     internal struct GssInputBuffer : IDisposable
     {
-        public ulong length;
-        public IntPtr value;
+        public ulong Length;
+        public IntPtr Value;
 
         public GssInputBuffer(string inputString)
         {
-            length = (ulong)inputString.Length;
-            value = Marshal.StringToHGlobalAnsi(inputString);
+            Length = (ulong)inputString.Length;
+            Value = Marshal.StringToHGlobalAnsi(inputString);
         }
 
         public GssInputBuffer(byte[] inputBytes)
         {
             if (inputBytes == null)
             {
-                length = 0;
-                value = default;
+                Length = 0;
+                Value = default;
                 return;
             }
 
@@ -43,15 +43,15 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
             var unmanagedArray = Marshal.AllocHGlobal(numBytes);
             Marshal.Copy(inputBytes, 0, unmanagedArray, numBytes);
 
-            length = (ulong)numBytes;
-            value = unmanagedArray;
+            Length = (ulong)numBytes;
+            Value = unmanagedArray;
         }
 
         public void Dispose()
         {
-            if (value != IntPtr.Zero)
+            if (Value != IntPtr.Zero)
             {
-                Marshal.FreeHGlobal(value);
+                Marshal.FreeHGlobal(Value);
             }
         }
     }

@@ -19,11 +19,10 @@ using System.Runtime.InteropServices;
 namespace MongoDB.Driver.Core.Authentication.Libgssapi
 {
     [StructLayout(LayoutKind.Sequential)]
-    internal struct GssOutputBuffer : IDisposable
+    internal struct GssOutputBuffer
     {
         public ulong length;
         public IntPtr value;
-        private bool _isDisposed;
 
         public byte[] ToByteArray()
         {
@@ -32,23 +31,19 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
                 throw new InvalidOperationException("GssBuffer too large to convert to array.");
             }
 
-            if (length == 0 || value == IntPtr.Zero)
-            {
-                throw new ArgumentException($"GssBuffer was unexpectedly empty: {length} / {value}");
-            }
             var result = new byte[length];
-            Marshal.Copy(value, result, 0, (int)length);
+            if (length > 0)
+            {
+                Marshal.Copy(value, result, 0, (int)length);
+            }
             return result;
         }
 
         public void Dispose()
         {
-            if (!_isDisposed)
+            if (value != IntPtr.Zero)
             {
-                NativeMethods.ReleaseBuffer(out _, this);
-                length = 0;
-                value = IntPtr.Zero;
-                _isDisposed = true;
+                NativeMethods.ReleaseBuffer(out _, ref this);
             }
         }
     }

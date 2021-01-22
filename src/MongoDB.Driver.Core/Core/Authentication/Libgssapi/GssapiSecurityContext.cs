@@ -15,7 +15,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using MongoDB.Driver.Core.Authentication.Sspi;
 
 namespace MongoDB.Driver.Core.Authentication.Libgssapi
 {
@@ -23,7 +22,6 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
     {
         private readonly string _servicePrincipalName;
         private GssapiSecurityCredential _credential;
-        private IntPtr _context;
         private bool _isDisposed;
 
         public bool IsInitialized { get; private set; }
@@ -35,9 +33,8 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
 
         public GssapiSecurityContext(string servicePrincipalName, GssapiSecurityCredential credential) : base(IntPtr.Zero, true)
         {
-            _servicePrincipalName = servicePrincipalName;
+            _servicePrincipalName = servicePrincipalName.Replace("/", "@");
             _credential = credential;
-            _context = IntPtr.Zero;
         }
 
         protected override bool ReleaseHandle()
@@ -62,8 +59,13 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
                     majorStatus = NativeMethods.CanonicalizeName(out minorStatus, spnName, ref Oid.MechKrb5, out var spnCanonicalizedName);
                     Gss.ThrowIfError(majorStatus, minorStatus);
 
+                    NativeMethods.DisplayName(out _, spnCanonicalizedName, out var debugBuffer, out _);
+                    var canonicalized = Marshal.PtrToStringAnsi(debugBuffer.value);
+
+                    // TODO: We should protect access via DangerousAddRef() and DangerousRelease()
+                    var credentialHandle = _credential.DangerousGetHandle();
                     const GssFlags authenticationFlags = GssFlags.Mutual | GssFlags.Sequence;
-                    majorStatus = NativeMethods.InitializeSecurityContext(out minorStatus, handle, ref _context, spnCanonicalizedName, IntPtr.Zero, authenticationFlags, 0, IntPtr.Zero, ref inputToken, out var _, out outputToken, out var _, out var _);
+                    majorStatus = NativeMethods.InitializeSecurityContext(out minorStatus, credentialHandle, ref handle, spnCanonicalizedName, IntPtr.Zero, authenticationFlags, 0, IntPtr.Zero, ref inputToken, out var _, out outputToken, out var _, out var _);
                     Gss.ThrowIfError(majorStatus, minorStatus);
 
                     var output = outputToken.ToByteArray();
@@ -85,7 +87,7 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
                 GssInputBuffer inputBuffer;
                 using (inputBuffer = new GssInputBuffer(encryptedBytes))
                 {
-                    var majorStatus = NativeMethods.UnwrapMessage(out uint minorStatus, ref _context, ref inputBuffer, out outputBuffer, out int _, out int _);
+                    var majorStatus = NativeMethods.UnwrapMessage(out uint minorStatus, ref handle, ref inputBuffer, out outputBuffer, out int _, out int _);
                     Gss.ThrowIfError(majorStatus, minorStatus);
                     return outputBuffer.ToByteArray();
                 }
@@ -104,7 +106,7 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
                 GssInputBuffer inputBuffer;
                 using (inputBuffer = new GssInputBuffer(plainTextBytes))
                 {
-                    var majorStatus = NativeMethods.WrapMessage(out uint minorStatus, ref _context, 0, 0, ref inputBuffer, out int _, out outputBuffer);
+                    var majorStatus = NativeMethods.WrapMessage(out uint minorStatus, ref handle, 0, 0, ref inputBuffer, out int _, out outputBuffer);
                     Gss.ThrowIfError(majorStatus, minorStatus);
                     return outputBuffer.ToByteArray();
                 }
