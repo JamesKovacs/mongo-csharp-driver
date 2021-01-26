@@ -74,8 +74,7 @@ namespace MongoDB.Driver.Tests.Communication.Security
             var collection = GetTestCollection(client, mongoUrl.DatabaseName);
 
             var exception = Record.Exception(() => { collection.FindSync(new BsonDocument()).ToList(); });
-            var e = exception.Should().BeOfType<MongoAuthenticationException>().Subject;
-            e.InnerException.Message.Should().Be("The logon failed.");
+            exception.Should().BeOfType<MongoAuthenticationException>();
         }
 
         // private methods

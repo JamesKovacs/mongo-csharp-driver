@@ -39,8 +39,13 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
 
         protected override bool ReleaseHandle()
         {
-            var majorStatus = NativeMethods.ReleaseCredential(out var minorStatus, handle);
-            return majorStatus == 0 && minorStatus == 0;
+            if (handle != IntPtr.Zero)
+            {
+                var majorStatus = NativeMethods.DeleteSecurityContext(out var minorStatus, handle, IntPtr.Zero);
+                return majorStatus == 0 && minorStatus == 0;
+            }
+
+            return true;
         }
 
         public byte[] Next(byte[] challenge)
@@ -58,9 +63,6 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
                     Gss.ThrowIfError(majorStatus, minorStatus);
                     majorStatus = NativeMethods.CanonicalizeName(out minorStatus, spnName, ref Oid.MechKrb5, out var spnCanonicalizedName);
                     Gss.ThrowIfError(majorStatus, minorStatus);
-
-                    NativeMethods.DisplayName(out _, spnCanonicalizedName, out var debugBuffer, out _);
-                    var canonicalized = Marshal.PtrToStringAnsi(debugBuffer.Value);
 
                     // TODO: We should protect access via DangerousAddRef() and DangerousRelease()
                     var credentialHandle = _credential.DangerousGetHandle();
@@ -123,6 +125,7 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
             {
                 _credential?.Dispose();
                 _credential = null;
+                ReleaseHandle();
                 _isDisposed = true;
             }
             base.Dispose(disposing);

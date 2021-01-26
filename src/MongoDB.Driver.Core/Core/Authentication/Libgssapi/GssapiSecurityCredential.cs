@@ -107,5 +107,14 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
         {
             get { return base.IsClosed || base.handle == IntPtr.Zero; }
         }
+
+        /// <inheritdoc />
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                ReleaseHandle();
+            }
+        }
     }
 }

@@ -20,7 +20,7 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
 {
     internal static class NativeMethods
     {
-        private const string GSSAPI_LIBRARY = @"libgssapi_krb5";
+        private const string GSSAPI_LIBRARY = @"gssapi_krb5";
 
         [DllImport(GSSAPI_LIBRARY, EntryPoint = "gss_import_name")]
         public static extern uint ImportName(out uint minorStatus, ref GssInputBuffer name, ref Oid nameType, out IntPtr outputName);
@@ -51,6 +51,9 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
 
         [DllImport(GSSAPI_LIBRARY, EntryPoint = "gss_release_cred")]
         public static extern uint ReleaseCredential(out uint minorStatus, IntPtr credentialHandle);
+
+        [DllImport(GSSAPI_LIBRARY, EntryPoint = "gss_delete_sec_context")]
+        public static extern uint DeleteSecurityContext(out uint minorStatus, IntPtr securityContextHandle, IntPtr outputToken);
 
         [DllImport(GSSAPI_LIBRARY, EntryPoint = "gss_wrap")]
         public static extern uint WrapMessage(out uint minorStatus, IntPtr securityContextHandle, int confidentialityRequested, int protectionType, ref GssInputBuffer inputBuffer, out int confidentialityState, out GssOutputBuffer outputBuffer);
