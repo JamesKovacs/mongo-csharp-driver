@@ -50,6 +50,7 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
 
         public byte[] Next(byte[] challenge)
         {
+            IntPtr spnName = IntPtr.Zero;
             GssOutputBuffer outputToken = new GssOutputBuffer();
             try
             {
@@ -59,15 +60,12 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
                 {
                     uint majorStatus, minorStatus;
 
-                    majorStatus = NativeMethods.ImportName(out minorStatus, ref spnBuffer, ref Oid.NtHostBasedService, out var spnName);
-                    Gss.ThrowIfError(majorStatus, minorStatus);
-                    majorStatus = NativeMethods.CanonicalizeName(out minorStatus, spnName, ref Oid.MechKrb5, out var spnCanonicalizedName);
+                    majorStatus = NativeMethods.ImportName(out minorStatus, ref spnBuffer, ref Oid.NtHostBasedService, out spnName);
                     Gss.ThrowIfError(majorStatus, minorStatus);
 
-                    // TODO: We should protect access via DangerousAddRef() and DangerousRelease()
                     var credentialHandle = _credential.DangerousGetHandle();
                     const GssFlags authenticationFlags = GssFlags.Mutual | GssFlags.Sequence;
-                    majorStatus = NativeMethods.InitializeSecurityContext(out minorStatus, credentialHandle, ref handle, spnCanonicalizedName, IntPtr.Zero, authenticationFlags, 0, IntPtr.Zero, ref inputToken, out var _, out outputToken, out var _, out var _);
+                    majorStatus = NativeMethods.InitializeSecurityContext(out minorStatus, credentialHandle, ref handle, spnName, IntPtr.Zero, authenticationFlags, 0, IntPtr.Zero, ref inputToken, out var _, out outputToken, out var _, out var _);
                     Gss.ThrowIfError(majorStatus, minorStatus);
 
                     IsInitialized = true;
@@ -77,6 +75,10 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
             finally
             {
                 outputToken.Dispose();
+                if (spnName != IntPtr.Zero)
+                {
+                    NativeMethods.ReleaseName(out _, spnName);
+                }
             }
         }
 

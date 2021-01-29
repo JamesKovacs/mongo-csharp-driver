@@ -34,7 +34,6 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
         public static GssapiSecurityCredential Acquire(string username, SecureString password)
         {
             IntPtr gssName = IntPtr.Zero;
-            IntPtr gssCanonicalizedName = IntPtr.Zero;
             try
             {
                 GssInputBuffer nameBuffer;
@@ -44,21 +43,18 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
                     majorStatus = NativeMethods.ImportName(out minorStatus, ref nameBuffer, ref Oid.NtUserName, out gssName);
                     Gss.ThrowIfError(majorStatus, minorStatus);
 
-                    majorStatus = NativeMethods.CanonicalizeName(out minorStatus, gssName, ref Oid.MechKrb5, out gssCanonicalizedName);
-                    Gss.ThrowIfError(majorStatus, minorStatus);
-
                     IntPtr credentialHandle;
                     if (password != null)
                     {
                         GssInputBuffer passwordBuffer;
                         using (passwordBuffer = new GssInputBuffer(SecureStringHelper.ToInsecureString(password)))
                         {
-                            majorStatus = NativeMethods.AcquireCredentialWithPassword(out minorStatus, gssCanonicalizedName, ref passwordBuffer, uint.MaxValue, IntPtr.Zero, GssCredentialUsage.Initiate, out credentialHandle, out OidSet _, out uint _);
+                            majorStatus = NativeMethods.AcquireCredentialWithPassword(out minorStatus, gssName, ref passwordBuffer, uint.MaxValue, IntPtr.Zero, GssCredentialUsage.Initiate, out credentialHandle, out OidSet _, out uint _);
                         }
                     }
                     else
                     {
-                        majorStatus = NativeMethods.AcquireCredential(out minorStatus, gssCanonicalizedName, uint.MaxValue, IntPtr.Zero, GssCredentialUsage.Initiate, out credentialHandle, out OidSet _, out uint _);
+                        majorStatus = NativeMethods.AcquireCredential(out minorStatus, gssName, uint.MaxValue, IntPtr.Zero, GssCredentialUsage.Initiate, out credentialHandle, out OidSet _, out uint _);
                     }
                     Gss.ThrowIfError(majorStatus, minorStatus);
                     return new GssapiSecurityCredential(credentialHandle);
@@ -68,11 +64,7 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
             {
                 if (gssName != IntPtr.Zero)
                 {
-                    NativeMethods.ReleaseName(out uint _, gssName);
-                }
-                if (gssCanonicalizedName != IntPtr.Zero)
-                {
-                    NativeMethods.ReleaseName(out uint _, gssCanonicalizedName);
+                    NativeMethods.ReleaseName(out _, gssName);
                 }
             }
         }
