@@ -23,13 +23,18 @@ namespace MongoDB.Driver.Core.Authentication
 {
     internal static class SecurityContextFactory
     {
-        public static ISecurityContext InitializeSecurityContext(ConnectionId connectionId, string servicePrincipalName, string authorizationId, SecureString password)
+        public static ISecurityContext InitializeSecurityContext(ConnectionId connectionId, string serviceName, string hostname, string realm, string authorizationId, SecureString password)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 SspiSecurityCredential credential = null;
                 try
                 {
+                    var servicePrincipalName = $"{serviceName}/{hostname}";
+                    if (!string.IsNullOrEmpty(realm))
+                    {
+                        servicePrincipalName += $"@{realm}";
+                    }
                     credential = SspiSecurityCredential.Acquire(SspiPackage.Kerberos, authorizationId, password);
                     return new SspiSecurityContext(servicePrincipalName, credential);
                 }
@@ -41,14 +46,17 @@ namespace MongoDB.Driver.Core.Authentication
             }
             else
             {
+                GssapiServicePrincipalName servicePrincipalName = null;
                 GssapiSecurityCredential credential = null;
                 try
                 {
+                    servicePrincipalName = GssapiServicePrincipalName.Create(serviceName, hostname, realm);
                     credential = GssapiSecurityCredential.Acquire(authorizationId, password);
                     return new GssapiSecurityContext(servicePrincipalName, credential);
                 }
                 catch (LibgssapiException ex)
                 {
+                    servicePrincipalName?.Dispose();
                     credential?.Dispose();
                     throw new MongoAuthenticationException(connectionId, "Unable to acquire security credential.", ex);
                 }

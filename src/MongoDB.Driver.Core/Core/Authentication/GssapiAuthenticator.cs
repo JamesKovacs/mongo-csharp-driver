@@ -237,21 +237,15 @@ namespace MongoDB.Driver.Core.Authentication
             private readonly byte[] _bytesToSendToServer;
             private readonly ISecurityContext _context;
             private readonly SecureString _password;
-            private readonly string _servicePrincipalName;
 
-            public FirstStep(string serviceName, string hostName, string realm, string username, SecureString password, SaslConversation conversation)
+            public FirstStep(string serviceName, string hostname, string realm, string username, SecureString password, SaslConversation conversation)
             {
                 _authorizationId = username;
                 _password = password;
-                _servicePrincipalName = string.Format("{0}/{1}", serviceName, hostName);
-                if (!string.IsNullOrEmpty(realm))
-                {
-                    _servicePrincipalName += "@" + realm;
-                }
 
                 try
                 {
-                    _context = SecurityContextFactory.InitializeSecurityContext(conversation.ConnectionId, _servicePrincipalName, _authorizationId, _password);
+                    _context = SecurityContextFactory.InitializeSecurityContext(conversation.ConnectionId, serviceName, hostname, realm, _authorizationId, _password);
                     conversation.RegisterSecurityContext(_context);
                     _bytesToSendToServer = _context.Next(null);
                 }
@@ -292,7 +286,7 @@ namespace MongoDB.Driver.Core.Authentication
 
                 if (!_context.IsInitialized)
                 {
-                    return new InitializeStep(_servicePrincipalName, _authorizationId, _context, bytesToSendToServer);
+                    return new InitializeStep(_authorizationId, _context, bytesToSendToServer);
                 }
 
                 return new NegotiateStep(_authorizationId, _context, bytesToSendToServer);
@@ -304,11 +298,9 @@ namespace MongoDB.Driver.Core.Authentication
             private readonly string _authorizationId;
             private readonly ISecurityContext _context;
             private readonly byte[] _bytesToSendToServer;
-            private readonly string _servicePrincipalName;
 
-            public InitializeStep(string servicePrincipalName, string authorizationId, ISecurityContext context, byte[] bytesToSendToServer)
+            public InitializeStep(string authorizationId, ISecurityContext context, byte[] bytesToSendToServer)
             {
-                _servicePrincipalName = servicePrincipalName;
                 _authorizationId = authorizationId;
                 _context = context;
                 _bytesToSendToServer = bytesToSendToServer ?? new byte[0];
@@ -338,7 +330,7 @@ namespace MongoDB.Driver.Core.Authentication
 
                 if (!_context.IsInitialized)
                 {
-                    return new InitializeStep(_servicePrincipalName, _authorizationId, _context, bytesToSendToServer);
+                    return new InitializeStep(_authorizationId, _context, bytesToSendToServer);
                 }
 
                 return new NegotiateStep(_authorizationId, _context, bytesToSendToServer);

@@ -245,8 +245,13 @@ namespace MongoDB.Driver.Core.Authentication
             /// <inheritdoc/>
             public void Dispose()
             {
-                Dispose(true);
-                GC.SuppressFinalize(this);
+                if (_isDisposed)
+                {
+                    return;
+                }
+
+                _securityContext?.Dispose();
+                _isDisposed = true;
             }
 
             /// <summary>
@@ -256,17 +261,6 @@ namespace MongoDB.Driver.Core.Authentication
             public void RegisterSecurityContext(ISecurityContext securityContext)
             {
                 _securityContext = securityContext;
-            }
-
-            private void Dispose(bool disposing)
-            {
-                if (!disposing || _isDisposed)
-                {
-                    return;
-                }
-
-                _securityContext?.Dispose();
-                _isDisposed = true;
             }
         }
 

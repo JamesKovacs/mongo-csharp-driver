@@ -20,7 +20,7 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
 {
     internal class GssapiSecurityContext : SafeHandle, ISecurityContext
     {
-        private readonly string _servicePrincipalName;
+        private GssapiServicePrincipalName _servicePrincipalName;
         private GssapiSecurityCredential _credential;
         private bool _isDisposed;
 
@@ -31,9 +31,9 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
             get { return base.IsClosed || handle == IntPtr.Zero; }
         }
 
-        public GssapiSecurityContext(string servicePrincipalName, GssapiSecurityCredential credential) : base(IntPtr.Zero, true)
+        public GssapiSecurityContext(GssapiServicePrincipalName servicePrincipalName, GssapiSecurityCredential credential) : base(IntPtr.Zero, true)
         {
-            _servicePrincipalName = servicePrincipalName.Replace("/", "@");
+            _servicePrincipalName = servicePrincipalName;
             _credential = credential;
         }
 
@@ -50,22 +50,17 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
 
         public byte[] Next(byte[] challenge)
         {
-            IntPtr spnName = IntPtr.Zero;
             GssOutputBuffer outputToken = new GssOutputBuffer();
             try
             {
-                GssInputBuffer spnBuffer, inputToken;
-                using (spnBuffer = new GssInputBuffer(_servicePrincipalName))
+                GssInputBuffer inputToken;
                 using (inputToken = new GssInputBuffer(challenge))
                 {
                     uint majorStatus, minorStatus;
 
-                    majorStatus = NativeMethods.ImportName(out minorStatus, ref spnBuffer, ref Oid.NtHostBasedService, out spnName);
-                    Gss.ThrowIfError(majorStatus, minorStatus);
-
                     var credentialHandle = _credential.DangerousGetHandle();
                     const GssFlags authenticationFlags = GssFlags.Mutual | GssFlags.Sequence;
-                    majorStatus = NativeMethods.InitializeSecurityContext(out minorStatus, credentialHandle, ref handle, spnName, IntPtr.Zero, authenticationFlags, 0, IntPtr.Zero, ref inputToken, out var _, out outputToken, out var _, out var _);
+                    majorStatus = NativeMethods.InitializeSecurityContext(out minorStatus, credentialHandle, ref handle, _servicePrincipalName.Handle, IntPtr.Zero, authenticationFlags, 0, IntPtr.Zero, ref inputToken, out var _, out outputToken, out var _, out var _);
                     Gss.ThrowIfError(majorStatus, minorStatus);
 
                     IsInitialized = true;
@@ -75,10 +70,6 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
             finally
             {
                 outputToken.Dispose();
-                if (spnName != IntPtr.Zero)
-                {
-                    NativeMethods.ReleaseName(out _, spnName);
-                }
             }
         }
 
@@ -124,6 +115,8 @@ namespace MongoDB.Driver.Core.Authentication.Libgssapi
         {
             if (!_isDisposed && disposing)
             {
+                _servicePrincipalName?.Dispose();
+                _servicePrincipalName = null;
                 _credential?.Dispose();
                 _credential = null;
                 ReleaseHandle();
