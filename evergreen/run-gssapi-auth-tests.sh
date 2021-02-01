@@ -31,10 +31,6 @@ else
   echo "Setting krb5 config file"
   touch ${PROJECT_DIRECTORY}/evergreen/krb5.conf.empty
   export KRB5_CONFIG=${PROJECT_DIRECTORY}/evergreen/krb5.conf.empty
-  #echo "Writing keytab"
-  #echo ${KEYTAB_BASE64} | base64 -d > ${PROJECT_DIRECTORY}/evergreen/drivers.keytab
-  #echo "Running kinit"
-  #kinit -k -t ${PROJECT_DIRECTORY}/evergreen/drivers.keytab -p ${PRINCIPAL}
 
   for var in TMP TEMP NUGET_PACKAGES NUGET_HTTP_CACHE_PATH APPDATA; do
     export $var=/data/tmp;
