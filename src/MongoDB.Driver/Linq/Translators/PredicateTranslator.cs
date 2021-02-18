@@ -188,6 +188,7 @@ namespace MongoDB.Driver.Linq.Translators
                     {
                         case "Contains":
                         case "StartsWith":
+                        // case "Equals":
                         case "EndsWith":
                             return true;
                         default:
@@ -807,6 +808,7 @@ namespace MongoDB.Driver.Linq.Translators
                 case "ContainsKey": return TranslateContainsKey(methodCallExpression);
                 case "EndsWith": return TranslateStringQuery(methodCallExpression);
                 case "Equals": return TranslateEquals(methodCallExpression);
+                // case "Equals": return TranslateStringQuery(methodCallExpression);
                 case "HasFlag": return TranslateHasFlag(methodCallExpression);
                 case "In": return TranslateIn(methodCallExpression);
                 case "IsMatch": return TranslateIsMatch(methodCallExpression);
@@ -1165,7 +1167,7 @@ namespace MongoDB.Driver.Linq.Translators
 
                     if (startIndex == -1)
                     {
-                        // the regex for: IndexOf(c) == index 
+                        // the regex for: IndexOf(c) == index
                         // is: /^[^c]{index}c/
                         pattern = string.Format("^{0}{{{1}}}{2}", negativeClass, index, positiveClass);
                     }
@@ -1198,7 +1200,7 @@ namespace MongoDB.Driver.Linq.Translators
                     var escapedString = Regex.Escape((string)value);
                     if (startIndex == -1)
                     {
-                        // the regex for: IndexOf(s) == index 
+                        // the regex for: IndexOf(s) == index
                         // is: /^(?!.{0,index - 1}s).{index}s/
                         pattern = string.Format("^(?!.{{0,{2}}}{0}).{{{1}}}{0}", escapedString, index, index - 1);
                     }

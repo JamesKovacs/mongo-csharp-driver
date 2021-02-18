@@ -14,9 +14,9 @@
 */
 
 using System;
-using System.IO;
-using MongoDB.Driver.Core.Configuration;
-using MongoDB.Driver.Core.Events.Diagnostics;
+using System.Collections.Generic;
+using MongoDB.Bson;
+using MongoDB.Driver.Linq;
 
 namespace MongoDB.Driver.TestConsoleApplication
 {
@@ -24,21 +24,27 @@ namespace MongoDB.Driver.TestConsoleApplication
     {
         static void Main(string[] args)
         {
-            //FilterMeasuring.TestAsync().GetAwaiter().GetResult();
-            int numConcurrentWorkers = 50;
-            //new CoreApi().Run(numConcurrentWorkers, ConfigureCluster);
-            new CoreApiSync().Run(numConcurrentWorkers, ConfigureCluster);
+            var client = new MongoClient();
+            var db = client.GetDatabase("test");
+            var coll = db.GetCollection<Person>("people");
 
-            new Api().Run(numConcurrentWorkers, ConfigureCluster);
-
-            //new LegacyApi().Run(numConcurrentWorkers, ConfigureCluster);
+            var query = from person in coll.AsQueryable()
+                        where person.Age.Equals(42)
+                        select person;
+            foreach (var person in query.ToList())
+            {
+                Console.WriteLine(person);
+            }
         }
+    }
 
-        private static void ConfigureCluster(ClusterBuilder cb)
-        {
-#if NET452
-            cb.UsePerformanceCounters("test", true);
-#endif
-        }
+    class Person
+    {
+        public ObjectId Id { get; set; }
+        public string GivenName { get; set; }
+        public string Surname { get; set; }
+        public int Age { get; set; }
+
+        public override string ToString() => $"{GivenName} {Surname}";
     }
 }
