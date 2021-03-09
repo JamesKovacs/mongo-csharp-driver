@@ -40,7 +40,7 @@ namespace MongoDB.Driver.Core.Servers
     /// <summary>
     /// Represents a server in a MongoDB cluster.
     /// </summary>
-    internal sealed class Server : IClusterableServer
+    internal sealed class Server : IClusterableServer, IConnectionExceptionHandler
     {
         #region static
         // static fields
@@ -111,7 +111,7 @@ namespace MongoDB.Driver.Core.Servers
             Ensure.IsNotNull(eventSubscriber, nameof(eventSubscriber));
 
             _serverId = new ServerId(clusterId, endPoint);
-            _connectionPool = connectionPoolFactory.CreateConnectionPool(_serverId, endPoint);
+            _connectionPool = connectionPoolFactory.CreateConnectionPool(_serverId, endPoint, this);
             _state = new InterlockedInt32(State.Initial);
             _monitor = serverMonitorFactory.Create(_serverId, _endPoint);
             _baseDescription = new ServerDescription(_serverId, endPoint, reasonChanged: "ServerInitialDescription", heartbeatInterval: settings.HeartbeatInterval);
@@ -140,6 +140,9 @@ namespace MongoDB.Driver.Core.Servers
         int IClusterableServer.OutstandingOperationsCount => Interlocked.CompareExchange(ref _outstandingOperationsCount, 0, 0);
 
         // methods
+        void IConnectionExceptionHandler.HandleException(Exception exception) =>
+            HandleBeforeHandshakeCompletesException(exception);
+
         public void Dispose()
         {
             if (_state.TryChange(State.Disposed))
@@ -246,6 +249,10 @@ namespace MongoDB.Driver.Core.Servers
             {
                 _connectionPool.Clear();
             }
+            else if (e.NewServerDescription.State == ServerState.Connected)
+            {
+                _connectionPool.SetReady();
+            }
 
             var shouldServerDescriptionChangedEventBePublished = !e.OldServerDescription.SdamEquals(e.NewServerDescription);
             if (shouldServerDescriptionChangedEventBePublished && _descriptionChangedEventHandler != null)
@@ -338,32 +345,30 @@ namespace MongoDB.Driver.Core.Servers
 
         private void HandleBeforeHandshakeCompletesException(Exception ex)
         {
-            if (ex is MongoAuthenticationException)
+            if (!(ex is MongoConnectionException connectionException) ||
+                connectionException.Generation != null && connectionException.Generation != _connectionPool.Generation)
             {
-                _connectionPool.Clear();
+                // stale generation number or non connection exception
                 return;
             }
 
-            if (ex is MongoConnectionException mongoConnectionException)
+            var (invalidateAndClear, cancelCheck) = ex switch
+            {
+                MongoAuthenticationException => (true, false),
+                _ => (connectionException.IsNetworkException || connectionException.ContainsTimeoutException,
+                      connectionException.IsNetworkException && !connectionException.ContainsTimeoutException)
+            };
+
+            if (invalidateAndClear)
             {
                 lock (_monitor.Lock)
                 {
-                    if (mongoConnectionException.Generation != null &&
-                        mongoConnectionException.Generation != _connectionPool.Generation)
-                    {
-                        return; // stale generation number
-                    }
-
-                    if (mongoConnectionException.IsNetworkException &&
-                        !mongoConnectionException.ContainsTimeoutException)
+                    if (cancelCheck)
                     {
                         _monitor.CancelCurrentCheck();
                     }
 
-                    if (mongoConnectionException.IsNetworkException || mongoConnectionException.ContainsTimeoutException)
-                    {
-                        Invalidate($"ChannelException during handshake: {ex}.", clearConnectionPool: true, responseTopologyVersion: null);
-                    }
+                    Invalidate($"ChannelException during handshake: {ex}.", clearConnectionPool: true, responseTopologyVersion: null);
                 }
             }
         }

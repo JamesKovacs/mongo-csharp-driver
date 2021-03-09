@@ -29,6 +29,7 @@ namespace MongoDB.Driver.Core.Configuration
         private readonly int _minConnections;
         private readonly int _waitQueueSize;
         private readonly TimeSpan _waitQueueTimeout;
+        private readonly int _maxConnecting;
 
         // constructors
         /// <summary>
@@ -46,11 +47,28 @@ namespace MongoDB.Driver.Core.Configuration
             Optional<int> waitQueueSize = default(Optional<int>),
             Optional<TimeSpan> waitQueueTimeout = default(Optional<TimeSpan>))
         {
-            _maintenanceInterval = Ensure.IsInfiniteOrGreaterThanOrEqualToZero(maintenanceInterval.WithDefault(TimeSpan.FromMinutes(1)), "maintenanceInterval");
-            _maxConnections = Ensure.IsGreaterThanZero(maxConnections.WithDefault(100), "maxConnections");
-            _minConnections = Ensure.IsGreaterThanOrEqualToZero(minConnections.WithDefault(0), "minConnections");
-            _waitQueueSize = Ensure.IsGreaterThanOrEqualToZero(waitQueueSize.WithDefault(_maxConnections * 5), "waitQueueSize");
-            _waitQueueTimeout = Ensure.IsInfiniteOrGreaterThanOrEqualToZero(waitQueueTimeout.WithDefault(TimeSpan.FromMinutes(2)), "waitQueueTimeout");
+            _maintenanceInterval = Ensure.IsInfiniteOrGreaterThanOrEqualToZero(maintenanceInterval.WithDefault(TimeSpan.FromMinutes(1)), nameof(maintenanceInterval));
+            _maxConnections = Ensure.IsGreaterThanZero(maxConnections.WithDefault(100), nameof(maxConnections));
+            _maxConnecting = MongoInternalDefaults.ConnectionPool.MaxConnecting;
+            _minConnections = Ensure.IsGreaterThanOrEqualToZero(minConnections.WithDefault(0), nameof(minConnections));
+            _waitQueueSize = Ensure.IsGreaterThanOrEqualToZero(waitQueueSize.WithDefault(_maxConnections * 5), nameof(waitQueueSize));
+            _waitQueueTimeout = Ensure.IsInfiniteOrGreaterThanOrEqualToZero(waitQueueTimeout.WithDefault(TimeSpan.FromMinutes(2)), nameof(waitQueueTimeout));
+        }
+
+        internal ConnectionPoolSettings(
+            TimeSpan maintenanceInterval,
+            int maxConnections,
+            int maxConnecting,
+            int minConnections,
+            int waitQueueSize,
+            TimeSpan waitQueueTimeout) : this(
+                maintenanceInterval,
+                maxConnections,
+                minConnections,
+                waitQueueSize,
+                waitQueueTimeout)
+        {
+            _maxConnecting = Ensure.IsGreaterThanZero(maxConnecting, nameof(maxConnecting));
         }
 
         // properties
@@ -110,6 +128,11 @@ namespace MongoDB.Driver.Core.Configuration
             get { return _waitQueueTimeout; }
         }
 
+        internal int MaxConnecting
+        {
+            get { return _maxConnecting; }
+        }
+
         // methods
         /// <summary>
         /// Returns a new ConnectionPoolSettings instance with some settings changed.
@@ -130,6 +153,23 @@ namespace MongoDB.Driver.Core.Configuration
             return new ConnectionPoolSettings(
                 maintenanceInterval: maintenanceInterval.WithDefault(_maintenanceInterval),
                 maxConnections: maxConnections.WithDefault(_maxConnections),
+                minConnections: minConnections.WithDefault(_minConnections),
+                waitQueueSize: waitQueueSize.WithDefault(_waitQueueSize),
+                waitQueueTimeout: waitQueueTimeout.WithDefault(_waitQueueTimeout));
+        }
+
+        internal ConnectionPoolSettings WithInternal(
+            Optional<TimeSpan> maintenanceInterval = default(Optional<TimeSpan>),
+            Optional<int> maxConnections = default(Optional<int>),
+            Optional<int> maxConnecting = default(Optional<int>),
+            Optional<int> minConnections = default(Optional<int>),
+            Optional<int> waitQueueSize = default(Optional<int>),
+            Optional<TimeSpan> waitQueueTimeout = default(Optional<TimeSpan>))
+        {
+            return new ConnectionPoolSettings(
+                maintenanceInterval: maintenanceInterval.WithDefault(_maintenanceInterval),
+                maxConnections: maxConnections.WithDefault(_maxConnections),
+                maxConnecting: maxConnecting.WithDefault(_maxConnecting),
                 minConnections: minConnections.WithDefault(_minConnections),
                 waitQueueSize: waitQueueSize.WithDefault(_waitQueueSize),
                 waitQueueTimeout: waitQueueTimeout.WithDefault(_waitQueueTimeout));

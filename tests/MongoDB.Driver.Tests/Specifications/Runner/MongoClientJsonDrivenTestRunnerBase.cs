@@ -22,15 +22,18 @@ using MongoDB.Bson;
 using MongoDB.Bson.TestHelpers.JsonDrivenTests;
 using MongoDB.Driver.Core;
 using MongoDB.Driver.Core.Bindings;
+using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Clusters.ServerSelectors;
 using MongoDB.Driver.Core.Events;
 using MongoDB.Driver.Core.Misc;
+using MongoDB.Driver.Core.Servers;
 using MongoDB.Driver.Core.TestHelpers;
 using MongoDB.Driver.Core.TestHelpers.JsonDrivenTests;
 using MongoDB.Driver.Core.TestHelpers.XunitExtensions;
 using MongoDB.Driver.TestHelpers;
 using MongoDB.Driver.Tests.JsonDrivenTests;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace MongoDB.Driver.Tests.Specifications.Runner
 {
@@ -64,6 +67,8 @@ namespace MongoDB.Driver.Tests.Specifications.Runner
         private string CollectionName { get; set; }
 
         private IDictionary<string, object> _objectMap = null;
+
+        protected IServer _failPointServer = null;
 
         // Protected
         // Virtual properties
@@ -329,8 +334,30 @@ namespace MongoDB.Driver.Tests.Specifications.Runner
                     settings.ConnectTimeout = TimeSpan.FromMilliseconds(option.Value.ToInt32());
                     break;
 
+                case "directConnection":
+                    var isDirectConnection = option.Value.ToBoolean();
+
+#pragma warning disable CS0618 // Type or member is obsolete
+                    settings.ConnectionMode = ConnectionMode.Automatic;
+                    settings.ConnectionModeSwitch = ConnectionModeSwitch.UseDirectConnection;
+#pragma warning restore CS0618 // Type or member is obsolete
+                    settings.DirectConnection = isDirectConnection;
+
+                    if (isDirectConnection)
+                    {
+                        settings.Servers = new MongoServerAddress[]
+                        {
+                            settings.Servers.First()
+                        };
+                    }
+                    break;
+
                 case "heartbeatFrequencyMS":
                     settings.HeartbeatInterval = TimeSpan.FromMilliseconds(option.Value.ToInt32());
+                    break;
+
+                case "minPoolSize":
+                    settings.MinConnectionPoolSize = option.Value.ToInt32();
                     break;
 
                 case "serverSelectionTimeoutMS":
@@ -395,10 +422,29 @@ namespace MongoDB.Driver.Tests.Specifications.Runner
                 ConfigureFailPointCommand(failPoint.AsBsonDocument);
 
                 var cluster = client.Cluster;
-                var server = cluster.SelectServer(WritableServerSelector.Instance, CancellationToken.None);
+
+                var settings = client.Settings.Clone();
+                ConfigureClientSettings(settings, test);
+
+#pragma warning disable CS0618 // Type or member is obsolete
+                if (settings.ConnectionModeSwitch == ConnectionModeSwitch.UseDirectConnection &&
+#pragma warning restore CS0618 // Type or member is obsolete
+                    settings.DirectConnection == true)
+                {
+                    var serverAddress = EndPointHelper.Parse(settings.Server.ToString());
+
+                    var selector = new EndPointServerSelector(serverAddress);
+                    _failPointServer = cluster.SelectServer(selector, CancellationToken.None);
+                }
+                else
+                {
+                    _failPointServer = cluster.SelectServer(WritableServerSelector.Instance, CancellationToken.None);
+                }
+
                 var session = NoCoreSession.NewHandle();
                 var command = failPoint.AsBsonDocument;
-                return FailPoint.Configure(server, session, command);
+
+                return FailPoint.Configure(_failPointServer, session, command);
             }
 
             return null;

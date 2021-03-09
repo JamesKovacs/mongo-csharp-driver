@@ -34,6 +34,7 @@ namespace MongoDB.Driver.Tests.Specifications.server_discovery_and_monitoring
     public class ServerDiscoveryAndMonitoringIntegrationTestRunner : DisposableJsonDrivenTestRunner, IJsonDrivenTestRunner
     {
         public ICluster FailPointCluster => DriverTestConfiguration.Client.Cluster;
+        public IServer FailPointServer => _failPointServer;
 
         protected override string[] ExpectedTestColumns => new[] { "description", "failPoint", "clientOptions", "operations", "expectations", "outcome", "async" };
 
@@ -80,7 +81,8 @@ namespace MongoDB.Driver.Tests.Specifications.server_discovery_and_monitoring
             doNotCaptureEvents.Add("replSetStepDown");
             return eventCapturer.Capture<CommandStartedEvent>(e => !doNotCaptureEvents.Contains(e.CommandName))
                 .Capture<ServerDescriptionChangedEvent>()
-                .Capture<ConnectionPoolClearedEvent>();
+                .Capture<ConnectionPoolClearedEvent>()
+                .Capture<ConnectionPoolReadyEvent>();
         }
 
         // nested types

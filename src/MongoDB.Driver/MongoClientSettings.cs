@@ -242,6 +242,10 @@ namespace MongoDB.Driver
             {
                 return _connectionModeSwitch;
             }
+            internal set
+            {
+                _connectionModeSwitch = value;
+            }
         }
 
         /// <summary>

@@ -1,7 +1,7 @@
 {
   "runOn": [
     {
-      "minServerVersion": "4.3"
+      "minServerVersion": "4.4"
     }
   ],
   "database_name": "sdam-tests",
@@ -35,14 +35,6 @@
           "object": "testRunner",
           "arguments": {
             "event": "ServerMarkedUnknownEvent",
-            "count": 1
-          }
-        },
-        {
-          "name": "waitForEvent",
-          "object": "testRunner",
-          "arguments": {
-            "event": "PoolClearedEvent",
             "count": 1
           }
         },
