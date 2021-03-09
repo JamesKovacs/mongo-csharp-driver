@@ -652,7 +652,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
             using var subject = CreateSubject(settings, mockConnectionFactory.Object);
             subject.Initialize();
 
-            _capturedEvents.WaitForOrThrowIfTimeout(events => events.Where(e => e is ConnectionCreatedEvent).Count() == connectionsCount, TimeSpan.FromSeconds(10));
+            _capturedEvents.WaitForOrThrowIfTimeout(events => events.Where(e => e is ConnectionCreatedEvent).Count() >= connectionsCount, TimeSpan.FromSeconds(10));
             subject.DormantCount.Should().Be(connectionsCount);
 
             // expired some of the connections
@@ -661,7 +661,10 @@ namespace MongoDB.Driver.Core.ConnectionPools
             var connectionsToExpire = new List<ConnectionId>();
             lock (syncRoot)
             {
-                foreach (var connectionId in connectionsCreated)
+                // add at least one connection
+                connectionsExpired.Add(connectionsCreated.First());
+
+                foreach (var connectionId in connectionsCreated.Skip(1))
                 {
                     if (random.NextDouble() > 0.5)
                     {
@@ -671,7 +674,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
             }
 
             // ensure removed events are received in subsequent order, meaning all expired connections where removed in same pass
-            _capturedEvents.WaitForOrThrowIfTimeout(events => events.Count() == connectionsCount * 2, TimeSpan.FromSeconds(10));
+            _capturedEvents.WaitForOrThrowIfTimeout(events => events.Count() >= connectionsExpired.Count * 2, TimeSpan.FromSeconds(10));
 
             _capturedEvents.Events
                 .Take(connectionsCount * 2)
@@ -869,15 +872,6 @@ namespace MongoDB.Driver.Core.ConnectionPools
         public static Task MaintainSizeAsync(this ExclusiveConnectionPool obj)
         {
             return (Task)Reflector.Invoke(obj, nameof(MaintainSizeAsync));
-        }
-
-        public static IConnection[] GetPooledConnections(this ExclusiveConnectionPool obj)
-        {
-            var connectionHolder = Reflector.GetFieldValue(obj, "_connectionHolder");
-            var connections = (IList)Reflector.GetFieldValue(connectionHolder, "_connections");
-
-            var result = connections.Cast<IConnection>().ToArray();
-            return result;
         }
     }
 }
