@@ -132,17 +132,17 @@ namespace MongoDB.Bson.Serialization
             string assemblyName = null;
             if (!__wellKnownAssemblies.Contains(assembly))
             {
-                assemblyName = assembly.FullName;
-                Match match = Regex.Match(assemblyName, "(?<dll>[^,]+), Version=[^,]+, Culture=[^,]+, PublicKeyToken=(?<token>[^,]+)");
-                if (match.Success)
-                {
-                    var publicKeyToken = match.Groups["token"].Value;
-                    if (publicKeyToken == "null")
-                    {
-                        var dllName = match.Groups["dll"].Value;
-                        assemblyName = dllName;
-                    }
-                }
+            assemblyName = assembly.FullName;
+            Match match = Regex.Match(assemblyName, "(?<dll>[^,]+), Version=[^,]+, Culture=[^,]+, PublicKeyToken=(?<token>[^,]+)");
+            if (match.Success)
+            {
+            var publicKeyToken = match.Groups["token"].Value;
+            if (publicKeyToken == "null")
+            {
+            var dllName = match.Groups["dll"].Value;
+            assemblyName = dllName;
+            }
+            }
             }
 
             if (assemblyName == null)

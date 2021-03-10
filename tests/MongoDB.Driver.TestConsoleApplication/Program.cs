@@ -14,31 +14,67 @@
 */
 
 using System;
-using System.IO;
-using MongoDB.Driver.Core.Configuration;
-using MongoDB.Driver.Core.Events.Diagnostics;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 
-namespace MongoDB.Driver.TestConsoleApplication
+var type = typeof(Widget1);
+Console.WriteLine(type.FullName);
+
+var client = new MongoClient();
+var db = client.GetDatabase("polymorphismTest");
+var col = db.GetCollection<IFoo>("iFoo");
+
+// Clean up any existing documents
+await col.DeleteManyAsync(Builders<IFoo>.Filter.Empty);
+
+// Insert 2 new test documents of different types, each implementing IFoo
+await col.InsertOneAsync(new Widget1() { Id = ObjectId.GenerateNewId(), SomeField = "ABC", Bar = 10 });
+await col.InsertOneAsync(new Widget2() { Id = ObjectId.GenerateNewId(), SomeField = "ABC", Bar = 10M });
+
+// Build a query using .OfType<> on the collection.
+var widget1QueryColOfType = col.OfType<Widget1>().Find(Builders<Widget1>.Filter.Eq(x => x.SomeField, "ABC"));
+var widget2QueryColOfType = col.OfType<Widget2>().Find(Builders<Widget2>.Filter.Eq(x => x.SomeField, "ABC"));
+Console.WriteLine("OfType<> on the Collection");
+Console.WriteLine(widget1QueryColOfType.ToString());
+widget1QueryColOfType.ToList().ForEach(Console.WriteLine);
+Console.WriteLine(widget2QueryColOfType.ToString());
+widget2QueryColOfType.ToList();
+Console.WriteLine();
+
+// Build a query using .OfType<> on the Builder to change from IFoo to the concrete type.
+var widget1QueryBuilderOfType = col.Find(Builders<IFoo>.Filter.OfType<Widget1>(Builders<Widget1>.Filter.Eq(x => x.SomeField, "ABC")));
+var widget2QueryBuilderOfType = col.Find(Builders<IFoo>.Filter.OfType<Widget2>(Builders<Widget2>.Filter.Eq(x => x.SomeField, "ABC")));
+Console.WriteLine("OfType<> on the Builder");
+Console.WriteLine(widget1QueryBuilderOfType.ToString());
+Console.WriteLine(widget2QueryBuilderOfType.ToString());
+Console.WriteLine();
+
+Console.WriteLine("Documents in the database");
+var rawDocsInDatabase = await db.GetCollection<BsonDocument>("iFoo").Find(Builders<BsonDocument>.Filter.Empty).ToListAsync();
+foreach(var doc in rawDocsInDatabase)
+    Console.WriteLine(doc.ToJson());
+
+public interface IFoo
 {
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            //FilterMeasuring.TestAsync().GetAwaiter().GetResult();
-            int numConcurrentWorkers = 50;
-            //new CoreApi().Run(numConcurrentWorkers, ConfigureCluster);
-            new CoreApiSync().Run(numConcurrentWorkers, ConfigureCluster);
+	ObjectId Id { get; set;}
+	string SomeField { get; set;}
+}
 
-            new Api().Run(numConcurrentWorkers, ConfigureCluster);
+public class Widget1 : IFoo
+{
+	public ObjectId Id {get;set;}
+	public string SomeField { get; set; }
+	public int Bar { get; set; }
 
-            //new LegacyApi().Run(numConcurrentWorkers, ConfigureCluster);
-        }
+    public override string ToString() => $"Widget1: Id={Id}, SomeField={SomeField}, Bar={Bar}";
+}
 
-        private static void ConfigureCluster(ClusterBuilder cb)
-        {
-#if NET452
-            cb.UsePerformanceCounters("test", true);
-#endif
-        }
-    }
+public class Widget2 : IFoo
+{
+	public ObjectId Id {get;set;}
+	public string SomeField { get; set; }
+	public Decimal Bar { get; set; }
+
+    public override string ToString() => $"Widget2: Id={Id}, SomeField={SomeField}, Bar={Bar}";
 }

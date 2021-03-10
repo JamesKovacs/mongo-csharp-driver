@@ -390,7 +390,8 @@ namespace MongoDB.Bson.Serialization
                     else if (typeInfo.IsInterface)
                     {
                         // TODO: should convention for interfaces be inherited from parent interfaces?
-                        convention = LookupDiscriminatorConvention(typeof(object));
+                        // convention = LookupDiscriminatorConvention(typeof(object));
+                        convention = StandardDiscriminatorConvention.Hierarchical;
                         RegisterDiscriminatorConvention(type, convention);
                     }
                     else
