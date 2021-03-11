@@ -491,34 +491,38 @@ namespace MongoDB.Driver.Core.Clusters
 
                 var connectedServers = _description.Servers.Where(s => s.State == ServerState.Connected);
                 var selectedServers = _selector.SelectServers(_description, connectedServers).ToList();
+                
+                var clusterableServers = new List<IClusterableServer>();
 
-                while (selectedServers.Count > 0)
+                while (selectedServers.Count > 0 && clusterableServers.Count < 2)
                 {
                     var server = selectedServers.Count == 1 ?
                         selectedServers[0] :
                         __randomServerSelector.SelectServers(_description, selectedServers).Single();
 
-                    IClusterableServer selectedServer;
-                    if (_cluster.TryGetServer(server.EndPoint, out selectedServer))
+                    if (_cluster.TryGetServer(server.EndPoint, out var clusterableServer))
                     {
-                        _stopwatch.Stop();
-                        var selectedServerEventHandler = _cluster._selectedServerEventHandler;
-                        if (selectedServerEventHandler != null)
-                        {
-                            selectedServerEventHandler(new ClusterSelectedServerEvent(
-                                _description,
-                                _selector,
-                                server,
-                                _stopwatch.Elapsed,
-                                EventContext.OperationId));
-                        }
-                        return selectedServer;
+                        clusterableServers.Add(clusterableServer);
                     }
 
                     selectedServers.Remove(server);
                 }
 
-                return null;
+                var selectedServer = SelectServerByOperationsCount(clusterableServers);
+
+                if (selectedServer != null)
+                {
+                    _stopwatch.Stop();
+
+                    _cluster._selectedServerEventHandler?.Invoke(new ClusterSelectedServerEvent(
+                        _description,
+                        _selector,
+                        selectedServer.Description,
+                        _stopwatch.Elapsed,
+                        EventContext.OperationId));
+                }
+
+                return selectedServer;
             }
 
             public void WaitingForDescriptionToChange()
@@ -556,6 +560,25 @@ namespace MongoDB.Driver.Core.Clusters
                 allSelectors.Add(_cluster._latencyLimitingServerSelector);
 
                 return new CompositeServerSelector(allSelectors);
+            }
+
+            private IClusterableServer SelectServerByOperationsCount(List<IClusterableServer> servers)
+            {
+                switch (servers.Count)
+                {
+                    case 0:
+                    case 1:
+                        return servers.FirstOrDefault();
+                    case 2:
+                        {
+                            var server1 = servers[0];
+                            var server2 = servers[1];
+
+                            return server1.OutstandingOperationsCount < server2.OutstandingOperationsCount ? server1 : server2;
+                        }
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(servers.Count), "Expected maximum servers count of 2");
+                }
             }
         }
 

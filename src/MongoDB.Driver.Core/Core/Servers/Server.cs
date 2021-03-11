@@ -70,6 +70,8 @@ namespace MongoDB.Driver.Core.Servers
         private readonly InterlockedInt32 _state;
         private readonly ServerApi _serverApi;
 
+        private int _outstandingOperationsCount;
+
         private readonly Action<ServerOpeningEvent> _openingEventHandler;
         private readonly Action<ServerOpenedEvent> _openedEventHandler;
         private readonly Action<ServerClosingEvent> _closingEventHandler;
@@ -115,6 +117,7 @@ namespace MongoDB.Driver.Core.Servers
             _baseDescription = new ServerDescription(_serverId, endPoint, reasonChanged: "ServerInitialDescription", heartbeatInterval: settings.HeartbeatInterval);
             _currentDescription = _baseDescription;
             _serverApi = serverApi;
+            _outstandingOperationsCount = 0;
 
             eventSubscriber.TryGetEventHandler(out _openingEventHandler);
             eventSubscriber.TryGetEventHandler(out _openedEventHandler);
@@ -133,6 +136,8 @@ namespace MongoDB.Driver.Core.Servers
         public ServerId ServerId => _serverId;
 
         internal IClusterClock ClusterClock => _clusterClock;
+
+        int IClusterableServer.OutstandingOperationsCount => Interlocked.CompareExchange(ref _outstandingOperationsCount, 0, 0);
 
         // methods
         public void Dispose()
@@ -160,24 +165,32 @@ namespace MongoDB.Driver.Core.Servers
         public IChannelHandle GetChannel(CancellationToken cancellationToken)
         {
             ThrowIfNotOpen();
+            IConnectionHandle connection = null;
 
-            var connection = _connectionPool.AcquireConnection(cancellationToken);
             try
             {
+                Interlocked.Increment(ref _outstandingOperationsCount);
+                connection = _connectionPool.AcquireConnection(cancellationToken);
+
                 // ignoring the user's cancellation token here because we don't
                 // want to throw this connection away simply because the user
                 // wanted to cancel their operation. It will be better for the
                 // collective to complete opening the connection than the throw
                 // it away.
-
                 connection.Open(CancellationToken.None); // This results in the initial isMaster being sent
                 return new ServerChannel(this, connection);
             }
             catch (Exception ex)
             {
-                HandleBeforeHandshakeCompletesException(connection, ex);
+                Interlocked.Decrement(ref _outstandingOperationsCount);
 
-                connection.Dispose();
+                if (connection != null)
+                {
+                    HandleBeforeHandshakeCompletesException(connection, ex);
+
+                    connection.Dispose();
+                }
+
                 throw;
             }
         }
@@ -185,10 +198,13 @@ namespace MongoDB.Driver.Core.Servers
         public async Task<IChannelHandle> GetChannelAsync(CancellationToken cancellationToken)
         {
             ThrowIfNotOpen();
+            IConnectionHandle connection = null;
 
-            var connection = await _connectionPool.AcquireConnectionAsync(cancellationToken).ConfigureAwait(false);
             try
             {
+                Interlocked.Increment(ref _outstandingOperationsCount);
+                connection = await _connectionPool.AcquireConnectionAsync(cancellationToken).ConfigureAwait(false);
+
                 // ignoring the user's cancellation token here because we don't
                 // want to throw this connection away simply because the user
                 // wanted to cancel their operation. It will be better for the
@@ -199,9 +215,15 @@ namespace MongoDB.Driver.Core.Servers
             }
             catch (Exception ex)
             {
-                HandleBeforeHandshakeCompletesException(connection, ex);
+                Interlocked.Decrement(ref _outstandingOperationsCount);
 
-                connection.Dispose();
+                if (connection != null)
+                {
+                    HandleBeforeHandshakeCompletesException(connection, ex);
+
+                    connection.Dispose();
+                }
+
                 throw;
             }
         }
@@ -816,6 +838,8 @@ namespace MongoDB.Driver.Core.Servers
             {
                 if (!_disposed)
                 {
+                    Interlocked.Decrement(ref _server._outstandingOperationsCount);
+
                     _connection.Dispose();
                     _disposed = true;
                 }
