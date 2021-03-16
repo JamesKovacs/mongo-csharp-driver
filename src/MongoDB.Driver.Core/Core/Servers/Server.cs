@@ -613,14 +613,19 @@ namespace MongoDB.Driver.Core.Servers
         {
             // fields
             private readonly IConnectionHandle _connection;
-            private bool _disposed;
             private readonly Server _server;
 
+            private readonly InterlockedInt32 _state;
+            private readonly bool _decrementOperationsCount;
+
             // constructors
-            public ServerChannel(Server server, IConnectionHandle connection)
+            public ServerChannel(Server server, IConnectionHandle connection, bool decrementOperationsCount = true)
             {
                 _server = server;
                 _connection = connection;
+
+                _state = new InterlockedInt32(State.Initial);
+                _decrementOperationsCount = decrementOperationsCount;
             }
 
             // properties
@@ -836,12 +841,14 @@ namespace MongoDB.Driver.Core.Servers
 
             public void Dispose()
             {
-                if (!_disposed)
+                if (_state.TryChange(State.Initial, State.Disposed))
                 {
-                    Interlocked.Decrement(ref _server._outstandingOperationsCount);
+                    if (_decrementOperationsCount)
+                    {
+                        Interlocked.Decrement(ref _server._outstandingOperationsCount);
+                    }
 
                     _connection.Dispose();
-                    _disposed = true;
                 }
             }
 
@@ -1285,7 +1292,8 @@ namespace MongoDB.Driver.Core.Servers
             public IChannelHandle Fork()
             {
                 ThrowIfDisposed();
-                return new ServerChannel(_server, _connection.Fork());
+
+                return new ServerChannel(_server, _connection.Fork(), false);
             }
 
             private ReadPreference GetEffectiveReadPreference(bool slaveOk, ReadPreference readPreference)
@@ -1343,7 +1351,7 @@ namespace MongoDB.Driver.Core.Servers
 
             private void ThrowIfDisposed()
             {
-                if (_disposed)
+                if (_state.Value == State.Disposed)
                 {
                     throw new ObjectDisposedException(GetType().Name);
                 }

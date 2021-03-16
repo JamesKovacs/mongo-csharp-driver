@@ -394,6 +394,29 @@ namespace MongoDB.Driver.Core.Servers
         }
 
         [Theory]
+        [ParameterAttributeData]
+        public void ChannelFork_should_not_affect_operations_count(
+           [Values(false, true)] bool async)
+        {
+            IClusterableServer server = SetupServer(false, false);
+
+            var channel = async ?
+                server.GetChannelAsync(CancellationToken.None).GetAwaiter().GetResult() :
+                server.GetChannel(CancellationToken.None);
+
+            server.OutstandingOperationsCount.Should().Be(1);
+
+            var forkedChannel = channel.Fork();
+            server.OutstandingOperationsCount.Should().Be(1);
+
+            forkedChannel.Dispose();
+            server.OutstandingOperationsCount.Should().Be(1);
+
+            channel.Dispose();
+            server.OutstandingOperationsCount.Should().Be(0);
+        }
+
+        [Theory]
         [InlineData(nameof(MongoConnectionException), true)]
         [InlineData("MongoConnectionExceptionWithSocketTimeout", false)]
         public void HandleChannelException_should_update_topology_as_expected_on_network_error_or_timeout(
@@ -701,6 +724,10 @@ namespace MongoDB.Driver.Core.Servers
         {
             var connectionId = new ConnectionId(new ServerId(_clusterId, _endPoint));
             var mockConnectionHandle = new Mock<IConnectionHandle>();
+
+            mockConnectionHandle
+                .Setup(c => c.Fork())
+                .Returns(mockConnectionHandle.Object);
 
             if (exceptionOnConnectionOpen)
             {

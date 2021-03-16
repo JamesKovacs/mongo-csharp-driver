@@ -414,12 +414,23 @@ namespace MongoDB.Driver.Core.Clusters
             private Task _descriptionChangedTask;
             private bool _serverSelectionWaitQueueEntered;
             private readonly IServerSelector _selector;
+
+            private readonly List<IClusterableServer> _connectedServers;
+            private readonly List<ServerDescription> _connectedServersDescriptions;
+
+            private readonly OperationsCountServerSelector _operationServerSelector;
+
             private readonly Stopwatch _stopwatch;
             private readonly DateTime _timeoutAt;
 
             public SelectServerHelper(Cluster cluster, IServerSelector selector)
             {
                 _cluster = cluster;
+
+                _connectedServers = new List<IClusterableServer>(_cluster._description?.Servers?.Count ?? 1);
+                _connectedServersDescriptions = new List<ServerDescription>(_connectedServers.Count);
+                _operationServerSelector = new OperationsCountServerSelector(_connectedServers);
+
                 _selector = DecorateSelector(selector);
                 _stopwatch = Stopwatch.StartNew();
                 _timeoutAt = DateTime.UtcNow + _cluster.Settings.ServerSelectionTimeout;
@@ -489,26 +500,33 @@ namespace MongoDB.Driver.Core.Clusters
 
                 MongoIncompatibleDriverException.ThrowIfNotSupported(_description);
 
-                var connectedServers = _description.Servers.Where(s => s.State == ServerState.Connected);
-                var selectedServers = _selector.SelectServers(_description, connectedServers).ToList();
-                
-                var clusterableServers = new List<IClusterableServer>();
+                _connectedServers.Clear();
+                _connectedServersDescriptions.Clear();
 
-                while (selectedServers.Count > 0 && clusterableServers.Count < 2)
+                foreach (var description in _description.Servers)
                 {
-                    var server = selectedServers.Count == 1 ?
+                    if (description.State == ServerState.Connected &&
+                        _cluster.TryGetServer(description.EndPoint, out var server))
+                    {
+                        _connectedServers.Add(server);
+                        _connectedServersDescriptions.Add(description);
+                    }
+                }
+
+                var selectedServers = _selector
+                    .SelectServers(_description, _connectedServersDescriptions)
+                    .ToList();
+
+                IServer selectedServer = null;
+
+                if (selectedServers.Any())
+                {
+                    var selectedServerDescription = selectedServers.Count == 1 ?
                         selectedServers[0] :
                         __randomServerSelector.SelectServers(_description, selectedServers).Single();
 
-                    if (_cluster.TryGetServer(server.EndPoint, out var clusterableServer))
-                    {
-                        clusterableServers.Add(clusterableServer);
-                    }
-
-                    selectedServers.Remove(server);
+                    selectedServer = _connectedServers.FirstOrDefault(s => EndPointHelper.Equals(s.EndPoint, selectedServerDescription.EndPoint));
                 }
-
-                var selectedServer = SelectServerByOperationsCount(clusterableServers);
 
                 if (selectedServer != null)
                 {
@@ -558,27 +576,9 @@ namespace MongoDB.Driver.Core.Clusters
                 }
 
                 allSelectors.Add(_cluster._latencyLimitingServerSelector);
+                allSelectors.Add(_operationServerSelector);
 
                 return new CompositeServerSelector(allSelectors);
-            }
-
-            private IClusterableServer SelectServerByOperationsCount(List<IClusterableServer> servers)
-            {
-                switch (servers.Count)
-                {
-                    case 0:
-                    case 1:
-                        return servers.FirstOrDefault();
-                    case 2:
-                        {
-                            var server1 = servers[0];
-                            var server2 = servers[1];
-
-                            return server1.OutstandingOperationsCount < server2.OutstandingOperationsCount ? server1 : server2;
-                        }
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(servers.Count), "Expected maximum servers count of 2");
-                }
             }
         }
 
