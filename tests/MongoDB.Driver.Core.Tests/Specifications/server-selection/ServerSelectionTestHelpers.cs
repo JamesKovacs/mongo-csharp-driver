@@ -114,31 +114,20 @@ namespace MongoDB.Driver.Specifications.server_selection
 
         // private methods
 #pragma warning disable CS0618 // Type or member is obsolete
-        private static (ClusterType, ClusterConnectionMode) GetClusterType(string type)
-        {
-            if (type.StartsWith(Schema.TopologyDescription.ClusterType.ReplicaSet))
+        private static (ClusterType, ClusterConnectionMode) GetClusterType(string type) =>
+            type switch
             {
-                return (ClusterType.ReplicaSet, ClusterConnectionMode.ReplicaSet);
-            }
-
-            if (type == Schema.TopologyDescription.ClusterType.Sharded)
-            {
-                return (ClusterType.Sharded, ClusterConnectionMode.Sharded);
-            }
-
-            if (type == Schema.TopologyDescription.ClusterType.Single)
-            {
-                return (ClusterType.Standalone, ClusterConnectionMode.Standalone);
-            }
-
-            if (type == Schema.TopologyDescription.ClusterType.Unknown)
-            {
-                return (ClusterType.Unknown, ClusterConnectionMode.Automatic);
-            }
+                _ when type.StartsWith(Schema.TopologyDescription.ClusterType.ReplicaSet) =>
+                    (ClusterType.ReplicaSet, ClusterConnectionMode.ReplicaSet),
+                _ when type.StartsWith(Schema.TopologyDescription.ClusterType.Sharded) =>
+                    (ClusterType.Sharded, ClusterConnectionMode.Sharded),
+                _ when type.StartsWith(Schema.TopologyDescription.ClusterType.Single) =>
+                    (ClusterType.Standalone, ClusterConnectionMode.Standalone),
+                _ when type.StartsWith(Schema.TopologyDescription.ClusterType.Unknown) =>
+                    (ClusterType.Unknown, ClusterConnectionMode.Automatic),
+                _ => throw new NotSupportedException($"Unknown topology type: {type}")
+            };
 #pragma warning restore CS0618 // Type or member is obsolete
-
-            throw new NotSupportedException("Unknown topology type: " + type);
-        }
 
         private static ServerDescription BuildServerDescription(
             BsonDocument serverDescription,
@@ -202,40 +191,24 @@ namespace MongoDB.Driver.Specifications.server_selection
             return new TagSet(tagSet.Elements.Select(x => new Tag(x.Name, x.Value.ToString())));
         }
 
-        private static ServerType GetServerType(string type)
-        {
-            if (type == Schema.TopologyDescription.ServerType.RSPrimary)
+        private static ServerType GetServerType(string type) =>
+            type switch
             {
-                return ServerType.ReplicaSetPrimary;
-            }
-            else if (type == Schema.TopologyDescription.ServerType.RSSecondary)
-            {
-                return ServerType.ReplicaSetSecondary;
-            }
-            else if (type == Schema.TopologyDescription.ServerType.RSArbiter)
-            {
-                return ServerType.ReplicaSetArbiter;
-            }
-            else if (type == Schema.TopologyDescription.ServerType.RSGhost)
-            {
-                return ServerType.ReplicaSetGhost;
-            }
-            else if (type == Schema.TopologyDescription.ServerType.RSOther)
-            {
-                return ServerType.ReplicaSetOther;
-            }
-            else if (type == Schema.TopologyDescription.ServerType.Mongos)
-            {
-                return ServerType.ShardRouter;
-            }
-            else if (type == Schema.TopologyDescription.ServerType.Standalone)
-            {
-                return ServerType.Standalone;
-            }
-            else
-            {
-                return ServerType.Unknown;
-            }
-        }
+                _ when type == Schema.TopologyDescription.ServerType.RSPrimary =>
+                    ServerType.ReplicaSetPrimary,
+                _ when type == Schema.TopologyDescription.ServerType.RSSecondary =>
+                    ServerType.ReplicaSetSecondary,
+                _ when type == Schema.TopologyDescription.ServerType.RSArbiter =>
+                    ServerType.ReplicaSetArbiter,
+                _ when type == Schema.TopologyDescription.ServerType.RSGhost =>
+                    ServerType.ReplicaSetGhost,
+                _ when type == Schema.TopologyDescription.ServerType.RSOther =>
+                    ServerType.ReplicaSetOther,
+                _ when type == Schema.TopologyDescription.ServerType.Mongos =>
+                    ServerType.ShardRouter,
+                _ when type == Schema.TopologyDescription.ServerType.Standalone =>
+                    ServerType.Standalone,
+                _ => ServerType.Unknown
+            };
     }
 }

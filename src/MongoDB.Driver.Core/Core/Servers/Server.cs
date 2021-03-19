@@ -624,7 +624,7 @@ namespace MongoDB.Driver.Core.Servers
                 _server = server;
                 _connection = connection;
 
-                _state = new InterlockedInt32(State.Initial);
+                _state = new InterlockedInt32(ChannelState.Initial);
                 _decrementOperationsCount = decrementOperationsCount;
             }
 
@@ -841,7 +841,7 @@ namespace MongoDB.Driver.Core.Servers
 
             public void Dispose()
             {
-                if (_state.TryChange(State.Initial, State.Disposed))
+                if (_state.TryChange(ChannelState.Initial, ChannelState.Disposed))
                 {
                     if (_decrementOperationsCount)
                     {
@@ -1351,10 +1351,17 @@ namespace MongoDB.Driver.Core.Servers
 
             private void ThrowIfDisposed()
             {
-                if (_state.Value == State.Disposed)
+                if (_state.Value == ChannelState.Disposed)
                 {
                     throw new ObjectDisposedException(GetType().Name);
                 }
+            }
+
+            // nested types
+            private static class ChannelState
+            {
+                public const int Initial = 0;
+                public const int Disposed = 1;
             }
         }
     }
