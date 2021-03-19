@@ -113,6 +113,12 @@ namespace MongoDB.Driver.Core.Servers
         /// </summary>
         void RequestHeartbeat();
 
-        internal int OutstandingOperationsCount { get; }
+        /// <summary>
+        /// Gets the outstanding operations count.
+        /// </summary>
+        /// <value>
+        /// The outstanding operations count.
+        /// </value>
+        int OutstandingOperationsCount { get; }
     }
 }

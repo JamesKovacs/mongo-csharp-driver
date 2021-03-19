@@ -410,16 +410,13 @@ namespace MongoDB.Driver.Core.Clusters
         private class SelectServerHelper : IDisposable
         {
             private readonly Cluster _cluster;
+            private readonly List<IClusterableServer> _connectedServers;
+            private readonly List<ServerDescription> _connectedServerDescriptions;
             private ClusterDescription _description;
             private Task _descriptionChangedTask;
             private bool _serverSelectionWaitQueueEntered;
             private readonly IServerSelector _selector;
-
-            private readonly List<IClusterableServer> _connectedServers;
-            private readonly List<ServerDescription> _connectedServersDescriptions;
-
-            private readonly OperationsCountServerSelector _operationServerSelector;
-
+            private readonly OperationsCountServerSelector _operationCountServerSelector;
             private readonly Stopwatch _stopwatch;
             private readonly DateTime _timeoutAt;
 
@@ -428,8 +425,8 @@ namespace MongoDB.Driver.Core.Clusters
                 _cluster = cluster;
 
                 _connectedServers = new List<IClusterableServer>(_cluster._description?.Servers?.Count ?? 1);
-                _connectedServersDescriptions = new List<ServerDescription>(_connectedServers.Count);
-                _operationServerSelector = new OperationsCountServerSelector(_connectedServers);
+                _connectedServerDescriptions = new List<ServerDescription>(_connectedServers.Count);
+                _operationCountServerSelector = new OperationsCountServerSelector(_connectedServers);
 
                 _selector = DecorateSelector(selector);
                 _stopwatch = Stopwatch.StartNew();
@@ -501,7 +498,7 @@ namespace MongoDB.Driver.Core.Clusters
                 MongoIncompatibleDriverException.ThrowIfNotSupported(_description);
 
                 _connectedServers.Clear();
-                _connectedServersDescriptions.Clear();
+                _connectedServerDescriptions.Clear();
 
                 foreach (var description in _description.Servers)
                 {
@@ -509,21 +506,21 @@ namespace MongoDB.Driver.Core.Clusters
                         _cluster.TryGetServer(description.EndPoint, out var server))
                     {
                         _connectedServers.Add(server);
-                        _connectedServersDescriptions.Add(description);
+                        _connectedServerDescriptions.Add(description);
                     }
                 }
 
-                var selectedServers = _selector
-                    .SelectServers(_description, _connectedServersDescriptions)
+                var selectedServersDescriptions = _selector
+                    .SelectServers(_description, _connectedServerDescriptions)
                     .ToList();
 
                 IServer selectedServer = null;
 
-                if (selectedServers.Any())
+                if (selectedServersDescriptions.Count > 0)
                 {
-                    var selectedServerDescription = selectedServers.Count == 1 ?
-                        selectedServers[0] :
-                        __randomServerSelector.SelectServers(_description, selectedServers).Single();
+                    var selectedServerDescription = selectedServersDescriptions.Count == 1
+                        ? selectedServersDescriptions[0]
+                        : __randomServerSelector.SelectServers(_description, selectedServersDescriptions).Single();
 
                     selectedServer = _connectedServers.FirstOrDefault(s => EndPointHelper.Equals(s.EndPoint, selectedServerDescription.EndPoint));
                 }
@@ -576,7 +573,7 @@ namespace MongoDB.Driver.Core.Clusters
                 }
 
                 allSelectors.Add(_cluster._latencyLimitingServerSelector);
-                allSelectors.Add(_operationServerSelector);
+                allSelectors.Add(_operationCountServerSelector);
 
                 return new CompositeServerSelector(allSelectors);
             }

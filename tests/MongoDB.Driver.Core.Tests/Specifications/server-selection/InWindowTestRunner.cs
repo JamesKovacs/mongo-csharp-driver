@@ -40,6 +40,7 @@ namespace MongoDB.Driver.Specifications.server_selection
             public static readonly string mocked_topology_state = nameof(mocked_topology_state);
             public static readonly string iterations = nameof(iterations);
             public static readonly string outcome = nameof(outcome);
+            public static readonly string async = nameof(async);
 
             public static class MockedTopologyState
             {
@@ -56,6 +57,7 @@ namespace MongoDB.Driver.Specifications.server_selection
             public static readonly string[] RootFields = new[]
             {
                 "_path",
+                async,
                 description,
                 topology_description,
                 mocked_topology_state,
@@ -89,6 +91,7 @@ namespace MongoDB.Driver.Specifications.server_selection
             var mockedTopolyState = ReadMockedTopologyState(testDefinition[Schema.mocked_topology_state]);
             var iterations = testDefinition[Schema.iterations].AsInt32;
             var outcome = BsonSerializer.Deserialize<Outcome>((BsonDocument)testDefinition[Schema.outcome]);
+            var async = testCase.Test.GetValue(Schema.async).ToBoolean();
 
             using var cluster = CreateAndSetupCluster(clusterDescription, mockedTopolyState);
             var readPreferenceSelector = new ReadPreferenceServerSelector(ReadPreference.Nearest);
@@ -100,7 +103,9 @@ namespace MongoDB.Driver.Specifications.server_selection
 
             for (int i = 0; i < iterations; i++)
             {
-                var selectedServer = cluster.SelectServer(readPreferenceSelector, default);
+                var selectedServer = async
+                    ? cluster.SelectServerAsync(readPreferenceSelector, default).GetAwaiter().GetResult()
+                    : cluster.SelectServer(readPreferenceSelector, default);
 
                 selectionHistogram[selectedServer.ServerId]++;
             }
@@ -165,7 +170,12 @@ namespace MongoDB.Driver.Specifications.server_selection
             protected override IEnumerable<JsonDrivenTestCase> CreateTestCases(BsonDocument document)
             {
                 var name = GetTestCaseName(document, document, 0);
-                yield return new JsonDrivenTestCase(name, document, document);
+
+                foreach (var async in new[] { false, true })
+                {
+                    var testDecorated = document.DeepClone().AsBsonDocument.Add("async", async);
+                    yield return new JsonDrivenTestCase($"{name}:async={async}", testDecorated, testDecorated);
+                }
             }
         }
     }

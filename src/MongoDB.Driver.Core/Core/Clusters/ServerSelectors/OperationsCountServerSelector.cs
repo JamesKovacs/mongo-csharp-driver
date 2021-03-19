@@ -62,4 +62,4 @@ namespace MongoDB.Driver.Core.Clusters.ServerSelectors
         public override string ToString() =>
             nameof(OperationsCountServerSelector);
     }
-};
+}
