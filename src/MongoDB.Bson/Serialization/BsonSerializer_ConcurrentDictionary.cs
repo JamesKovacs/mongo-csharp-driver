@@ -1,4 +1,4 @@
-#if true
+#if false
 /* Copyright 2010-present MongoDB Inc.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +15,8 @@
 */
 
 using System;
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -42,7 +44,7 @@ namespace MongoDB.Bson.Serialization
         private static HashSet<Type> __discriminatedTypes = new HashSet<Type>();
         private static BsonSerializerRegistry __serializerRegistry;
         private static TypeMappingSerializationProvider __typeMappingSerializationProvider;
-        private static HashSet<Type> __typesWithRegisteredKnownTypes = new HashSet<Type>();
+        private static ConcurrentDictionary<Type, Type> __typesWithRegisteredKnownTypes = new ConcurrentDictionary<Type, Type>(EqualityComparer<Type>.Default);
 
         private static bool __useNullIdChecker = false;
         private static bool __useZeroIdChecker = false;
@@ -276,7 +278,20 @@ namespace MongoDB.Bson.Serialization
         public static bool IsTypeDiscriminated(Type type)
         {
             var typeInfo = type.GetTypeInfo();
-            return typeInfo.IsInterface || __discriminatedTypes.Contains(type);
+            if (typeInfo.IsInterface)
+            {
+                return true;
+            }
+
+            __configLock.EnterReadLock();
+            try
+            {
+                return __discriminatedTypes.Contains(type);
+            }
+            finally
+            {
+                __configLock.ExitReadLock();
+            }
         }
 
         /// <summary>
@@ -295,63 +310,67 @@ namespace MongoDB.Bson.Serialization
             // note: EnsureKnownTypesAreRegistered handles its own locking so call from outside any lock
             EnsureKnownTypesAreRegistered(nominalType);
 
+            HashSet<Type> hashSet;
+
             __configLock.EnterReadLock();
             try
             {
-                Type actualType = null;
-
-                HashSet<Type> hashSet;
-                var nominalTypeInfo = nominalType.GetTypeInfo();
-                if (__discriminators.TryGetValue(discriminator, out hashSet))
-                {
-                    foreach (var type in hashSet)
-                    {
-                        if (nominalTypeInfo.IsAssignableFrom(type))
-                        {
-                            if (actualType == null)
-                            {
-                                actualType = type;
-                            }
-                            else
-                            {
-                                string message = string.Format("Ambiguous discriminator '{0}'.", discriminator);
-                                throw new BsonSerializationException(message);
-                            }
-                        }
-                    }
-
-                    // no need for additional checks, we found the right type
-                    if (actualType != null)
-                    {
-                        return actualType;
-                    }
-                }
-
-                if (discriminator.IsString)
-                {
-                    actualType = TypeNameDiscriminator.GetActualType(discriminator.AsString); // see if it's a Type name
-                }
-
-                if (actualType == null)
-                {
-                    string message = string.Format("Unknown discriminator value '{0}'.", discriminator);
-                    throw new BsonSerializationException(message);
-                }
-
-                if (!nominalTypeInfo.IsAssignableFrom(actualType))
-                {
-                    string message = string.Format(
-                        "Actual type {0} is not assignable to expected type {1}.",
-                        actualType.FullName, nominalType.FullName);
-                    throw new BsonSerializationException(message);
-                }
-
-                return actualType;
+                __discriminators.TryGetValue(discriminator, out hashSet);
             }
             finally
             {
                 __configLock.ExitReadLock();
             }
+
+            Type actualType = null;
+            var nominalTypeInfo = nominalType.GetTypeInfo();
+
+            if (hashSet != null)
+            {
+                // The values inside __discriminator are expected to be immutable so it is safe to enumerate the contained HashSet<Type> outside the lock
+                foreach (var type in hashSet)
+                {
+                    if (nominalTypeInfo.IsAssignableFrom(type))
+                    {
+                        if (actualType == null)
+                        {
+                            actualType = type;
+                        }
+                        else
+                        {
+                            string message = string.Format("Ambiguous discriminator '{0}'.", discriminator);
+                            throw new BsonSerializationException(message);
+                        }
+                    }
+                }
+
+                // no need for additional checks, we found the right type
+                if (actualType != null)
+                {
+                    return actualType;
+                }
+            }
+
+            if (discriminator.IsString)
+            {
+                actualType = TypeNameDiscriminator.GetActualType(discriminator.AsString); // see if it's a Type name
+            }
+
+            if (actualType == null)
+            {
+                string message = string.Format("Unknown discriminator value '{0}'.", discriminator);
+                throw new BsonSerializationException(message);
+            }
+
+            if (!nominalTypeInfo.IsAssignableFrom(actualType))
+            {
+                string message = string.Format(
+                    "Actual type {0} is not assignable to expected type {1}.",
+                    actualType.FullName, nominalType.FullName);
+                throw new BsonSerializationException(message);
+            }
+
+            return actualType;
         }
 
         /// <summary>
@@ -536,7 +555,10 @@ namespace MongoDB.Bson.Serialization
 
                 if (!hashSet.Contains(type))
                 {
+                    // clone existing HashSet to not interfere with not synchronized parallel reads to the old instance
+                    hashSet = new HashSet<Type>(hashSet);
                     hashSet.Add(type);
+                    __discriminators[discriminator] = hashSet;
 
                     // mark all base types as discriminated (so we know that it's worth reading a discriminator)
                     for (var baseType = typeInfo.BaseType; baseType != null; baseType = baseType.GetTypeInfo().BaseType)
@@ -680,23 +702,15 @@ namespace MongoDB.Bson.Serialization
         // internal static methods
         internal static void EnsureKnownTypesAreRegistered(Type nominalType)
         {
-            __configLock.EnterReadLock();
-            try
+            if (__typesWithRegisteredKnownTypes.ContainsKey(nominalType))
             {
-                if (__typesWithRegisteredKnownTypes.Contains(nominalType))
-                {
-                    return;
-                }
-            }
-            finally
-            {
-                __configLock.ExitReadLock();
+                return;
             }
 
             __configLock.EnterWriteLock();
             try
             {
-                if (!__typesWithRegisteredKnownTypes.Contains(nominalType))
+                if (!__typesWithRegisteredKnownTypes.ContainsKey(nominalType))
                 {
                     // only call LookupClassMap for classes with a BsonKnownTypesAttribute
 #if NET452
@@ -710,7 +724,7 @@ namespace MongoDB.Bson.Serialization
                         LookupSerializer(nominalType);
                     }
 
-                    __typesWithRegisteredKnownTypes.Add(nominalType);
+                    __typesWithRegisteredKnownTypes[nominalType] = null /* we don't care about the value */;
                 }
             }
             finally
