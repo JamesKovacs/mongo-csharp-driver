@@ -7,7 +7,7 @@ namespace MongoDB.Perf
     {
         static async Task Main(string[] args)
         {
-            var threadCount = args?.Length > 0 ? int.Parse(args[0]) : Environment.ProcessorCount;
+            var threadCount = args?.Length > 0 ? int.Parse(args[0]) : Environment.ProcessorCount / 2;
             await PerformanceTests.TestSimplestBsonDeserialization(threadCount);
         }
     }
