@@ -14,6 +14,7 @@
 */
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -59,8 +60,17 @@ namespace MongoDB.Driver.Tests
         [ParameterAttributeData]
         public void SelectServer_loadbalancing_prose_test([Values(false, true)] bool async)
         {
-            RequireServer.Check().Supports(Feature.ShardedTransactions).ClusterType(ClusterType.Sharded);
+            RequireServer.Check()
+                .Supports(Feature.ShardedTransactions, Feature.FailPointsBlockConnection)
+                .ClusterType(ClusterType.Sharded);
             RequireMultipleShardRouters();
+
+            // temporary disable the test on Win Auth topologies, due to operations timings irregularities
+            if (CoreTestConfiguration.ConnectionString.Tls == true &&
+                RequirePlatform.GetCurrentOperatingSystem() == SupportedOperatingSystem.Windows)
+            {
+                throw new SkipException("Win Auth topologies temporary not supported due to timings irregularities.");
+            }
 
             const string applicationName = "loadBalancingTest";
             const int threadsCount = 10;
@@ -68,30 +78,43 @@ namespace MongoDB.Driver.Tests
             const double maxCommandsOnSlowServerRatio = 0.25;
             const double operationsCountTolerance = 0.10;
 
-            var failCommand = BsonDocument.Parse($"{{ configureFailPoint: 'failCommand', mode : {{ times : 1000 }}, data : {{ failCommands : [\"find\"], blockConnection: true, blockTimeMS: 500, appName: '{applicationName}' }} }}");
+            var failCommand = BsonDocument.Parse($"{{ configureFailPoint: 'failCommand', mode : {{ times : 10000 }}, data : {{ failCommands : [\"find\"], blockConnection: true, blockTimeMS: 500, appName: '{applicationName}' }} }}");
 
             DropCollection();
             var eventCapturer = CreateEventCapturer();
-            var listOfFindResults = new List<List<BsonDocument>>();
             using (var client = CreateDisposableClient(eventCapturer, applicationName))
             {
-                var failPointServer = client.Cluster.SelectServer(WritableServerSelector.Instance, default);
-                using var failPoint = FailPoint.Configure(failPointServer, NoCoreSession.NewHandle(), failCommand);
+                var slowServer = client.Cluster.SelectServer(WritableServerSelector.Instance, default);
+                var fastServer = client.Cluster.SelectServer(new DelegateServerSelector((_, servers) => servers.Where(s => s.ServerId != slowServer.ServerId)), default);
+
+                using var failPoint = FailPoint.Configure(slowServer, NoCoreSession.NewHandle(), failCommand);
 
                 var database = client.GetDatabase(_databaseName);
                 CreateCollection();
                 var collection = database.GetCollection<BsonDocument>(_collectionName);
 
-                var (allCount, eventsOnSlowServerCount) = ExecuteFindOperations(collection, failPointServer.ServerId);
+                // warm up connections
+                var channels = new ConcurrentBag<IChannelHandle>();
+                ThreadingUtilities.ExecuteOnNewThreads(threadsCount, i =>
+                {
+                    channels.Add(slowServer.GetChannel(default));
+                    channels.Add(fastServer.GetChannel(default));
+                });
 
+                foreach (var channel in channels)
+                {
+                    channel.Dispose();
+                }
+
+                var (allCount, eventsOnSlowServerCount) = ExecuteFindOperations(collection, slowServer.ServerId);
                 eventsOnSlowServerCount.Should().BeLessThan((int)(allCount * maxCommandsOnSlowServerRatio));
 
                 failPoint.Dispose();
 
-                (allCount, eventsOnSlowServerCount) = ExecuteFindOperations(collection, failPointServer.ServerId);
+                (allCount, eventsOnSlowServerCount) = ExecuteFindOperations(collection, slowServer.ServerId);
 
                 var singleServerOperationsPortion = allCount / 2;
-                var singleServerOperationsRange = (int)Math.Ceiling(singleServerOperationsPortion * operationsCountTolerance);
+                var singleServerOperationsRange = (int)Math.Ceiling(allCount * operationsCountTolerance);
 
                 eventsOnSlowServerCount.Should().BeInRange(singleServerOperationsPortion - singleServerOperationsRange, singleServerOperationsPortion + singleServerOperationsRange);
             }
@@ -104,7 +127,15 @@ namespace MongoDB.Driver.Tests
                 {
                     for (int i = 0; i < commandsPerThreadCount; i++)
                     {
-                        _ = collection.Find(new BsonDocument()).FirstOrDefault();
+                        if (async)
+                        {
+                            var cursor = collection.FindAsync(new BsonDocument()).GetAwaiter().GetResult();
+                            _ = cursor.FirstOrDefaultAsync().GetAwaiter().GetResult();
+                        }
+                        else
+                        {
+                            _ = collection.Find(new BsonDocument()).FirstOrDefault();
+                        }
                     }
                 });
 

@@ -33,49 +33,28 @@ namespace MongoDB.Driver.Specifications.server_selection
 {
     public sealed class InWindowTestRunner
     {
-        private static class Schema
+        private sealed class OperationsCount
         {
-            public static readonly string description = nameof(description);
-            public static readonly string topology_description = nameof(topology_description);
-            public static readonly string mocked_topology_state = nameof(mocked_topology_state);
-            public static readonly string iterations = nameof(iterations);
-            public static readonly string outcome = nameof(outcome);
-            public static readonly string async = nameof(async);
-
-            public static class MockedTopologyState
-            {
-                public static readonly string address = nameof(address);
-                public static readonly string operation_count = nameof(operation_count);
-            }
-
-            public static class Outcome
-            {
-                public static readonly string tolerance = nameof(tolerance);
-                public static readonly string expected_frequencies = nameof(expected_frequencies);
-            }
-
-            public static readonly string[] RootFields = new[]
-            {
-                "_path",
-                async,
-                description,
-                topology_description,
-                mocked_topology_state,
-                iterations,
-                outcome
-            };
+            public string address { get; set; }
+            public int operation_count { get; set; }
         }
 
         private sealed class Outcome
         {
             public double tolerance { get; set; }
-            public Dictionary<string, double> expected_frequencies { get; set; }
+            public IDictionary<string, double> expected_frequencies  { get; set; }
         }
 
-        private sealed class OperationsCount
+        private sealed class TestData
         {
-            public string address { get; set; }
-            public int operation_count { get; set; }
+            public string _path { get; set; }
+            public BsonDocument topology_description { get; set; }
+            public bool async { get; set; }
+            public string description { get; set; }
+            public int iterations { get; set; }
+
+            public OperationsCount[] mocked_topology_state { get; set;}
+            public Outcome outcome { get; set; }
         }
 
         [Theory]
@@ -83,27 +62,20 @@ namespace MongoDB.Driver.Specifications.server_selection
         public void RunTestDefinition(JsonDrivenTestCase testCase)
         {
             var testDefinition = testCase.Test;
+            var testData = BsonSerializer.Deserialize<TestData>(testDefinition);
+            var clusterDescription = ServerSelectionTestHelper.BuildClusterDescription(testData.topology_description);
 
-            JsonDrivenHelper.EnsureAllFieldsAreValid(testDefinition, Schema.RootFields);
-
-            var topologyDescription = (BsonDocument)testDefinition[Schema.topology_description];
-            var clusterDescription = ServerSelectionTestHelper.BuildClusterDescription(topologyDescription);
-            var mockedTopolyState = ReadMockedTopologyState(testDefinition[Schema.mocked_topology_state]);
-            var iterations = testDefinition[Schema.iterations].AsInt32;
-            var outcome = BsonSerializer.Deserialize<Outcome>((BsonDocument)testDefinition[Schema.outcome]);
-            var async = testCase.Test.GetValue(Schema.async).ToBoolean();
-
-            using var cluster = CreateAndSetupCluster(clusterDescription, mockedTopolyState);
+            using var cluster = CreateAndSetupCluster(clusterDescription, testData.mocked_topology_state);
             var readPreferenceSelector = new ReadPreferenceServerSelector(ReadPreference.Nearest);
 
-            var selectionHistogram = outcome.expected_frequencies.Keys
+            var selectionHistogram = testData.outcome.expected_frequencies.Keys
                 .ToDictionary(s => clusterDescription.Servers.Single(d => d.EndPoint.ToString().EndsWith(s)).ServerId, s => 0);
-            var selectionFrequenciesExpected = outcome.expected_frequencies.
+            var selectionFrequenciesExpected = testData.outcome.expected_frequencies.
                 ToDictionary(s => clusterDescription.Servers.Single(d => d.EndPoint.ToString().EndsWith(s.Key)).ServerId, s => s.Value);
 
-            for (int i = 0; i < iterations; i++)
+            for (int i = 0; i < testData.iterations; i++)
             {
-                var selectedServer = async
+                var selectedServer = testData.async
                     ? cluster.SelectServerAsync(readPreferenceSelector, default).GetAwaiter().GetResult()
                     : cluster.SelectServer(readPreferenceSelector, default);
 
@@ -113,9 +85,9 @@ namespace MongoDB.Driver.Specifications.server_selection
             foreach (var pair in selectionHistogram)
             {
                 var expectedFrequency = selectionFrequenciesExpected[pair.Key];
-                var actualFrequency = pair.Value / (double)iterations;
+                var actualFrequency = pair.Value / (double)testData.iterations;
 
-                actualFrequency.Should().BeInRange(expectedFrequency - outcome.tolerance, expectedFrequency + outcome.tolerance);
+                actualFrequency.Should().BeInRange(expectedFrequency - testData.outcome.tolerance, expectedFrequency + testData.outcome.tolerance);
             }
         }
 
@@ -153,11 +125,6 @@ namespace MongoDB.Driver.Specifications.server_selection
             result.Initialize();
             return result;
         }
-
-        private OperationsCount[] ReadMockedTopologyState(BsonValue mockTopologyState) =>
-            ((BsonArray)mockTopologyState)
-                .Select(d => BsonSerializer.Deserialize<OperationsCount>((BsonDocument)d))
-                .ToArray();
 
         // nested types
         private class TestCaseFactory : JsonDrivenTestCaseFactory
