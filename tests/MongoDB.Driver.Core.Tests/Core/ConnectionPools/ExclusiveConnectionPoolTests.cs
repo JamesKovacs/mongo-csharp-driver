@@ -516,7 +516,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
             [Values(true, false)]
             bool isAsync)
         {
-            int maxConnecting = MongoCoreDefaults.ConnectionPool.MaxConnecting;
+            int maxConnecting = MongoInternalDefaults.ConnectionPool.MaxConnecting;
             const int initalAcquiredCount = 2;
             const int maxAcquiringCount = 4;
             const int queueTimeoutMS = 50;
@@ -541,11 +541,9 @@ namespace MongoDB.Driver.Core.ConnectionPools
                     connectionMock
                         .Setup(c => c.ConnectionId)
                         .Returns(new ConnectionId(_serverId));
-
                     connectionMock
                         .Setup(c => c.Settings)
                         .Returns(new ConnectionSettings());
-
                     connectionMock
                         .Setup(c => c.Open(It.IsAny<CancellationToken>()))
                         .Callback(() =>
@@ -557,7 +555,6 @@ namespace MongoDB.Driver.Core.ConnectionPools
 
                             blockEstablishmentEvent.Wait();
                         });
-
                     connectionMock
                         .Setup(c => c.OpenAsync(It.IsAny<CancellationToken>()))
                         .Returns(() =>
@@ -579,7 +576,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
 
             subject.PendingCount.Should().Be(0);
             var connectionsAcquired = Enumerable.Range(0, initalAcquiredCount)
-                .Select(i => AcquireConnectionGeneric(subject, isAsync))
+                .Select(i => AcquireConnection(subject, isAsync))
                 .ToArray();
 
             // block further establishments
@@ -595,7 +592,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 {
                     // maximize maxConnecting
                     allAcquiringCountEvent.Signal();
-                    AcquireConnectionGeneric(subject, isAsync);
+                    AcquireConnection(subject, isAsync);
                 }
                 else if (threadIndex < maxConnecting + maxAcquiringCount)
                 {
@@ -607,7 +604,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
 
                     try
                     {
-                        AcquireConnectionGeneric(subject, isAsync);
+                        AcquireConnection(subject, isAsync);
                     }
                     catch (TimeoutException)
                     {
@@ -638,13 +635,14 @@ namespace MongoDB.Driver.Core.ConnectionPools
         }
 
         // private methods
-        private static IConnection AcquireConnectionGeneric(ExclusiveConnectionPool subject, bool async)
+        private IConnection AcquireConnection(ExclusiveConnectionPool subject, bool async)
         {
             if (async)
             {
-                return subject.AcquireConnectionAsync(CancellationToken.None)
-                .GetAwaiter()
-                .GetResult();
+                return subject
+                    .AcquireConnectionAsync(CancellationToken.None)
+                    .GetAwaiter()
+                    .GetResult();
             }
             else
             {

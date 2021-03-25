@@ -1,4 +1,18 @@
-﻿using System;
+﻿/* Copyright 2021-present MongoDB Inc.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -6,7 +20,7 @@ using System.Threading.Tasks;
 
 namespace MongoDB.Bson.TestHelpers
 {
-    // https://code.msdn.microsoft.com/Samples-for-Parallel-b4b76364/sourcecode?fileId=44488&pathId=2098696067
+    // https://github.com/dotnet/samples/blob/main/csharp/parallel/ParallelExtensionsExtras/TaskSchedulers/ThreadPerTaskkScheduler.cs
     public sealed class ThreadPerTaskScheduler : TaskScheduler
     {
         /// <summary>Gets the tasks currently scheduled to this scheduler.</summary> 
@@ -28,19 +42,5 @@ namespace MongoDB.Bson.TestHelpers
         {
             return TryExecuteTask(task);
         }
-
-        public static Task CreateTask(Action action) =>
-            Task.Factory.StartNew(
-                action,
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                new ThreadPerTaskScheduler());
-
-        public static Task CreateTask<T>(Func<T> function) =>
-            Task.Factory.StartNew(
-                function,
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                new ThreadPerTaskScheduler());
     }
 }

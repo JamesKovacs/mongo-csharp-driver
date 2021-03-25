@@ -52,7 +52,6 @@ namespace MongoDB.Driver.Core.Tests.Jira
         private readonly static ServerId __serverId1 = new ServerId(__clusterId, __endPoint1);
         private readonly static ServerId __serverId2 = new ServerId(__clusterId, __endPoint2);
 
-        // TODO SDAM spec: Adapt the test to follow 
         [Theory]
         [ParameterAttributeData]
         public void Ensure_command_network_error_before_hadnshake_is_correctly_handled([Values(false, true)] bool async, [Values(false, true)] bool streamable)
@@ -235,8 +234,6 @@ namespace MongoDB.Driver.Core.Tests.Jira
                 connectTimeout: TimeSpan.FromMilliseconds(1),
                 heartbeatInterval: __heartbeatInterval);
             var serverSettings = new ServerSettings(serverMonitorSettings.HeartbeatInterval);
-
-            var connectionPoolSettings = new ConnectionPoolSettings();
 
             var connectionPoolFactory = CreateAndSetupConnectionPoolFactory(serverInfoCollection);
             var serverMonitorConnectionFactory = CreateAndSetupServerMonitorConnectionFactory(hasNetworkErrorBeenTriggered, hasClusterBeenDisposed, streamable, serverInfoCollection);

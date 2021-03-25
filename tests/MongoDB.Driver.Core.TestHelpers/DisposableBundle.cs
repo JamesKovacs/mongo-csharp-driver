@@ -25,7 +25,7 @@ namespace MongoDB.Driver.Core.TestHelpers
         /// <summary>
         /// Initializes a new instance of the <see cref="DisposableBundle"/> class.
         /// </summary>
-        /// <param name="disposables">Non-null sequence of IDisposables</param>
+        /// <param name="disposables">Sequence of IDisposables, null are allowed.</param>
         public DisposableBundle(IEnumerable<IDisposable> disposables)
         {
             _disposables = disposables;

@@ -334,7 +334,6 @@ namespace MongoDB.Driver.Core.Servers
             exception.Should().Be(openConnectionException);
             subject.Description.Type.Should().Be(ServerType.Unknown);
             subject.Description.ReasonChanged.Should().Contain("ChannelException during handshake");
-            //mockConnectionPool.Verify(p => p.Clear(), Times.Once);
         }
 
         [Theory]

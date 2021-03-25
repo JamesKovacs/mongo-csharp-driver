@@ -46,7 +46,6 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
     public class ConnectionMonitoringAndPoolingTestRunner
     {
         #region static
-
         private static readonly string[] __alwaysIgnoredEvents =
         {
             nameof(ConnectionPoolOpeningEvent),
@@ -59,7 +58,6 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
             nameof(ConnectionPoolClearingEvent),
             nameof(ConnectionOpeningEvent),
             nameof(ConnectionClosingEvent),
-
             nameof(ConnectionSendingMessagesEvent),
             nameof(ConnectionSendingMessagesFailedEvent),
             nameof(ConnectionSentMessagesEvent),
@@ -278,6 +276,26 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
             }
         }
 
+        private void CheckServerRequirements(BsonDocument document)
+        {
+            if (document.TryGetValue(Schema.Intergration.runOn, out var runOn))
+            {
+                RequireServer.Check().RunOn(runOn.AsBsonArray);
+            }
+        }
+
+        private FailPoint ConfigureFailPoint(BsonDocument test, ICluster cluster)
+        {
+            if (test.TryGetValue(Schema.Intergration.failPoint, out var failPoint))
+            {
+                var command = failPoint.AsBsonDocument;
+
+                return FailPoint.Configure(cluster, NoCoreSession.NewHandle(), command);
+            }
+
+            return null;
+        }
+
         private Task CreateTask(Action action)
         {
             // This scheduler is used because the JSON tests description contains a statement
@@ -298,7 +316,7 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
             {
                 foreach (var integratoinField in new[] { Schema.Intergration.failPoint, Schema.Intergration.runOn })
                 {
-                    if (test.TryGetValue(integratoinField, out _))
+                    if (test.Contains(integratoinField))
                     {
                         throw new FormatException($"Invalid field: {integratoinField} for {style} style.");
                     }
@@ -476,7 +494,6 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
                 .Where(c =>
                 {
                     var name = c.GetType().Name;
-
                     return name.StartsWith("Connection") && !ignoredEvents.Contains(name);
                 })
                 .ToList();
@@ -538,9 +555,9 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
             connectionPoolSettings = new ConnectionPoolSettings();
             connectionSettings = new ConnectionSettings();
 
-            if (test.Contains(Schema.poolOptions))
+            if (test.TryGetValue(Schema.poolOptions, out var poolOptionsBson))
             {
-                var poolOptionsDocument = test[Schema.poolOptions].AsBsonDocument;
+                var poolOptionsDocument = poolOptionsBson.AsBsonDocument;
                 foreach (var poolOption in poolOptionsDocument.Elements)
                 {
                     switch (poolOption.Name)
@@ -564,7 +581,7 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
             }
         }
 
-        public void ResetConnectionId()
+        private void ResetConnectionId()
         {
             IdGeneratorReflector.__lastId(0);
         }
@@ -644,18 +661,6 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
             return connectionPool;
         }
 
-        protected FailPoint ConfigureFailPoint(BsonDocument test, ICluster cluster)
-        {
-            if (test.TryGetValue(Schema.Intergration.failPoint, out var failPoint))
-            {
-                var command = failPoint.AsBsonDocument;
-
-                return FailPoint.Configure(cluster, NoCoreSession.NewHandle(), command);
-            }
-
-            return null;
-        }
-
         private void Start(BsonDocument operation, ConcurrentDictionary<string, Task> tasks)
         {
             var startTarget = operation.GetValue("target").ToString();
@@ -692,14 +697,6 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
             else
             {
                 throw new Exception($"The task {waitThread} must be configured before waiting.");
-            }
-        }
-
-        private void CheckServerRequirements(BsonDocument document)
-        {
-            if (document.TryGetValue(Schema.Intergration.runOn, out var runOn))
-            {
-                RequireServer.Check().RunOn(runOn.AsBsonArray);
             }
         }
 

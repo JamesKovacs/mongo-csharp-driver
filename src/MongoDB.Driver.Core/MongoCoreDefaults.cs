@@ -15,11 +15,11 @@
 
 namespace MongoDB.Driver.Core
 {
-    internal static class MongoCoreDefaults
+    internal static class MongoInternalDefaults
     {
         public static class ConnectionPool
         {
-            public static int MaxConnecting { get; } = 2;
+            public const int MaxConnecting = 2;
         }
     }
 }

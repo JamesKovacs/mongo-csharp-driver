@@ -80,23 +80,6 @@ namespace MongoDB.Driver
             get { return _connectionId; }
         }
 
-        // properties
-        // TODO temporary property for propagating exception generation to server
-        // Will be reconsider after SDAM spec error handling adjustments
-        internal int? Generation
-        {
-            get { return _generation; }
-            set
-            {
-                if (_generation != null)
-                {
-                    throw new InvalidOperationException("Generation is already set");
-                }
-
-                _generation = value;
-            }
-        }
-
         /// <summary>
         /// Whether or not this exception contains a socket timeout exception.
         /// </summary>
@@ -155,5 +138,22 @@ namespace MongoDB.Driver
             info.AddValue("_connectionId", _connectionId);
         }
 #endif
+
+        // properties
+        // TODO temporary property for propagating exception generation to server
+        // Will be reconsider after SDAM spec error handling adjustments
+        internal int? Generation
+        {
+            get { return _generation; }
+            set
+            {
+                if (_generation != null)
+                {
+                    throw new InvalidOperationException("Generation is already set.");
+                }
+
+                _generation = value;
+            }
+        }
     }
 }

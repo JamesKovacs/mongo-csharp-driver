@@ -111,9 +111,9 @@ namespace MongoDB.Driver.Specifications.server_discovery_and_monitoring
                 .Returns(new ConnectionDescription(connectionId, isMasterResult, buildInfoResult));
 
             int generation = 0;
-            if (applicationError.Contains("generation"))
+            if (applicationError.TryGetValue("generation", out var generationBsonValue))
             {
-                generation = applicationError["generation"].AsInt32;
+                generation = generationBsonValue.AsInt32;
 
                 if (simulatedException is MongoConnectionException mongoConnectionException)
                 {
