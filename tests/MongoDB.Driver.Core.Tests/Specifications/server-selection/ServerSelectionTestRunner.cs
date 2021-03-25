@@ -30,7 +30,6 @@ namespace MongoDB.Driver.Specifications.server_selection
     public class ServerSelectionTestRunner
     {
         private ClusterId _clusterId = new ClusterId();
-        private DateTime _utcNow = DateTime.UtcNow;
 
         [Theory]
         [ClassData(typeof(TestCaseFactory))]

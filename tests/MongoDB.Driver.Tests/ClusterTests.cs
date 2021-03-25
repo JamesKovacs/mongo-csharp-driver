@@ -75,7 +75,7 @@ namespace MongoDB.Driver.Tests
             const string applicationName = "loadBalancingTest";
             const int threadsCount = 10;
             const int commandsPerThreadCount = 10;
-            const double maxCommandsOnSlowServerRatio = 0.25;
+            const double maxCommandsOnSlowServerRatio = 0.3; // temporary set slow server load to 30% from 25% until find timings are investigated
             const double operationsCountTolerance = 0.10;
 
             var failCommand = BsonDocument.Parse($"{{ configureFailPoint: 'failCommand', mode : {{ times : 10000 }}, data : {{ failCommands : [\"find\"], blockConnection: true, blockTimeMS: 500, appName: '{applicationName}' }} }}");

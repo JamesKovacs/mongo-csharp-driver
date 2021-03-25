@@ -17,7 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MongoDB.Bson;
-using MongoDB.Bson.TestHelpers.JsonDrivenTests;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.Servers;
@@ -26,148 +26,110 @@ namespace MongoDB.Driver.Specifications.server_selection
 {
     internal static class ServerSelectionTestHelper
     {
-        private static class Schema
+        private enum ClusterTypeTest
         {
-            public static readonly string topology_description = nameof(topology_description);
+            ReplicaSetWithPrimary,
+            ReplicaSetNoPrimary,
+            Sharded,
+            Single,
+            Unknown
+        }
 
-            public static class TopologyDescription
-            {
-                public static readonly string servers = nameof(servers);
-                public static readonly string type = nameof(type);
+        private enum ServerTypeTest
+        {
+           RSPrimary = ServerType.ReplicaSetPrimary,
+           RSSecondary = ServerType.ReplicaSetSecondary,
+           RSArbiter = ServerType.ReplicaSetArbiter,
+           RSGhost = ServerType.ReplicaSetGhost,
+           RSOther = ServerType.ReplicaSetOther,
+           Mongos = ServerType.ShardRouter,
+           Standalone = ServerType.Standalone,
+           Unknown = ServerType.Unknown
+        }
 
-                public static class ClusterType
-                {
-                    public static readonly string ReplicaSet = nameof(ReplicaSet);
-                    public static readonly string Sharded = nameof(Sharded);
-                    public static readonly string Single = nameof(Single);
-                    public static readonly string Unknown = nameof(Unknown);
-                }
+        public enum ServerTagTest
+        {
+            data_center,
+            rack,
+            other_tag
+        }
 
-                public static class Server
-                {
-                    public static readonly string address = nameof(address);
-                    public static readonly string avg_rtt_ms = nameof(avg_rtt_ms);
-                    public static readonly string tags = nameof(tags);
-                    public static readonly string type = nameof(type);
-                    public static readonly string lastUpdateTime = nameof(lastUpdateTime);
-                    public static readonly string lastWrite = nameof(lastWrite);
-                    public static readonly string maxWireVersion = nameof(maxWireVersion);
+        private sealed class LastWrite
+        {
+            public long lastWriteDate { get; set; }
+        }
 
-                    public static readonly string[] AllFields = new[]
-                    {
-                        address,
-                        avg_rtt_ms,
-                        tags,
-                        type,
-                        lastUpdateTime,
-                        lastWrite,
-                        maxWireVersion
-                    };
-                }
+        private sealed class ServerData
+        {
+            public string address { get; set; }
+            public int avg_rtt_ms { get; set; }
+            public int? lastUpdateTime { get; set; }
+            public LastWrite lastWrite { get; set; }
+            public int? maxWireVersion { get; set; }
+            public ServerTypeTest type { get; set; }
 
-                public static class ServerType
-                {
-                    public static readonly string RSPrimary = nameof(RSPrimary);
-                    public static readonly string RSSecondary = nameof(RSSecondary);
-                    public static readonly string RSArbiter = nameof(RSArbiter);
-                    public static readonly string RSGhost = nameof(RSGhost);
-                    public static readonly string RSOther = nameof(RSOther);
-                    public static readonly string Mongos = nameof(Mongos);
-                    public static readonly string Standalone = nameof(Standalone);
-                }
+            public Dictionary<ServerTagTest, string> tags { get; set; }
+        }
 
-                public static class ServerTags
-                {
-                    public static readonly string data_center = nameof(data_center);
-                    public static readonly string rack = nameof(rack);
-                    public static readonly string other_tag = nameof(other_tag);
-
-                    public static readonly string[] AllFields = new[]
-                    {
-                        data_center,
-                        rack,
-                        other_tag,
-                    };
-                }
-            }
+        private sealed class TopologyDescription
+        {
+            public ServerData[] servers { get; set; }
+            public ClusterTypeTest type { get; set; }
         }
 
         public static ClusterDescription BuildClusterDescription(
-            BsonDocument topologyDescription,
+            BsonDocument topologyDescriptionDocument,
             TimeSpan? heartbeatInterval = null)
         {
             var clusterId = new ClusterId();
 
             heartbeatInterval = heartbeatInterval ?? TimeSpan.FromMilliseconds(500);
-            JsonDrivenHelper.EnsureAllFieldsAreValid(topologyDescription, Schema.TopologyDescription.servers, Schema.TopologyDescription.type);
 
-            var (clusterType, clusterConnectionMode) = GetClusterType(topologyDescription[Schema.TopologyDescription.type].ToString());
-            var servers = BuildServerDescriptions((BsonArray)topologyDescription[Schema.TopologyDescription.servers], clusterId, heartbeatInterval.Value);
+            var topologyDescription = BsonSerializer.Deserialize<TopologyDescription>(topologyDescriptionDocument);
+
+            var (clusterType, clusterConnectionMode) = GetClusterType(topologyDescription);
+            var servers = topologyDescription.servers.Select(x => BuildServerDescription(x, clusterId, heartbeatInterval.Value)).ToArray();
 
 #pragma warning disable CS0618 // Type or member is obsolete
             return new ClusterDescription(clusterId, clusterConnectionMode, clusterType, servers);
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        public static List<ServerDescription> BuildServerDescriptions(BsonArray serverDescriptions, ClusterId clusterId, TimeSpan heartbeatInterval) =>
-            serverDescriptions.Select(x => BuildServerDescription((BsonDocument)x, clusterId, heartbeatInterval)).ToList();
-
         // private methods
 #pragma warning disable CS0618 // Type or member is obsolete
-        private static (ClusterType, ClusterConnectionMode) GetClusterType(string type) =>
-            type switch
+        private static (ClusterType, ClusterConnectionMode) GetClusterType(TopologyDescription topologyDescription) =>
+            topologyDescription.type switch
             {
-                _ when type.StartsWith(Schema.TopologyDescription.ClusterType.ReplicaSet) =>
-                    (ClusterType.ReplicaSet, ClusterConnectionMode.ReplicaSet),
-                _ when type.StartsWith(Schema.TopologyDescription.ClusterType.Sharded) =>
-                    (ClusterType.Sharded, ClusterConnectionMode.Sharded),
-                _ when type.StartsWith(Schema.TopologyDescription.ClusterType.Single) =>
-                    (ClusterType.Standalone, ClusterConnectionMode.Standalone),
-                _ when type.StartsWith(Schema.TopologyDescription.ClusterType.Unknown) =>
-                    (ClusterType.Unknown, ClusterConnectionMode.Automatic),
-                _ => throw new NotSupportedException($"Unknown topology type: {type}")
+                ClusterTypeTest.ReplicaSetNoPrimary => (ClusterType.ReplicaSet, ClusterConnectionMode.ReplicaSet),
+                ClusterTypeTest.ReplicaSetWithPrimary => (ClusterType.ReplicaSet, ClusterConnectionMode.ReplicaSet),
+                ClusterTypeTest.Sharded => (ClusterType.Sharded, ClusterConnectionMode.Sharded),
+                ClusterTypeTest.Single => (ClusterType.Standalone, ClusterConnectionMode.Standalone),
+                ClusterTypeTest.Unknown => (ClusterType.Unknown, ClusterConnectionMode.Automatic),
+                _ => throw new NotSupportedException($"Unknown topology type: {topologyDescription.type}")
             };
 #pragma warning restore CS0618 // Type or member is obsolete
 
+        public static List<ServerDescription> BuildServerDescriptions(BsonArray bsonArray, ClusterId clusterId, TimeSpan heartbeatInterval) =>
+            bsonArray.Select(x => BuildServerDescription(BsonSerializer.Deserialize<ServerData>((BsonDocument)x), clusterId, heartbeatInterval))
+            .ToList();
+
         private static ServerDescription BuildServerDescription(
-            BsonDocument serverDescription,
+            ServerData serverData,
             ClusterId clusterId,
             TimeSpan heartbeatInterval)
         {
             var utcNow = DateTime.UtcNow;
 
-            JsonDrivenHelper.EnsureAllFieldsAreValid(serverDescription, Schema.TopologyDescription.Server.AllFields);
+            var endPoint = EndPointHelper.Parse(serverData.address);
+            var averageRoundTripTime = TimeSpan.FromMilliseconds(serverData.avg_rtt_ms);
+            var type = (ServerType)serverData.type;
+            var tagSet = BuildTagSet(serverData);
+            var lastWriteTimestamp = serverData.lastWrite != null ? BsonUtils.ToDateTimeFromMillisecondsSinceEpoch(serverData.lastWrite.lastWriteDate) : utcNow;
+            var lastUpdateTimestamp = serverData.lastUpdateTime != null ? BsonUtils.ToDateTimeFromMillisecondsSinceEpoch(serverData.lastUpdateTime.Value) : utcNow;
 
-            var endPoint = EndPointHelper.Parse(serverDescription[Schema.TopologyDescription.Server.address].ToString());
-            var averageRoundTripTime = TimeSpan.FromMilliseconds(serverDescription.GetValue(Schema.TopologyDescription.Server.avg_rtt_ms, 0.0).ToDouble());
-            var type = GetServerType(serverDescription[Schema.TopologyDescription.Server.type].ToString());
-
-            TagSet tagSet = null;
-            if (serverDescription.TryGetValue(Schema.TopologyDescription.Server.tags, out var tagsElement))
-            {
-                tagSet = BuildTagSet((BsonDocument)tagsElement);
-            }
-            DateTime lastWriteTimestamp;
-            if (serverDescription.TryGetValue(Schema.TopologyDescription.Server.lastWrite, out var lastWrite))
-            {
-                lastWriteTimestamp = BsonUtils.ToDateTimeFromMillisecondsSinceEpoch(lastWrite["lastWriteDate"].ToInt64());
-            }
-            else
-            {
-                lastWriteTimestamp = utcNow;
-            }
-            var maxWireVersion = serverDescription.GetValue(Schema.TopologyDescription.Server.maxWireVersion, 5).ToInt32();
+            var maxWireVersion = serverData.maxWireVersion ?? 5;
             var wireVersionRange = new Range<int>(0, maxWireVersion);
             var serverVersion = maxWireVersion == 5 ? new SemanticVersion(3, 4, 0) : new SemanticVersion(3, 2, 0);
-            DateTime lastUpdateTimestamp;
-            if (serverDescription.TryGetValue(Schema.TopologyDescription.Server.lastUpdateTime, out var lastUpdateTime))
-            {
-                lastUpdateTimestamp = BsonUtils.ToDateTimeFromMillisecondsSinceEpoch(lastUpdateTime.ToInt64());
-            }
-            else
-            {
-                lastUpdateTimestamp = utcNow;
-            }
 
             var serverId = new ServerId(clusterId, endPoint);
             return new ServerDescription(
@@ -184,31 +146,15 @@ namespace MongoDB.Driver.Specifications.server_selection
                 state: ServerState.Connected);
         }
 
-        private static TagSet BuildTagSet(BsonDocument tagSet)
+        private static TagSet BuildTagSet(ServerData serverData)
         {
-            JsonDrivenHelper.EnsureAllFieldsAreValid(tagSet, Schema.TopologyDescription.ServerTags.AllFields);
+            TagSet result = null;
 
-            return new TagSet(tagSet.Elements.Select(x => new Tag(x.Name, x.Value.ToString())));
-        }
-
-        private static ServerType GetServerType(string type) =>
-            type switch
+            if (serverData.tags != null)
             {
-                _ when type == Schema.TopologyDescription.ServerType.RSPrimary =>
-                    ServerType.ReplicaSetPrimary,
-                _ when type == Schema.TopologyDescription.ServerType.RSSecondary =>
-                    ServerType.ReplicaSetSecondary,
-                _ when type == Schema.TopologyDescription.ServerType.RSArbiter =>
-                    ServerType.ReplicaSetArbiter,
-                _ when type == Schema.TopologyDescription.ServerType.RSGhost =>
-                    ServerType.ReplicaSetGhost,
-                _ when type == Schema.TopologyDescription.ServerType.RSOther =>
-                    ServerType.ReplicaSetOther,
-                _ when type == Schema.TopologyDescription.ServerType.Mongos =>
-                    ServerType.ShardRouter,
-                _ when type == Schema.TopologyDescription.ServerType.Standalone =>
-                    ServerType.Standalone,
-                _ => ServerType.Unknown
-            };
+                return new TagSet(serverData.tags.Select(x => new Tag(x.Key.ToString(), x.Value)));
+            }
+            return result;
+        }
     }
 }
