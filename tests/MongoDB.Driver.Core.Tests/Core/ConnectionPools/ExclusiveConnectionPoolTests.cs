@@ -514,7 +514,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
         [ParameterAttributeData]
         public void AquireConnection_non_sufficient_reused_connections_should_timeout(
             [Values(true, false)]
-            bool isAsync)
+            bool async)
         {
             int maxConnecting = MongoInternalDefaults.ConnectionPool.MaxConnecting;
             const int initalAcquiredCount = 2;
@@ -576,7 +576,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
 
             subject.PendingCount.Should().Be(0);
             var connectionsAcquired = Enumerable.Range(0, initalAcquiredCount)
-                .Select(i => AcquireConnection(subject, isAsync))
+                .Select(i => AcquireConnection(subject, async))
                 .ToArray();
 
             // block further establishments
@@ -592,7 +592,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 {
                     // maximize maxConnecting
                     allAcquiringCountEvent.Signal();
-                    AcquireConnection(subject, isAsync);
+                    AcquireConnection(subject, async);
                 }
                 else if (threadIndex < maxConnecting + maxAcquiringCount)
                 {
@@ -604,7 +604,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
 
                     try
                     {
-                        AcquireConnection(subject, isAsync);
+                        AcquireConnection(subject, async);
                     }
                     catch (TimeoutException)
                     {

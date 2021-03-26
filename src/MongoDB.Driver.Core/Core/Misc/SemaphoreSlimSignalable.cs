@@ -35,11 +35,11 @@ namespace MongoDB.Driver.Core.Misc
         private readonly SemaphoreSlim _semaphore;
         private readonly object _syncRoot;
 
-        public SemaphoreSlimSignalable(int count)
+        public SemaphoreSlimSignalable(int initialCount)
         {
-            Ensure.IsBetween(count, 0, 1024, nameof(count));
+            Ensure.IsBetween(initialCount, 0, 1024, nameof(initialCount));
 
-            _semaphore = new SemaphoreSlim(count);
+            _semaphore = new SemaphoreSlim(initialCount);
             _syncRoot = new object();
 
             _signalCancelationTokenSource = new CancellationTokenSource();

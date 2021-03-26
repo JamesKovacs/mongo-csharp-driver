@@ -129,6 +129,15 @@ namespace MongoDB.Driver.Core.ConnectionPools
             get { return Interlocked.CompareExchange(ref _generation, 0, 0); }
         }
 
+        public int PendingCount
+        {
+            get
+            {
+                ThrowIfDisposed();
+                return MongoInternalDefaults.ConnectionPool.MaxConnecting - _connectingQueue.Count;
+            }
+        }
+
         public ServerId ServerId
         {
             get { return _serverId; }
@@ -140,15 +149,6 @@ namespace MongoDB.Driver.Core.ConnectionPools
             {
                 ThrowIfDisposed();
                 return _settings.MaxConnections - AvailableCount;
-            }
-        }
-
-        public int PendingCount
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return MongoInternalDefaults.ConnectionPool.MaxConnecting - _connectingQueue.Count;
             }
         }
 

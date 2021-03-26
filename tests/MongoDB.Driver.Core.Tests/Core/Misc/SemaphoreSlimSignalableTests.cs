@@ -42,14 +42,14 @@ namespace MongoDB.Driver.Core.Misc
         public async Task SemaphoreSlimSignalable_wait_should_enter(
             [Values(true, false)] bool async,
             [Values(true, false)] bool isSignaledWait,
-            [Values(0, 1, 2)] int intialCount,
+            [Values(0, 1, 2)] int initialCount,
             [Values(2, 4)] int threadsCount)
         {
-            var semaphore = new SemaphoreSlimSignalable(intialCount);
+            var semaphore = new SemaphoreSlimSignalable(initialCount);
 
             var resultsTask = WaitAsync(semaphore, async, isSignaledWait, threadsCount, Timeout.InfiniteTimeSpan);
 
-            for (int i = 0; i < threadsCount - intialCount; i++)
+            for (int i = 0; i < threadsCount - initialCount; i++)
             {
                 semaphore.Release();
             }
