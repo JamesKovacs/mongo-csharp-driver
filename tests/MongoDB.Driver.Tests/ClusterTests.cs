@@ -66,7 +66,7 @@ namespace MongoDB.Driver.Tests
             RequireMultipleShardRouters();
 
             // temporary disable the test on Win Auth topologies, due to operations timings irregularities
-            if (CoreTestConfiguration.ConnectionString.Tls == true &&
+            if (CoreTestConfiguration.ConnectionString.Username != null &&
                 RequirePlatform.GetCurrentOperatingSystem() == SupportedOperatingSystem.Windows)
             {
                 throw new SkipException("Win Auth topologies temporary not supported due to timings irregularities.");

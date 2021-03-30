@@ -413,7 +413,7 @@ namespace MongoDB.Driver.Core.Servers
             subject.Description.ReasonChanged.Should().Contain("ChannelException during handshake");
             mockConnectionPool.Verify(p => p.Clear(), Times.Once);
         }
- 
+
         [Theory]
         [InlineData(nameof(MongoConnectionException), true)]
         [InlineData("MongoConnectionExceptionWithSocketTimeout", false)]
