@@ -237,6 +237,10 @@ namespace MongoDB.Driver.Core.Servers
             {
                 _connectionPool.Clear();
             }
+            else
+            {
+                _connectionPool.SetReady();
+            }
 
             var shouldServerDescriptionChangedEventBePublished = !e.OldServerDescription.SdamEquals(e.NewServerDescription);
             if (shouldServerDescriptionChangedEventBePublished && _descriptionChangedEventHandler != null)

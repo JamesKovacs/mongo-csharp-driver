@@ -14,10 +14,6 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Driver.Core.Connections;
@@ -63,9 +59,14 @@ namespace MongoDB.Driver.Core.ConnectionPools
         Task<IConnectionHandle> AcquireConnectionAsync(CancellationToken cancellationToken);
 
         /// <summary>
-        /// Clears the connection pool.
+        /// Clears the connection pool and transfers to paused state.
         /// </summary>
         void Clear();
+
+        /// <summary>
+        /// Transfers the pool to ready state.
+        /// </summary>
+        void SetReady();
 
         /// <summary>
         /// Initializes the connection pool.

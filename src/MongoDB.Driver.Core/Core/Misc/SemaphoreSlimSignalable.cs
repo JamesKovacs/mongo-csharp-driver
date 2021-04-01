@@ -29,6 +29,38 @@ namespace MongoDB.Driver.Core.Misc
             Entered
         }
 
+        public sealed class SemaphoreSignalableAwaiter : IDisposable
+        {
+            private readonly SemaphoreSlimSignalable _semaphoreSlimSignalable;
+            private bool _enteredSemaphore;
+
+            internal SemaphoreSignalableAwaiter(SemaphoreSlimSignalable semaphoreSlimSignalable)
+            {
+                _semaphoreSlimSignalable = semaphoreSlimSignalable;
+                _enteredSemaphore = false;
+            }
+
+            public bool WaitSignaled(TimeSpan timeout, CancellationToken cancellationToken)
+            {
+                _enteredSemaphore = _semaphoreSlimSignalable.WaitSignaled(timeout, cancellationToken) == SemaphoreWaitResult.Entered;
+                return _enteredSemaphore;
+            }
+
+            public async Task<bool> WaitSignaledAsync(TimeSpan timeout, CancellationToken cancellationToken)
+            {
+                _enteredSemaphore = (await _semaphoreSlimSignalable.WaitSignaledAsync(timeout, cancellationToken).ConfigureAwait(false)) == SemaphoreWaitResult.Entered;
+                return _enteredSemaphore;
+            }
+
+            public void Dispose()
+            {
+                if (_enteredSemaphore)
+                {
+                    _semaphoreSlimSignalable.Release();
+                }
+            }
+        }
+
         // private fields
         private CancellationTokenSource _signalCancelationTokenSource;
 
@@ -133,6 +165,9 @@ namespace MongoDB.Driver.Core.Misc
                 throw;
             }
         }
+
+        public SemaphoreSignalableAwaiter CreateAwaiter() =>
+            new SemaphoreSignalableAwaiter(this);
 
         public void Release()
         {

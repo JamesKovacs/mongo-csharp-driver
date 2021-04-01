@@ -17,9 +17,11 @@ using System;
 using System.Threading;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Bson.TestHelpers;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Clusters.ServerSelectors;
+using MongoDB.Driver.Core.ConnectionPools;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.Operations;
 using MongoDB.Driver.Core.Servers;
@@ -181,6 +183,8 @@ namespace MongoDB.Driver.Core.TestHelpers
 
         private void ConfigureOff()
         {
+            _server._connectionPool().SetReady();
+
             var name = _command[0].AsString;
             var command = new BsonDocument
             {
@@ -200,5 +204,10 @@ namespace MongoDB.Driver.Core.TestHelpers
                 new MessageEncoderSettings());
             operation.Execute(_binding, CancellationToken.None);
         }
+    }
+
+    internal static class IServerReflector
+    {
+        public static IConnectionPool _connectionPool(this IServer server) => (IConnectionPool)Reflector.GetFieldValue(server, nameof(_connectionPool));
     }
 }

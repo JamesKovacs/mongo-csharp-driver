@@ -58,6 +58,8 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
             nameof(ConnectionPoolClosingEvent),
             nameof(ConnectionPoolClearingEvent),
             nameof(ConnectionOpeningEvent),
+            nameof(ConnectionFailedEvent),
+            nameof(ConnectionOpeningFailedEvent),
             nameof(ConnectionClosingEvent),
 
             nameof(ConnectionSendingMessagesEvent),
@@ -133,7 +135,7 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
             var isUnit = EnsureStyle(test) == Schema.Styles.unit;
 
             var (connectionPool, failPoint, cluster) = SetupConnectionData(test, eventCapturer, isUnit);
-            using var disposableBundle = new DisposableBundle(connectionPool, failPoint, cluster);
+            using var disposableBundle = new DisposableBundle(failPoint, connectionPool, cluster);
 
             ResetConnectionId();
 
@@ -404,6 +406,9 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
 
             switch (name)
             {
+                case "ready":
+                    connectionPool.SetReady();
+                    break;
                 case "checkIn":
                     ExecuteCheckIn(operation, connectionMap, out exception);
                     break;
@@ -425,7 +430,7 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
                     Thread.Sleep(TimeSpan.FromMilliseconds(ms));
                     break;
                 case "waitForEvent":
-                    JsonDrivenHelper.EnsureAllFieldsAreValid(operation, "name", "event", "count");
+                    JsonDrivenHelper.EnsureAllFieldsAreValid(operation, "name", "event", "count", "timeout");
                     WaitForEvent(eventCapturer, operation);
                     break;
                 case "waitForThread":
@@ -506,6 +511,8 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
             {
                 case "ConnectionPoolCreated":
                     return nameof(ConnectionPoolOpenedEvent);
+                case "ConnectionPoolReady":
+                    return nameof(ConnectionPoolReadyEvent);
                 case "ConnectionPoolClosed":
                     return nameof(ConnectionPoolClosedEvent);
                 case "ConnectionPoolCleared":
@@ -588,7 +595,6 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
                     .Returns(() =>
                     {
                         var connection = new MockConnection(serverId, connectionSettings, eventSubscriber);
-                        connection.Open(CancellationToken.None);
                         return connection;
                     });
 
@@ -603,17 +609,25 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
             }
             else
             {
-                failPoint = ConfigureFailPoint(test, CoreTestConfiguration.Cluster);
+                ConfigureFailPointOff(test, CoreTestConfiguration.Cluster);
 
-                cluster = CoreTestConfiguration.CreateCluster(b =>
-                    b.ConfigureConnectionPool(c => c.With(
+                cluster = CoreTestConfiguration.CreateCluster(b => b
+                    .ConfigureCluster(s => s.With(
+                        serverSelectionTimeout: TimeSpan.FromSeconds(5)))
+                    .ConfigureServer(s => s.With(
+                        heartbeatInterval: TimeSpan.FromMinutes(10)))
+                    .ConfigureConnectionPool(c => c.With(
                         maxConnections: connectionPoolSettings.MaxConnections,
                         minConnections: connectionPoolSettings.MinConnections,
+                        
+                        maintenanceInterval: TimeSpan.FromMinutes(10),
                         waitQueueTimeout: connectionPoolSettings.WaitQueueTimeout))
                     .Subscribe(eventSubscriber));
 
                 var server = cluster.SelectServer(WritableServerSelector.Instance, CancellationToken.None);
                 connectionPool = server._connectionPool();
+
+                failPoint = ConfigureFailPoint(test, CoreTestConfiguration.Cluster);
             }
 
             return (connectionPool, failPoint, cluster);
@@ -631,7 +645,6 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
                 .Returns(() =>
                 {
                     var connection = new MockConnection(serverId, connectionSettings, eventSubscriber);
-                    connection.Open(CancellationToken.None);
                     return connection;
                 });
             var connectionPool = new ExclusiveConnectionPool(
@@ -656,6 +669,20 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
             return null;
         }
 
+        protected void ConfigureFailPointOff(BsonDocument test, ICluster cluster)
+        {
+            if (test.TryGetValue(Schema.Intergration.failPoint, out var failPointDocument))
+            {
+                var command = failPointDocument.AsBsonDocument;
+
+                var session = NoCoreSession.NewHandle();
+                var selector = WritableServerSelector.Instance;
+                var server = cluster.SelectServer(selector, CancellationToken.None);
+                var binding = new SingleServerReadWriteBinding(server, session.Fork());
+                using var failPoint = new FailPoint(server, binding, command);
+            }
+        }
+
         private void Start(BsonDocument operation, ConcurrentDictionary<string, Task> tasks)
         {
             var startTarget = operation.GetValue("target").ToString();
@@ -673,8 +700,13 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
             var expectedCount = operation.GetValue("count").ToInt32();
             var notifyTask = eventCapturer.NotifyWhen(coll => coll.Count(c => c.GetType().Name == eventType) >= expectedCount);
 
-            var testFailedTimeout = Task.Delay(TimeSpan.FromMinutes(1), CancellationToken.None);
-            var index = Task.WaitAny(notifyTask, testFailedTimeout);
+            var timeout = TimeSpan.FromMinutes(1);
+            if (operation.TryGetValue("timeout", out var timeoutValue))
+            {
+                timeout = TimeSpan.FromMilliseconds(timeoutValue.AsInt32);
+            }
+
+            var index = Task.WaitAny(new[] { notifyTask }, timeout);
             if (index != 0)
             {
                 throw new Exception($"{nameof(WaitForEvent)} executing is too long.");
