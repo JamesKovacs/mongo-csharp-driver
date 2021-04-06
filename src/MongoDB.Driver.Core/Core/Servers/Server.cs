@@ -40,7 +40,7 @@ namespace MongoDB.Driver.Core.Servers
     /// <summary>
     /// Represents a server in a MongoDB cluster.
     /// </summary>
-    internal sealed class Server : IClusterableServer
+    internal sealed class Server : IClusterableServer, IConnectionExceptionHandler
     {
         #region static
         // static fields
@@ -109,7 +109,7 @@ namespace MongoDB.Driver.Core.Servers
             Ensure.IsNotNull(eventSubscriber, nameof(eventSubscriber));
 
             _serverId = new ServerId(clusterId, endPoint);
-            _connectionPool = connectionPoolFactory.CreateConnectionPool(_serverId, endPoint);
+            _connectionPool = connectionPoolFactory.CreateConnectionPool(_serverId, endPoint, this);
             _state = new InterlockedInt32(State.Initial);
             _monitor = serverMonitorFactory.Create(_serverId, _endPoint);
             _baseDescription = new ServerDescription(_serverId, endPoint, reasonChanged: "ServerInitialDescription", heartbeatInterval: settings.HeartbeatInterval);
@@ -135,6 +135,9 @@ namespace MongoDB.Driver.Core.Servers
         internal IClusterClock ClusterClock => _clusterClock;
 
         // methods
+        void IConnectionExceptionHandler.HandleException(Exception exception) =>
+            HandleBeforeHandshakeCompletesException(exception);
+
         public void Dispose()
         {
             if (_state.TryChange(State.Disposed))
@@ -168,8 +171,7 @@ namespace MongoDB.Driver.Core.Servers
             }
             catch (Exception ex)
             {
-                // TODO SDAM: handle connection establishment exceptions according to spec
-                HandleBeforeHandshakeCompletesException(null, ex);
+                HandleBeforeHandshakeCompletesException(ex);
                 throw;
             }
         }
@@ -185,8 +187,7 @@ namespace MongoDB.Driver.Core.Servers
             }
             catch (Exception ex)
             {
-                // TODO SDAM: handle connection establishment exceptions according to spec
-                HandleBeforeHandshakeCompletesException(null, ex);
+                HandleBeforeHandshakeCompletesException(ex);
                 throw;
             }
         }
@@ -237,7 +238,7 @@ namespace MongoDB.Driver.Core.Servers
             {
                 _connectionPool.Clear();
             }
-            else
+            else if (e.NewServerDescription.State == ServerState.Connected)
             {
                 _connectionPool.SetReady();
             }
@@ -331,7 +332,7 @@ namespace MongoDB.Driver.Core.Servers
             }
         }
 
-        private void HandleBeforeHandshakeCompletesException(IConnection connection, Exception ex)
+        private void HandleBeforeHandshakeCompletesException(Exception ex)
         {
             if (ex is MongoAuthenticationException)
             {

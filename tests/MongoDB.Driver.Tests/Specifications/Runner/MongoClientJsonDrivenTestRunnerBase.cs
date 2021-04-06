@@ -328,8 +328,16 @@ namespace MongoDB.Driver.Tests.Specifications.Runner
                     settings.ConnectTimeout = TimeSpan.FromMilliseconds(option.Value.ToInt32());
                     break;
 
+                case "directConnection":
+                    settings.DirectConnection = option.Value.ToBoolean();
+                    break;
+
                 case "heartbeatFrequencyMS":
                     settings.HeartbeatInterval = TimeSpan.FromMilliseconds(option.Value.ToInt32());
+                    break;
+
+                case "minPoolSize":
+                    settings.MinConnectionPoolSize = option.Value.ToInt32();
                     break;
 
                 case "serverSelectionTimeoutMS":

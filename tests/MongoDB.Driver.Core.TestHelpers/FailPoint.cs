@@ -183,8 +183,6 @@ namespace MongoDB.Driver.Core.TestHelpers
 
         private void ConfigureOff()
         {
-            _server._connectionPool().SetReady();
-
             var name = _command[0].AsString;
             var command = new BsonDocument
             {

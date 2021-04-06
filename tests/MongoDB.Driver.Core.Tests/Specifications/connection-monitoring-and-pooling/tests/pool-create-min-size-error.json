@@ -4,19 +4,20 @@
   "description": "error during minPoolSize population clears pool",
   "runOn": [
     {
-      "minServerVersion": "4.2.0"
+      "minServerVersion": "4.9.0"
     }
   ],
   "failPoint": {
     "configureFailPoint": "failCommand",
     "mode": {
-      "times": 5
+      "times": 50
     },
     "data": {
-      "failCommands": [
-        "isMaster"
-      ],
-      "closeConnection": true
+        "failCommands": [
+            "isMaster"
+        ],
+        "appName": "CMAPMinPoolSizeErrorTest",
+        "closeConnection": true
     }
   },
   "poolOptions": {

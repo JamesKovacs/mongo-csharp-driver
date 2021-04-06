@@ -126,7 +126,7 @@ namespace MongoDB.Driver.Specifications.server_discovery_and_monitoring
             switch (when)
             {
                 case "beforeHandshakeCompletes":
-                    server.HandleBeforeHandshakeCompletesException(mockConnection.Object, simulatedException);
+                    server.HandleBeforeHandshakeCompletesException(simulatedException);
                     break;
                 case "afterHandshakeCompletes":
                     server.HandleChannelException(mockConnection.Object, simulatedException);
@@ -565,9 +565,9 @@ namespace MongoDB.Driver.Specifications.server_discovery_and_monitoring
             return (IConnectionPool)Reflector.GetFieldValue(server, nameof(_connectionPool));
         }
 
-        public static void HandleBeforeHandshakeCompletesException(this Server server, IConnection connection, Exception ex)
+        public static void HandleBeforeHandshakeCompletesException(this Server server, Exception ex)
         {
-            Reflector.Invoke(server, nameof(HandleBeforeHandshakeCompletesException), connection, ex);
+            Reflector.Invoke(server, nameof(HandleBeforeHandshakeCompletesException), ex);
         }
 
         public static void HandleChannelException(this Server server, IConnection connection, Exception ex)

@@ -101,6 +101,12 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
                 public readonly static string integration = nameof(integration);
             }
 
+            public sealed class FailPoint
+            {
+                public readonly static string appName = nameof(appName);
+                public readonly static string data = nameof(data);
+            }
+
             public readonly static string[] AllFields = new[]
             {
                 _path,
@@ -134,7 +140,7 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
             JsonDrivenHelper.EnsureAllFieldsAreValid(test, Schema.AllFields);
             var isUnit = EnsureStyle(test) == Schema.Styles.unit;
 
-            var (connectionPool, failPoint, cluster) = SetupConnectionData(test, eventCapturer, isUnit);
+            var (connectionPool, failPoint, cluster, connectionIdsToIgnore) = SetupConnectionData(test, eventCapturer, isUnit);
             using var disposableBundle = new DisposableBundle(failPoint, connectionPool, cluster);
 
             ResetConnectionId();
@@ -160,7 +166,7 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
             }
 #if WINDOWS
             AssertError(test, exception);
-            AssertEvents(test, eventCapturer);
+            AssertEvents(test, eventCapturer, connectionIdsToIgnore);
 #endif
         }
 
@@ -257,9 +263,9 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
             }
         }
 
-        private void AssertEvents(BsonDocument test, EventCapturer eventCapturer)
+        private void AssertEvents(BsonDocument test, EventCapturer eventCapturer, List<int> connectionIdsToIgnore)
         {
-            var actualEvents = GetFilteredEvents(eventCapturer, test);
+            var actualEvents = GetFilteredEvents(eventCapturer, test, connectionIdsToIgnore);
             var expectedEvents = GetExpectedEvents(test);
             var minCount = Math.Min(actualEvents.Count, expectedEvents.Count);
             for (var i = 0; i < minCount; i++)
@@ -463,7 +469,7 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
             return expectedEvents;
         }
 
-        private List<object> GetFilteredEvents(EventCapturer eventCapturer, BsonDocument test)
+        private List<object> GetFilteredEvents(EventCapturer eventCapturer, BsonDocument test, List<int> connectionIdsToIgnore)
         {
             var ignoredEvents = new List<string>();
             ignoredEvents.AddRange(__alwaysIgnoredEvents);
@@ -482,9 +488,16 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
                 {
                     var name = c.GetType().Name;
 
-                    return name.StartsWith("Connection") && !ignoredEvents.Contains(name);
+                    return name.StartsWith("Connection") &&
+                        !ignoredEvents.Contains(name) &&
+                        (!IsConnectionEvent(c) || !connectionIdsToIgnore.Contains(c.ConnectionId().LocalValue));
                 })
                 .ToList();
+
+
+            bool IsConnectionEvent(object @event) =>
+                @event is ConnectionOpenedEvent ||
+                @event is ConnectionClosedEvent;
         }
 
         private string MapErrorTypeToExpected(Exception exception, out string expectedErrorMessage)
@@ -576,13 +589,14 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
             IdGeneratorReflector.__lastId(0);
         }
 
-        private (IConnectionPool, FailPoint, ICluster) SetupConnectionData(BsonDocument test, IEventSubscriber eventSubscriber, bool isUnit)
+        private (IConnectionPool, FailPoint, ICluster, List<int>) SetupConnectionData(BsonDocument test, EventCapturer eventCapturer, bool isUnit)
         {
             ParseSettings(test, out var connectionPoolSettings, out var connectionSettings);
 
             IConnectionPool connectionPool;
             ICluster cluster = null;
             FailPoint failPoint = null;
+            var connectionIdsToIgnore = new List<int>();
 
             if (isUnit)
             {
@@ -590,11 +604,13 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
                 var serverId = new ServerId(new ClusterId(), endPoint);
 
                 var connectionFactory = new Mock<IConnectionFactory>();
+                var connectionExceptionHandler = new Mock<IConnectionExceptionHandler>();
+
                 connectionFactory
                     .Setup(c => c.CreateConnection(serverId, endPoint))
                     .Returns(() =>
                     {
-                        var connection = new MockConnection(serverId, connectionSettings, eventSubscriber);
+                        var connection = new MockConnection(serverId, connectionSettings, eventCapturer);
                         return connection;
                     });
 
@@ -603,34 +619,62 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
                     endPoint,
                     connectionPoolSettings,
                     connectionFactory.Object,
-                    eventSubscriber);
+                    eventCapturer,
+                    connectionExceptionHandler.Object);
 
                 connectionPool.Initialize();
             }
             else
             {
-                ConfigureFailPointOff(test, CoreTestConfiguration.Cluster);
+                string appName = null;
+                if (test.TryGetValue(Schema.Intergration.failPoint, out var failPointDocument) &&
+                    failPointDocument.AsBsonDocument.TryGetValue(Schema.FailPoint.data, out var data) &&
+                    data.AsBsonDocument.TryGetValue(Schema.FailPoint.appName, out var appNameValue))
+                {
+                    appName = appNameValue.AsString;
+                }
 
                 cluster = CoreTestConfiguration.CreateCluster(b => b
-                    .ConfigureCluster(s => s.With(
-                        serverSelectionTimeout: TimeSpan.FromSeconds(5)))
                     .ConfigureServer(s => s.With(
                         heartbeatInterval: TimeSpan.FromMinutes(10)))
                     .ConfigureConnectionPool(c => c.With(
                         maxConnections: connectionPoolSettings.MaxConnections,
                         minConnections: connectionPoolSettings.MinConnections,
-                        
                         maintenanceInterval: TimeSpan.FromMinutes(10),
                         waitQueueTimeout: connectionPoolSettings.WaitQueueTimeout))
-                    .Subscribe(eventSubscriber));
+                    .ConfigureConnection(s => s.With(applicationName: appName))
+                    .Subscribe(eventCapturer));
 
                 var server = cluster.SelectServer(WritableServerSelector.Instance, CancellationToken.None);
                 connectionPool = server._connectionPool();
 
-                failPoint = ConfigureFailPoint(test, CoreTestConfiguration.Cluster);
+                if (failPointDocument != null)
+                {
+                    var resetPool = connectionPoolSettings.MinConnections > 0;
+
+                    if (resetPool)
+                    {
+                        eventCapturer.WaitForOrThrowIfTimeout(events => events.Any(e => e is ConnectionCreatedEvent), TimeSpan.FromMilliseconds(200));
+                        connectionIdsToIgnore = new List<int>()
+                        {
+                            eventCapturer.Events.Single(e => e is ConnectionCreatedEvent).ConnectionId().LocalValue
+                        };
+
+                        connectionPool.Clear();
+                        eventCapturer.WaitForOrThrowIfTimeout(events => events.Any(e => e is ConnectionPoolClearedEvent), TimeSpan.FromMilliseconds(200));
+                    }
+
+                    failPoint = FailPoint.Configure(CoreTestConfiguration.Cluster, NoCoreSession.NewHandle(), failPointDocument.AsBsonDocument);
+
+                    if (resetPool)
+                    {
+                        eventCapturer.Clear();
+                        connectionPool.SetReady();
+                    }
+                }
             }
 
-            return (connectionPool, failPoint, cluster);
+            return (connectionPool, failPoint, cluster, connectionIdsToIgnore);
         }
 
         private IConnectionPool SetupConnectionPoolMock(BsonDocument test, IEventSubscriber eventSubscriber)
@@ -640,6 +684,7 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
             ParseSettings(test, out var connectionPoolSettings, out var connectionSettings);
 
             var connectionFactory = new Mock<IConnectionFactory>();
+            var exceptionHandler = new Mock<IConnectionExceptionHandler>();
             connectionFactory
                 .Setup(c => c.CreateConnection(serverId, endPoint))
                 .Returns(() =>
@@ -652,21 +697,10 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
                 endPoint,
                 connectionPoolSettings,
                 connectionFactory.Object,
-                eventSubscriber);
+                eventSubscriber,
+                exceptionHandler.Object);
 
             return connectionPool;
-        }
-
-        protected FailPoint ConfigureFailPoint(BsonDocument test, ICluster cluster)
-        {
-            if (test.TryGetValue(Schema.Intergration.failPoint, out var failPoint))
-            {
-                var command = failPoint.AsBsonDocument;
-
-                return FailPoint.Configure(cluster, NoCoreSession.NewHandle(), command);
-            }
-
-            return null;
         }
 
         protected void ConfigureFailPointOff(BsonDocument test, ICluster cluster)

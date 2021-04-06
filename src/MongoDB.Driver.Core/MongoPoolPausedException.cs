@@ -34,7 +34,7 @@ namespace MongoDB.Driver
         // static methods
         internal static MongoPoolPausedException ForConnectionPool(EndPoint endPoint)
         {
-            var message = $"The connection pool is in paused state for server {EndPointHelper.ToString(endPoint)} is full.";
+            var message = $"The connection pool is in paused state for server {EndPointHelper.ToString(endPoint)}.";
             return new MongoPoolPausedException(message);
         }
 

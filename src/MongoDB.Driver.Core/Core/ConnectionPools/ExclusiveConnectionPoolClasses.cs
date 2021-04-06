@@ -40,12 +40,12 @@ namespace MongoDB.Driver.Core.ConnectionPools
             Disposed
         }
 
-        private sealed class StateManager
+        private sealed class PoolState
         {
             private static readonly bool[,] __transitions;
             private readonly InterlockedEnumInt32<State> _state;
 
-            static StateManager()
+            static PoolState()
             {
                 __transitions = new bool[4, 4];
                 __transitions[(int)State.Initial, (int)State.Paused] = true;
@@ -60,7 +60,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 __transitions[(int)State.Disposed, (int)State.Disposed] = true;
             }
 
-            public StateManager()
+            public PoolState()
             {
                 _state = new InterlockedEnumInt32<State>(State.Initial);
             }
@@ -101,7 +101,16 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 }
             }
 
-            public void ThrowIfDisposed(State state)
+            public void ThrowIfNotInitialized()
+            {
+                if (_state.Value == State.Initial)
+                {
+                    throw new InvalidOperationException("ConnectionPool must be initialized.");
+                }
+            }
+
+            // private methods
+            private void ThrowIfDisposed(State state)
             {
                 if (state == State.Disposed)
                 {
@@ -230,7 +239,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
             {
                 if (_enteredWaitQueue)
                 {
-                    Interlocked.Decrement(ref _pool._waitQueueFreeSlots);
+                    Interlocked.Increment(ref _pool._waitQueueFreeSlots);
                 }
 
                 if (_poolQueueWaitResult == SemaphoreSlimSignalable.SemaphoreWaitResult.Entered)
@@ -252,11 +261,10 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 _pool._checkingOutConnectionEventHandler?
                     .Invoke(new ConnectionPoolCheckingOutConnectionEvent(_pool._serverId, EventContext.OperationId));
 
-                _pool._state.ThrowIfDisposedOrNotReady();
+                _pool._poolState.ThrowIfDisposedOrNotReady();
 
                 // enter the wait-queue, deprecated feature
                 int freeSlots;
-
                 do
                 {
                     freeSlots = _pool._waitQueueFreeSlots;
@@ -466,7 +474,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
             {
                 get
                 {
-                    return _connectionPool._state.IsDisposed || _reference.Instance.IsExpired;
+                    return _connectionPool._poolState.IsDisposed || _reference.Instance.IsExpired;
                 }
             }
 

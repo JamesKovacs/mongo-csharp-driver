@@ -1,7 +1,7 @@
 {
   "runOn": [
     {
-      "minServerVersion": "4.3"
+      "minServerVersion": "4.4"
     }
   ],
   "database_name": "sdam-tests",
@@ -21,7 +21,7 @@
           ],
           "appName": "timeoutMonitorHandshakeTest",
           "blockConnection": true,
-          "blockTimeMS": 2000
+          "blockTimeMS": 1000
         }
       },
       "clientOptions": {
@@ -36,14 +36,6 @@
           "object": "testRunner",
           "arguments": {
             "event": "ServerMarkedUnknownEvent",
-            "count": 1
-          }
-        },
-        {
-          "name": "waitForEvent",
-          "object": "testRunner",
-          "arguments": {
-            "event": "PoolClearedEvent",
             "count": 1
           }
         },
@@ -132,7 +124,7 @@
                 ],
                 "appName": "timeoutMonitorCheckTest",
                 "blockConnection": true,
-                "blockTimeMS": 2000
+                "blockTimeMS": 1000
               }
             }
           }
