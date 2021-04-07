@@ -86,6 +86,14 @@ namespace MongoDB.Driver.Core.Bindings
 
         private IChannelSourceHandle GetChannelSourceHelper()
         {
+            // server might be in unknown state due to previous failed operation, allow description to be updated
+            // this is done instead of server selection
+            // TODO parameterize timeout and avoid busy wait, or offload waiting to server level
+            if (_server.Description.State == ServerState.Disconnected)
+            {
+                SpinWait.SpinUntil(() => _server.Description.State == ServerState.Connected, 1000);
+            }
+
             return new ChannelSourceHandle(new ServerChannelSource(_server, _session.Fork()));
         }
 
