@@ -82,6 +82,7 @@ namespace MongoDB.Driver.Core.Servers
                 .Returns(_mockConnectionPool.Object);
 
             _mockServerMonitor = new Mock<IServerMonitor>();
+            _mockServerMonitor.Setup(m => m.Lock).Returns(new object());
             _mockServerMonitorFactory = new Mock<IServerMonitorFactory>();
             _mockServerMonitorFactory.Setup(f => f.Create(It.IsAny<ServerId>(), _endPoint)).Returns(_mockServerMonitor.Object);
 

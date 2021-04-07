@@ -937,12 +937,13 @@ namespace MongoDB.Driver.Core.ConnectionPools
             [Values(1, 2, 5)] int blockedInQueueCount)
         {
             const int maxConnecting = 2;
+            const int waitQueueSize = 500;
             var threadsCount = maxConnecting + blockedInQueueCount;
             var settings = _settings.WithInternal(
                 minConnections: 0,
                 maxConnections: maxConnecting,
                 maxConnecting: maxConnecting,
-                waitQueueSize: 500,
+                waitQueueSize: waitQueueSize,
                 waitQueueTimeout: TimeSpan.FromSeconds(10));
 
             var blockEstablishmentEvent = new ManualResetEventSlim(false);
@@ -1006,7 +1007,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 e.Should().BeOfType<MongoPoolPausedException>();
             }
 
-            //subject._waitQueueFreeSlots().Should().Be(waitQueueSize);
+            subject._waitQueueFreeSlots().Should().Be(waitQueueSize);
         }
 
         [Theory]

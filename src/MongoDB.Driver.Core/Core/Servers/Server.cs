@@ -334,32 +334,30 @@ namespace MongoDB.Driver.Core.Servers
 
         private void HandleBeforeHandshakeCompletesException(Exception ex)
         {
-            if (ex is MongoAuthenticationException)
+            if (!(ex is MongoConnectionException connectionException) ||
+                connectionException.Generation != null && connectionException.Generation != _connectionPool.Generation)
             {
-                _connectionPool.Clear();
+                // stale generation number or non connection exception
                 return;
             }
 
-            if (ex is MongoConnectionException mongoConnectionException)
+            var (invalidateAndClear, cancelCheck) = ex switch
+            {
+                MongoAuthenticationException => (true, false),
+                _ => (connectionException.IsNetworkException || connectionException.ContainsTimeoutException,
+                      connectionException.IsNetworkException && !connectionException.ContainsTimeoutException)
+            };
+
+            if (invalidateAndClear)
             {
                 lock (_monitor.Lock)
                 {
-                    if (mongoConnectionException.Generation != null &&
-                        mongoConnectionException.Generation != _connectionPool.Generation)
-                    {
-                        return; // stale generation number
-                    }
-
-                    if (mongoConnectionException.IsNetworkException &&
-                        !mongoConnectionException.ContainsTimeoutException)
+                    if (cancelCheck)
                     {
                         _monitor.CancelCurrentCheck();
                     }
 
-                    if (mongoConnectionException.IsNetworkException || mongoConnectionException.ContainsTimeoutException)
-                    {
-                        Invalidate($"ChannelException during handshake: {ex}.", clearConnectionPool: true, responseTopologyVersion: null);
-                    }
+                    Invalidate($"ChannelException during handshake: {ex}.", clearConnectionPool: true, responseTopologyVersion: null);
                 }
             }
         }

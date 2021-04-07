@@ -109,6 +109,8 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 }
             }
 
+            public override string ToString() => _state.ToString();
+
             // private methods
             private void ThrowIfDisposed(State state)
             {
