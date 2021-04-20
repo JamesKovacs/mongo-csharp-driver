@@ -158,6 +158,9 @@ namespace MongoDB.Driver.Core.ConnectionPools
             }
         }
 
+        internal int WaitQueueFreeSlots =>
+            Interlocked.CompareExchange(ref _waitQueueFreeSlots, 0, 0);
+
         // public methods
         public IConnectionHandle AcquireConnection(CancellationToken cancellationToken)
         {

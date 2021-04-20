@@ -14,12 +14,21 @@
 */
 
 using System;
+using MongoDB.Bson;
 using MongoDB.Driver.Core.Bindings;
 
 namespace MongoDB.Driver.Core
 {
     internal static class TransactionHelper
     {
+        internal static void UnpinServerIfNeededOnAbortTransaction(ICoreSession session, BsonDocument command)
+        {
+            if (session.IsInTransaction && command.Contains("abortTransaction"))
+            {
+                session.CurrentTransaction.PinnedServer = null;
+            }
+        }
+
         internal static void UnpinServerIfNeededOnCommandException(ICoreSession session, Exception exception)
         {
             if (session.IsInTransaction && ShouldUnpinServerOnCommandException(exception))

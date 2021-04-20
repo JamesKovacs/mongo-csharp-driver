@@ -897,7 +897,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
             subject.Initialize();
             subject.SetReady();
 
-            subject._waitQueueFreeSlots().Should().Be(waitQueueSize);
+            subject.WaitQueueFreeSlots().Should().Be(waitQueueSize);
 
             MongoWaitQueueFullException exception = null;
 
@@ -927,7 +927,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 });
 
             exception.Should().NotBeNull();
-            subject._waitQueueFreeSlots().Should().Be(waitQueueSize);
+            subject.WaitQueueFreeSlots().Should().Be(waitQueueSize);
         }
 
         [Theory]
@@ -937,15 +937,16 @@ namespace MongoDB.Driver.Core.ConnectionPools
             [Values(1, 2, 5)] int blockedInQueueCount)
         {
             const int maxConnecting = 2;
-            const int waitQueueSize = 500;
             var threadsCount = maxConnecting + blockedInQueueCount;
+            var waitQueueSize = threadsCount;
             var settings = _settings.WithInternal(
                 minConnections: 0,
                 maxConnections: maxConnecting,
                 maxConnecting: maxConnecting,
                 waitQueueSize: waitQueueSize,
-                waitQueueTimeout: TimeSpan.FromSeconds(10));
+                waitQueueTimeout: TimeSpan.FromMinutes(10));
 
+            var allEstablishing = new CountdownEvent(maxConnecting);
             var blockEstablishmentEvent = new ManualResetEventSlim(false);
 
             var mockConnectionFactory = new Mock<IConnectionFactory>();
@@ -995,10 +996,12 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 }
                 else
                 {
-                    SpinWait.SpinUntil(() => poolQueue.Count == 0);
+                    SpinWait.SpinUntil(() => subject.WaitQueueFreeSlots() == 0);
                     subject.Clear();
+
+                    SpinWait.SpinUntil(() => subject.WaitQueueFreeSlots() >= blockedInQueueCount);
                     blockEstablishmentEvent.Set();
-                }
+                };
             });
 
             exceptions.Length.ShouldBeEquivalentTo(blockedInQueueCount);
@@ -1007,7 +1010,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 e.Should().BeOfType<MongoPoolPausedException>();
             }
 
-            subject._waitQueueFreeSlots().Should().Be(waitQueueSize);
+            subject.WaitQueueFreeSlots().Should().Be(waitQueueSize);
         }
 
         [Theory]
@@ -1043,14 +1046,14 @@ namespace MongoDB.Driver.Core.ConnectionPools
             subject.Initialize();
             subject.SetReady();
 
-            subject._waitQueueFreeSlots().Should().Be(waitQueueSize);
+            subject.WaitQueueFreeSlots().Should().Be(waitQueueSize);
 
             ThreadingUtilities.ExecuteOnNewThreads(waitQueueSize, threadIndex =>
             {
                 using var connection = AcquireConnectionGeneric(subject, isAsync);
             });
 
-            subject._waitQueueFreeSlots().Should().Be(waitQueueSize);
+            subject.WaitQueueFreeSlots().Should().Be(waitQueueSize);
         }
 
         // private methods
@@ -1111,9 +1114,9 @@ namespace MongoDB.Driver.Core.ConnectionPools
             return (SemaphoreSlimSignalable)Reflector.GetFieldValue(obj, nameof(_poolQueue));
         }
 
-        public static int _waitQueueFreeSlots(this ExclusiveConnectionPool obj)
+        public static int WaitQueueFreeSlots(this ExclusiveConnectionPool obj)
         {
-            return (int)Reflector.GetFieldValue(obj, nameof(_waitQueueFreeSlots));
+            return (int)Reflector.GetPropertyValue(obj, nameof(WaitQueueFreeSlots));
         }
     }
 }

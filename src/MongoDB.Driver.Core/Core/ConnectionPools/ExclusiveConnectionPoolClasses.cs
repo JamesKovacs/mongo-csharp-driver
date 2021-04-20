@@ -95,9 +95,10 @@ namespace MongoDB.Driver.Core.ConnectionPools
             {
                 ThrowIfDisposed();
 
-                if (_state.Value != State.Ready)
+                var state = _state.Value;
+                if (state != State.Ready)
                 {
-                    throw new InvalidOperationException("ConnectionPool must be ready.");
+                    throw new InvalidOperationException($"ConnectionPool must be ready, but is in {state} state.");
                 }
             }
 
@@ -109,7 +110,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 }
             }
 
-            public override string ToString() => _state.ToString();
+            public override string ToString() => State.ToString();
 
             // private methods
             private void ThrowIfDisposed(State state)

@@ -152,6 +152,11 @@ namespace MongoDB.Driver.Core.WireProtocol
                 TransactionHelper.UnpinServerIfNeededOnCommandException(_session, exception);
                 throw;
             }
+            finally
+            {
+                // temporary workaround until https://jira.mongodb.org/browse/DRIVERS-1655 is resolved
+                TransactionHelper.UnpinServerIfNeededOnAbortTransaction(_session, _command);
+            }
         }
 
         public async Task<TCommandResult> ExecuteAsync(IConnection connection, CancellationToken cancellationToken)
@@ -205,6 +210,11 @@ namespace MongoDB.Driver.Core.WireProtocol
 
                 TransactionHelper.UnpinServerIfNeededOnCommandException(_session, exception);
                 throw;
+            }
+            finally
+            {
+                // temporary workaround until https://jira.mongodb.org/browse/DRIVERS-1655 is resolved
+                TransactionHelper.UnpinServerIfNeededOnAbortTransaction(_session, _command);
             }
         }
 
