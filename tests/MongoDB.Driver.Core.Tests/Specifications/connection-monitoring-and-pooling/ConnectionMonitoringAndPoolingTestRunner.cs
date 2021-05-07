@@ -674,8 +674,7 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
                         eventCapturer.WaitForOrThrowIfTimeout(events => events.Any(e => e is ConnectionCreatedEvent), TimeSpan.FromMilliseconds(500));
 
                         var connectionIdsToIgnore = new HashSet<int>(eventCapturer.Events
-                            .Where(e => e is ConnectionCreatedEvent)
-                            .Cast<ConnectionCreatedEvent>()
+                            .OfType<ConnectionCreatedEvent>()
                             .Select(c => c.ConnectionId.LocalValue)
                             .ToList());
 
@@ -743,20 +742,6 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
                 exceptionHandler.Object);
 
             return connectionPool;
-        }
-
-        protected void ConfigureFailPointOff(BsonDocument test, ICluster cluster)
-        {
-            if (test.TryGetValue(Schema.Intergration.failPoint, out var failPointDocument))
-            {
-                var command = failPointDocument.AsBsonDocument;
-
-                var session = NoCoreSession.NewHandle();
-                var selector = WritableServerSelector.Instance;
-                var server = cluster.SelectServer(selector, CancellationToken.None);
-                var binding = new SingleServerReadWriteBinding(server, session.Fork());
-                using var failPoint = new FailPoint(server, binding, command);
-            }
         }
 
         private void Start(BsonDocument operation, ConcurrentDictionary<string, Task> tasks)

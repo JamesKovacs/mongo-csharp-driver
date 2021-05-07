@@ -1102,8 +1102,6 @@ namespace MongoDB.Driver.Core.ConnectionPools
             subject.Initialize();
             subject.SetReady();
 
-            var poolQueue = subject._poolQueue();
-
             var exceptions = ThreadingUtilities.ExecuteOnNewThreadsCollectExceptions(threadsCount + 1, threadIndex =>
             {
                 if (threadIndex < threadsCount)
@@ -1224,11 +1222,6 @@ namespace MongoDB.Driver.Core.ConnectionPools
         public static Task MaintainSizeAsync(this ExclusiveConnectionPool obj, CancellationToken cancellationToken)
         {
             return (Task)Reflector.Invoke(obj, nameof(MaintainSizeAsync), cancellationToken);
-        }
-
-        public static SemaphoreSlimSignalable _poolQueue(this ExclusiveConnectionPool obj)
-        {
-            return (SemaphoreSlimSignalable)Reflector.GetFieldValue(obj, nameof(_poolQueue));
         }
 
         public static int WaitQueueFreeSlots(this ExclusiveConnectionPool obj)
