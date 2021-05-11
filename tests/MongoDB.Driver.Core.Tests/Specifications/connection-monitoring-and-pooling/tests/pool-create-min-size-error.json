@@ -13,16 +13,16 @@
       "times": 50
     },
     "data": {
-        "failCommands": [
-            "isMaster"
-        ],
-        "appName": "poolCreateMinSizeErrorTest5",
-        "closeConnection": true
+      "failCommands": [
+        "isMaster"
+      ],
+      "closeConnection": true,
+      "appName": "poolCreateMinSizeErrorTest"
     }
   },
   "poolOptions": {
     "minPoolSize": 1,
-    "appName": "poolCreateMinSizeErrorTest5"
+    "appName": "poolCreateMinSizeErrorTest"
   },
   "operations": [
     {
