@@ -341,7 +341,7 @@ namespace MongoDB.Driver.Core.WireProtocol
             var extraElements = new List<BsonElement>();
             if (_session.Id != null)
             {
-                var areSessionsSupported = connectionDescription.IsMasterResult.LogicalSessionTimeout.HasValue;
+                var areSessionsSupported = connectionDescription.HelloResult.LogicalSessionTimeout.HasValue;
                 if (areSessionsSupported)
                 {
                     var lsid = new BsonElement("lsid", _session.Id);
@@ -383,7 +383,7 @@ namespace MongoDB.Driver.Core.WireProtocol
             var appendExtraElementsSerializer = new ElementAppendingSerializer<BsonDocument>(BsonDocumentSerializer.Instance, extraElements, writerSettingsConfigurator);
             var commandWithExtraElements = new BsonDocumentWrapper(command, appendExtraElementsSerializer);
 
-            var serverType = connectionDescription != null ? connectionDescription.IsMasterResult.ServerType : ServerType.Unknown;
+            var serverType = connectionDescription != null ? connectionDescription.HelloResult.ServerType : ServerType.Unknown;
             var readPreferenceDocument = QueryHelper.CreateReadPreferenceDocument(serverType, _readPreference, out slaveOk);
 
             var wrappedCommand = new BsonDocument

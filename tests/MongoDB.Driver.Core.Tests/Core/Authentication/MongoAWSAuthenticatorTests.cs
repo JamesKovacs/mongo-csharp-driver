@@ -48,11 +48,11 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
         {
             __descriptionCommandWireProtocol = new ConnectionDescription(
                 new ConnectionId(__serverId),
-                new IsMasterResult(new BsonDocument("ok", 1).Add("ismaster", 1)),
+                new HelloResult(new BsonDocument("ok", 1).Add("ismaster", 1)),
                 new BuildInfoResult(new BsonDocument("version", "4.7.0")));
             __descriptionQueryWireProtocol = new ConnectionDescription(
                 new ConnectionId(__serverId),
-                new IsMasterResult(new BsonDocument("ok", 1).Add("ismaster", 1)),
+                new HelloResult(new BsonDocument("ok", 1).Add("ismaster", 1)),
                 new BuildInfoResult(new BsonDocument("version", "2.6.0")));
         }
         #endregion

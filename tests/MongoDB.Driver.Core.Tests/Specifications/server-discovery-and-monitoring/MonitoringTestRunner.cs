@@ -45,6 +45,7 @@ namespace MongoDB.Driver.Specifications.sdam_monitoring
 
         [Theory]
         [ClassData(typeof(TestCaseFactory))]
+        [ClassData(typeof(LegacyHelloTestCaseFactory))]
         public void RunTestDefinition(JsonDrivenTestCase testCase)
         {
             var definition = testCase.Test;
@@ -83,19 +84,19 @@ namespace MongoDB.Driver.Specifications.sdam_monitoring
             }
 
             var address = response[0].AsString;
-            var isMasterDocument = response[1].AsBsonDocument;
-            JsonDrivenHelper.EnsureAllFieldsAreValid(isMasterDocument, "hosts", "ismaster", "maxWireVersion", "minWireVersion", "ok", "primary", "secondary", "setName", "setVersion");
+            var helloDocument = response[1].AsBsonDocument;
+            JsonDrivenHelper.EnsureAllFieldsAreValid(helloDocument, "hosts", "isWritablePrimary", "ismaster", "maxWireVersion", "minWireVersion", "ok", "primary", "secondary", "setName", "setVersion");
 
             var endPoint = EndPointHelper.Parse(address);
-            var isMasterResult = new IsMasterResult(isMasterDocument);
+            var helloResult = new HelloResult(helloDocument);
             var currentServerDescription = _serverFactory.GetServerDescription(endPoint);
             var newServerDescription = currentServerDescription.With(
-                canonicalEndPoint: isMasterResult.Me,
-                electionId: isMasterResult.ElectionId,
-                replicaSetConfig: isMasterResult.GetReplicaSetConfig(),
-                state: isMasterResult.Wrapped.GetValue("ok", false).ToBoolean() ? ServerState.Connected : ServerState.Disconnected,
-                type: isMasterResult.ServerType,
-                wireVersionRange: new Range<int>(isMasterResult.MinWireVersion, isMasterResult.MaxWireVersion));
+                canonicalEndPoint: helloResult.Me,
+                electionId: helloResult.ElectionId,
+                replicaSetConfig: helloResult.GetReplicaSetConfig(),
+                state: helloResult.Wrapped.GetValue("ok", false).ToBoolean() ? ServerState.Connected : ServerState.Disconnected,
+                type: helloResult.ServerType,
+                wireVersionRange: new Range<int>(helloResult.MinWireVersion, helloResult.MaxWireVersion));
 
             var currentClusterDescription = _cluster.Description;
             _serverFactory.PublishDescription(newServerDescription);
@@ -355,6 +356,8 @@ namespace MongoDB.Driver.Specifications.sdam_monitoring
         // nested types
         private class TestCaseFactory : JsonDrivenTestCaseFactory
         {
+            private const string LoadBalancerTests = "MongoDB.Driver.Core.Tests.Specifications.server_discovery_and_monitoring.tests.monitoring.load_balancer.json";
+
             protected override string PathPrefix => "MongoDB.Driver.Core.Tests.Specifications.server_discovery_and_monitoring.tests.monitoring.";
 
             protected override IEnumerable<JsonDrivenTestCase> CreateTestCases(BsonDocument document)
@@ -362,6 +365,13 @@ namespace MongoDB.Driver.Specifications.sdam_monitoring
                 var name = GetTestCaseName(document, document, 0);
                 yield return new JsonDrivenTestCase(name, document, document);
             }
+
+            protected override bool ShouldReadJsonDocument(string path) => base.ShouldReadJsonDocument(path) && path != LoadBalancerTests;
+        }
+
+        private class LegacyHelloTestCaseFactory : TestCaseFactory
+        {
+            protected override string PathPrefix => "MongoDB.Driver.Core.Tests.Specifications.server_discovery_and_monitoring.tests.legacy_hello.monitoring.";
         }
     }
 }

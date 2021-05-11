@@ -73,7 +73,7 @@ namespace MongoDB.Driver.Core.Operations
             return mock.Object;
         }
 
-        public static IsMasterResult CreateIsMasterResult(
+        public static HelloResult CreateIsMasterResult(
             SemanticVersion version = null,
             ServerType serverType = ServerType.Standalone,
             bool supportsSessions = true)
@@ -107,7 +107,7 @@ namespace MongoDB.Driver.Core.Operations
                     isMasterDocument.Add("msg", "isdbgrid");
                     break;
             }
-            return new IsMasterResult(isMasterDocument);
+            return new HelloResult(isMasterDocument);
         }
     }
 }

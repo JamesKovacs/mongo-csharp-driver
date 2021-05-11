@@ -381,7 +381,7 @@ namespace MongoDB.Driver.Tests
                     var serverSelector = new ReadPreferenceServerSelector(settings.ReadPreference);
                     var server = client.Cluster.SelectServer(serverSelector, cancellationToken);
                     var channel = server.GetChannel(cancellationToken);
-                    var isMasterResult = channel.ConnectionDescription.IsMasterResult;
+                    var isMasterResult = channel.ConnectionDescription.HelloResult;
                     isMasterResult.SpeculativeAuthenticate.Should().NotBeNull();
                 }
             }

@@ -464,7 +464,7 @@ namespace MongoDB.Driver.Core.Operations
             {
                 { "logicalSessionTimeoutMinutes", 30 }
             };
-            var isMasterResult = new IsMasterResult(isMasterDocument);
+            var isMasterResult = new HelloResult(isMasterDocument);
             var buildInfoDocument = new BsonDocument
             {
                 { "version", version }

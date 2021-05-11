@@ -214,7 +214,7 @@ namespace MongoDB.Driver.Core.Tests.Core.Servers
             };
             return new ConnectionDescription(
                     new ConnectionId(__serverId, 0),
-                    new IsMasterResult(isMasterDocument),
+                    new HelloResult(isMasterDocument),
                     new BuildInfoResult(BsonDocument.Parse("{ ok : 1, version : '4.4.0' }")));
         }
 

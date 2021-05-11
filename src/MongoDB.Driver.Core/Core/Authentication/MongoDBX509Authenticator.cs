@@ -82,7 +82,7 @@ namespace MongoDB.Driver.Core.Authentication
             Ensure.IsNotNull(description, nameof(description));
             EnsureUsernameIsNotNullOrNullIsSupported(connection, description);
 
-            if (description.IsMasterResult.SpeculativeAuthenticate != null)
+            if (description.HelloResult.SpeculativeAuthenticate != null)
             {
                 return;
             }
@@ -105,7 +105,7 @@ namespace MongoDB.Driver.Core.Authentication
             Ensure.IsNotNull(description, nameof(description));
             EnsureUsernameIsNotNullOrNullIsSupported(connection, description);
 
-            if (description.IsMasterResult.SpeculativeAuthenticate != null)
+            if (description.HelloResult.SpeculativeAuthenticate != null)
             {
                 return;
             }

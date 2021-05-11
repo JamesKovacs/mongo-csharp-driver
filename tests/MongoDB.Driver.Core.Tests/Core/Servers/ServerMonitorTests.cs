@@ -392,7 +392,7 @@ namespace MongoDB.Driver.Core.Servers
             var version = isStreamable ? streamingIsMaster.FirstSupportedVersion : streamingIsMaster.LastNotSupportedVersion;
             connection.Description = new ConnectionDescription(
                 connection.ConnectionId,
-                new IsMasterResult(isMasterDocument),
+                new HelloResult(isMasterDocument),
                 new BuildInfoResult(BsonDocument.Parse($"{{ ok : 1, version : '{version}' }}")));
 
             if (autoFillStreamingResponses && isStreamable)

@@ -85,7 +85,7 @@ namespace MongoDB.Driver.Core.Connections
             _mockConnectionInitializer.Setup(i => i.InitializeConnectionAsync(It.IsAny<IConnection>(), CancellationToken.None))
                 .Returns(() => Task.FromResult(new ConnectionDescription(
                     new ConnectionId(serverId),
-                    new IsMasterResult(new BsonDocument()),
+                    new HelloResult(new BsonDocument()),
                     new BuildInfoResult(new BsonDocument("version", "2.6.3")))));
 
             _subject = new BinaryConnection(

@@ -46,11 +46,11 @@ namespace MongoDB.Driver.Core.Authentication
         private static readonly ServerId __serverId = new ServerId(__clusterId, new DnsEndPoint("localhost", 27017));
         private static readonly ConnectionDescription __descriptionCommandWireProtocol = new ConnectionDescription(
             new ConnectionId(__serverId),
-            new IsMasterResult(new BsonDocument("ok", 1).Add("ismaster", 1)),
+            new HelloResult(new BsonDocument("ok", 1).Add("ismaster", 1)),
             new BuildInfoResult(new BsonDocument("version", "4.7.0")));
         private static readonly ConnectionDescription __descriptionQueryWireProtocol = new ConnectionDescription(
             new ConnectionId(__serverId),
-            new IsMasterResult(new BsonDocument("ok", 1).Add("ismaster", 1)),
+            new HelloResult(new BsonDocument("ok", 1).Add("ismaster", 1)),
             new BuildInfoResult(new BsonDocument("version", "3.4.0")));
 
         /*
@@ -312,7 +312,7 @@ namespace MongoDB.Driver.Core.Authentication
                     ok : 1 }"));
 
             var connection = new MockConnection(__serverId);
-            var isMasterResult = (BsonDocument)__descriptionQueryWireProtocol.IsMasterResult.Wrapped.Clone();
+            var isMasterResult = (BsonDocument)__descriptionQueryWireProtocol.HelloResult.Wrapped.Clone();
             if (useSpeculativeAuthenticate)
             {
                 isMasterResult.Add("speculativeAuthenticate", saslStartReply.Documents[0].ToBsonDocument());
@@ -321,7 +321,7 @@ namespace MongoDB.Driver.Core.Authentication
              * does not support OP_MSG */
             connection.Description = new ConnectionDescription(
                 __descriptionQueryWireProtocol.ConnectionId,
-                new IsMasterResult(isMasterResult),
+                new HelloResult(isMasterResult),
                 new BuildInfoResult(new BsonDocument("version", "3.4")));
 
             BsonDocument isMasterCommand = null;

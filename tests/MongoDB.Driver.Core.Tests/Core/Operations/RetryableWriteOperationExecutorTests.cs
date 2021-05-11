@@ -119,7 +119,7 @@ namespace MongoDB.Driver.Core.Tests.Core.Operations
                 isMasterResultDocument["logicalSessionTimeoutMinutes"] = 1;
                 isMasterResultDocument["msg"] = "isdbgrid"; // mongos
             }
-            var isMasterResult = new IsMasterResult(isMasterResultDocument);
+            var isMasterResult = new HelloResult(isMasterResultDocument);
             var buildInfoResult = new BuildInfoResult(BsonDocument.Parse("{ ok : 1, version : '4.2.0' }"));
             var connectionDescription = new ConnectionDescription(connectionId, isMasterResult, buildInfoResult);
             return connectionDescription;

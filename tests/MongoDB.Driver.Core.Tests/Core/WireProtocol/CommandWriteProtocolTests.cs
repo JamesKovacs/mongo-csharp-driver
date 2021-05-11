@@ -115,7 +115,7 @@ namespace MongoDB.Driver.Core.WireProtocol
                     .Returns(
                         new ConnectionDescription(
                             id,
-                            new IsMasterResult(new BsonDocument("ok", 1)),
+                            new HelloResult(new BsonDocument("ok", 1)),
                             new BuildInfoResult(new BsonDocument("version", "4.4"))));
                 return id;
             }

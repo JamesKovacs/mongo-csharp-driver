@@ -35,11 +35,11 @@ namespace MongoDB.Driver.Core.Authentication
         private static readonly ServerId __serverId = new ServerId(__clusterId, new DnsEndPoint("localhost", 27017));
         private static readonly ConnectionDescription __descriptionCommandWireProtocol = new ConnectionDescription(
             new ConnectionId(__serverId),
-            new IsMasterResult(new BsonDocument("ok", 1).Add("ismaster", 1)),
+            new HelloResult(new BsonDocument("ok", 1).Add("ismaster", 1)),
             new BuildInfoResult(new BsonDocument("version", "4.7.0")));
         private static readonly ConnectionDescription __descriptionQueryWireProtocol = new ConnectionDescription(
             new ConnectionId(__serverId),
-            new IsMasterResult(new BsonDocument("ok", 1).Add("ismaster", 1)),
+            new HelloResult(new BsonDocument("ok", 1).Add("ismaster", 1)),
             new BuildInfoResult(new BsonDocument("version", "2.6.0")));
 
         [Theory]
@@ -243,7 +243,7 @@ namespace MongoDB.Driver.Core.Authentication
             var clusterId = new ClusterId(1);
             var serverId = new ServerId(clusterId, new DnsEndPoint("localhost", 27017));
             var connectionId = new ConnectionId(serverId, 1);
-            var isMasterResult = new IsMasterResult(new BsonDocument());
+            var isMasterResult = new HelloResult(new BsonDocument());
             var buildInfoResult = new BuildInfoResult(new BsonDocument
             {
                 { "version", serverVersion.ToString() }

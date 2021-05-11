@@ -98,7 +98,7 @@ namespace MongoDB.Driver.Core.Operations
                 { "ok", 1 },
                 { "version", areSessionsSupported ? "4.0" : "3.6" }
             };
-            return new ConnectionDescription(connectionId, new IsMasterResult(isMasterResult), new BuildInfoResult(buildInfoResult));
+            return new ConnectionDescription(connectionId, new HelloResult(isMasterResult), new BuildInfoResult(buildInfoResult));
         }
 
         private ICoreSession CreateSession(

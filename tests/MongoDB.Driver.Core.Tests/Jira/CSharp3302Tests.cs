@@ -322,7 +322,7 @@ namespace MongoDB.Driver.Core.Tests.Jira
 
                 return new ConnectionDescription(
                     mockConnection.Object.ConnectionId,
-                    new IsMasterResult(isMasterDocument),
+                    new HelloResult(isMasterDocument),
                     new BuildInfoResult(new BsonDocument("version", serverVersion)));
             }
         }

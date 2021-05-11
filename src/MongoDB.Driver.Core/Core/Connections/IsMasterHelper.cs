@@ -78,7 +78,7 @@ namespace MongoDB.Driver.Core.Connections
                 serverApi);
         }
 
-        internal static IsMasterResult GetResult(
+        internal static HelloResult GetResult(
             IConnection connection,
             CommandWireProtocol<BsonDocument> isMasterProtocol,
             CancellationToken cancellationToken)
@@ -86,7 +86,7 @@ namespace MongoDB.Driver.Core.Connections
             try
             {
                 var isMasterResultDocument = isMasterProtocol.Execute(connection, cancellationToken);
-                return new IsMasterResult(isMasterResultDocument);
+                return new HelloResult(isMasterResultDocument);
             }
             catch (MongoCommandException ex) when (ex.Code == 11)
             {
@@ -97,7 +97,7 @@ namespace MongoDB.Driver.Core.Connections
             }
         }
 
-        internal static async Task<IsMasterResult> GetResultAsync(
+        internal static async Task<HelloResult> GetResultAsync(
             IConnection connection,
             CommandWireProtocol<BsonDocument> isMasterProtocol,
             CancellationToken cancellationToken)
@@ -105,7 +105,7 @@ namespace MongoDB.Driver.Core.Connections
             try
             {
                 var isMasterResultDocument = await isMasterProtocol.ExecuteAsync(connection, cancellationToken).ConfigureAwait(false);
-                return new IsMasterResult(isMasterResultDocument);
+                return new HelloResult(isMasterResultDocument);
             }
             catch (MongoCommandException ex) when (ex.Code == 11)
             {

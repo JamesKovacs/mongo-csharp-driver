@@ -171,14 +171,14 @@ namespace MongoDB.Driver.Core.Servers
         {
             BsonDocument isMasterCommand;
             var commandResponseHandling = CommandResponseHandling.Return;
-            if (connection.Description.IsMasterResult.TopologyVersion != null)
+            if (connection.Description.HelloResult.TopologyVersion != null)
             {
                 connection.SetReadTimeout(_serverMonitorSettings.ConnectTimeout + _serverMonitorSettings.HeartbeatInterval);
                 commandResponseHandling = CommandResponseHandling.ExhaustAllowed;
 
                 var veryLargeHeartbeatInterval = TimeSpan.FromDays(1); // the server doesn't support Infinite value, so we set just a big enough value
                 var maxAwaitTime = _serverMonitorSettings.HeartbeatInterval == Timeout.InfiniteTimeSpan ? veryLargeHeartbeatInterval : _serverMonitorSettings.HeartbeatInterval;
-                isMasterCommand = IsMasterHelper.CreateCommand(connection.Description.IsMasterResult.TopologyVersion, maxAwaitTime);
+                isMasterCommand = IsMasterHelper.CreateCommand(connection.Description.HelloResult.TopologyVersion, maxAwaitTime);
             }
             else
             {
@@ -293,7 +293,7 @@ namespace MongoDB.Driver.Core.Servers
             bool processAnother = true;
             while (processAnother && !cancellationToken.IsCancellationRequested)
             {
-                IsMasterResult heartbeatIsMasterResult = null;
+                HelloResult heartbeatHelloResult = null;
                 Exception heartbeatException = null;
                 var previousDescription = _currentDescription;
 
@@ -316,13 +316,13 @@ namespace MongoDB.Driver.Core.Servers
                             }
                             _connection = initializedConnection;
                             _handshakeBuildInfoResult = _connection.Description.BuildInfoResult;
-                            heartbeatIsMasterResult = _connection.Description.IsMasterResult;
+                            heartbeatHelloResult = _connection.Description.HelloResult;
                         }
                     }
                     else
                     {
                         isMasterProtocol = isMasterProtocol ?? InitializeIsMasterProtocol(connection);
-                        heartbeatIsMasterResult = await GetIsMasterResultAsync(connection, isMasterProtocol, cancellationToken).ConfigureAwait(false);
+                        heartbeatHelloResult = await GetIsMasterResultAsync(connection, isMasterProtocol, cancellationToken).ConfigureAwait(false);
                     }
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -355,7 +355,7 @@ namespace MongoDB.Driver.Core.Servers
                 }
 
                 ServerDescription newDescription;
-                if (heartbeatIsMasterResult != null)
+                if (heartbeatHelloResult != null)
                 {
                     if (_handshakeBuildInfoResult == null)
                     {
@@ -368,20 +368,20 @@ namespace MongoDB.Driver.Core.Servers
 
                     newDescription = _baseDescription.With(
                         averageRoundTripTime: averageRoundTripTimeRounded,
-                        canonicalEndPoint: heartbeatIsMasterResult.Me,
-                        electionId: heartbeatIsMasterResult.ElectionId,
-                        lastWriteTimestamp: heartbeatIsMasterResult.LastWriteTimestamp,
-                        logicalSessionTimeout: heartbeatIsMasterResult.LogicalSessionTimeout,
-                        maxBatchCount: heartbeatIsMasterResult.MaxBatchCount,
-                        maxDocumentSize: heartbeatIsMasterResult.MaxDocumentSize,
-                        maxMessageSize: heartbeatIsMasterResult.MaxMessageSize,
-                        replicaSetConfig: heartbeatIsMasterResult.GetReplicaSetConfig(),
+                        canonicalEndPoint: heartbeatHelloResult.Me,
+                        electionId: heartbeatHelloResult.ElectionId,
+                        lastWriteTimestamp: heartbeatHelloResult.LastWriteTimestamp,
+                        logicalSessionTimeout: heartbeatHelloResult.LogicalSessionTimeout,
+                        maxBatchCount: heartbeatHelloResult.MaxBatchCount,
+                        maxDocumentSize: heartbeatHelloResult.MaxDocumentSize,
+                        maxMessageSize: heartbeatHelloResult.MaxMessageSize,
+                        replicaSetConfig: heartbeatHelloResult.GetReplicaSetConfig(),
                         state: ServerState.Connected,
-                        tags: heartbeatIsMasterResult.Tags,
-                        topologyVersion: heartbeatIsMasterResult.TopologyVersion,
-                        type: heartbeatIsMasterResult.ServerType,
+                        tags: heartbeatHelloResult.Tags,
+                        topologyVersion: heartbeatHelloResult.TopologyVersion,
+                        type: heartbeatHelloResult.ServerType,
                         version: _handshakeBuildInfoResult.ServerVersion,
-                        wireVersionRange: new Range<int>(heartbeatIsMasterResult.MinWireVersion, heartbeatIsMasterResult.MaxWireVersion));
+                        wireVersionRange: new Range<int>(heartbeatHelloResult.MinWireVersion, heartbeatHelloResult.MaxWireVersion));
                 }
                 else
                 {
@@ -408,7 +408,7 @@ namespace MongoDB.Driver.Core.Servers
 
                 processAnother =
                     // serverSupportsStreaming
-                    (newDescription.Type != ServerType.Unknown && heartbeatIsMasterResult != null && heartbeatIsMasterResult.TopologyVersion != null) ||
+                    (newDescription.Type != ServerType.Unknown && heartbeatHelloResult != null && heartbeatHelloResult.TopologyVersion != null) ||
                     // connectionIsStreaming
                     (isMasterProtocol != null && isMasterProtocol.MoreToCome) ||
                     // transitionedWithNetworkError
@@ -421,7 +421,7 @@ namespace MongoDB.Driver.Core.Servers
             }
         }
 
-        private async Task<IsMasterResult> GetIsMasterResultAsync(
+        private async Task<HelloResult> GetIsMasterResultAsync(
             IConnection connection,
             CommandWireProtocol<BsonDocument> isMasterProtocol,
             CancellationToken cancellationToken)
@@ -429,7 +429,7 @@ namespace MongoDB.Driver.Core.Servers
             cancellationToken.ThrowIfCancellationRequested();
             if (_heartbeatStartedEventHandler != null)
             {
-                _heartbeatStartedEventHandler(new ServerHeartbeatStartedEvent(connection.ConnectionId, connection.Description.IsMasterResult.TopologyVersion != null));
+                _heartbeatStartedEventHandler(new ServerHeartbeatStartedEvent(connection.ConnectionId, connection.Description.HelloResult.TopologyVersion != null));
             }
 
             try
@@ -440,7 +440,7 @@ namespace MongoDB.Driver.Core.Servers
 
                 if (_heartbeatSucceededEventHandler != null)
                 {
-                    _heartbeatSucceededEventHandler(new ServerHeartbeatSucceededEvent(connection.ConnectionId, stopwatch.Elapsed, connection.Description.IsMasterResult.TopologyVersion != null));
+                    _heartbeatSucceededEventHandler(new ServerHeartbeatSucceededEvent(connection.ConnectionId, stopwatch.Elapsed, connection.Description.HelloResult.TopologyVersion != null));
                 }
 
                 return isMasterResult;
@@ -449,7 +449,7 @@ namespace MongoDB.Driver.Core.Servers
             {
                 if (_heartbeatFailedEventHandler != null)
                 {
-                    _heartbeatFailedEventHandler(new ServerHeartbeatFailedEvent(connection.ConnectionId, ex, connection.Description.IsMasterResult.TopologyVersion != null));
+                    _heartbeatFailedEventHandler(new ServerHeartbeatFailedEvent(connection.ConnectionId, ex, connection.Description.HelloResult.TopologyVersion != null));
                 }
                 throw;
             }

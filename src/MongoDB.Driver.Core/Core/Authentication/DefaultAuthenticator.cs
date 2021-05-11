@@ -84,13 +84,13 @@ namespace MongoDB.Driver.Core.Authentication
             // If we don't have SaslSupportedMechs as part of the response, that means we didn't piggyback the initial
             // isMaster request and should query the server (provided that the server >= 4.0), merging results into 
             // a new ConnectionDescription
-            if (!description.IsMasterResult.HasSaslSupportedMechs
+            if (!description.HelloResult.HasSaslSupportedMechs
                 && Feature.ScramSha256Authentication.IsSupported(description.ServerVersion))
             {
                 var command = CustomizeInitialIsMasterCommand(IsMasterHelper.CreateCommand());
                 var isMasterProtocol = IsMasterHelper.CreateProtocol(command, _serverApi);
                 var isMasterResult = IsMasterHelper.GetResult(connection, isMasterProtocol, cancellationToken);
-                var mergedIsMasterResult = new IsMasterResult(description.IsMasterResult.Wrapped.Merge(isMasterResult.Wrapped));
+                var mergedIsMasterResult = new HelloResult(description.HelloResult.Wrapped.Merge(isMasterResult.Wrapped));
                 description = new ConnectionDescription(
                     description.ConnectionId,
                     mergedIsMasterResult,
@@ -110,13 +110,13 @@ namespace MongoDB.Driver.Core.Authentication
             // If we don't have SaslSupportedMechs as part of the response, that means we didn't piggyback the initial
             // isMaster request and should query the server (provided that the server >= 4.0), merging results into 
             // a new ConnectionDescription
-            if (!description.IsMasterResult.HasSaslSupportedMechs
+            if (!description.HelloResult.HasSaslSupportedMechs
                 && Feature.ScramSha256Authentication.IsSupported(description.ServerVersion))
             {
                 var command = CustomizeInitialIsMasterCommand(IsMasterHelper.CreateCommand());
                 var isMasterProtocol = IsMasterHelper.CreateProtocol(command, _serverApi);
                 var isMasterResult = await IsMasterHelper.GetResultAsync(connection, isMasterProtocol, cancellationToken).ConfigureAwait(false);
-                var mergedIsMasterResult = new IsMasterResult(description.IsMasterResult.Wrapped.Merge(isMasterResult.Wrapped));
+                var mergedIsMasterResult = new HelloResult(description.HelloResult.Wrapped.Merge(isMasterResult.Wrapped));
                 description = new ConnectionDescription(
                     description.ConnectionId,
                     mergedIsMasterResult,
@@ -146,11 +146,11 @@ namespace MongoDB.Driver.Core.Authentication
         {
             // If a saslSupportedMechs field was present in the isMaster results for mechanism negotiation,
             // then it MUST be inspected to select a default mechanism.
-            if (description.IsMasterResult.HasSaslSupportedMechs)
+            if (description.HelloResult.HasSaslSupportedMechs)
             {
                 // If SCRAM-SHA-256 is present in the list of mechanisms, then it MUST be used as the default;
                 // otherwise, SCRAM-SHA-1 MUST be used as the default, regardless of whether SCRAM-SHA-1 is in the list.
-                return description.IsMasterResult.SaslSupportedMechs.Contains("SCRAM-SHA-256")
+                return description.HelloResult.SaslSupportedMechs.Contains("SCRAM-SHA-256")
                     ? (IAuthenticator)new ScramSha256Authenticator(_credential, _randomStringGenerator, _serverApi)
                     : new ScramSha1Authenticator(_credential, _randomStringGenerator, _serverApi);
             }
@@ -167,7 +167,7 @@ namespace MongoDB.Driver.Core.Authentication
         {
             /* It is possible to have for IsMaster["SpeculativeAuthenticate"] != null and for
              * _speculativeScramSha256Authenticator to be null in the case of multiple authenticators */
-            var speculativeAuthenticateResult = description.IsMasterResult.SpeculativeAuthenticate;
+            var speculativeAuthenticateResult = description.HelloResult.SpeculativeAuthenticate;
             var canUseSpeculativeAuthenticator = _speculativeAuthenticator != null && speculativeAuthenticateResult != null;
             return canUseSpeculativeAuthenticator ? _speculativeAuthenticator : CreateAuthenticator(connection, description);
         }

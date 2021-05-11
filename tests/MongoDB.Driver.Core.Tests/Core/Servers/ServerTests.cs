@@ -433,7 +433,7 @@ namespace MongoDB.Driver.Core.Servers
 
             var operationUsingChannelException = new MongoConnectionException(connectionId, "Oops", new IOException("Cry", innerMostException));
             var mockConnection = new Mock<IConnectionHandle>();
-            var isMasterResult = new IsMasterResult(new BsonDocument { { "compressors", new BsonArray() } });
+            var isMasterResult = new HelloResult(new BsonDocument { { "compressors", new BsonArray() } });
             // the server version doesn't matter when we're not testing MongoNotPrimaryExceptions, but is needed when
             // Server calls ShouldClearConnectionPoolForException
             var buildInfoResult = new BuildInfoResult(new BsonDocument { { "version", "4.4.0" } });

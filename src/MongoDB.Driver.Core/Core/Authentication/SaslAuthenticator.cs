@@ -84,7 +84,7 @@ namespace MongoDB.Driver.Core.Authentication
             {
                 ISaslStep currentStep;
                 BsonDocument command;
-                var speculativeAuthenticateResult = description.IsMasterResult.SpeculativeAuthenticate;
+                var speculativeAuthenticateResult = description.HelloResult.SpeculativeAuthenticate;
                 if (_speculativeFirstStep != null && speculativeAuthenticateResult != null)
                 {
                     currentStep = Transition(conversation, _speculativeFirstStep, speculativeAuthenticateResult, out command);
@@ -123,7 +123,7 @@ namespace MongoDB.Driver.Core.Authentication
             {
                 ISaslStep currentStep;
                 BsonDocument command;
-                var speculativeAuthenticateResult = description.IsMasterResult.SpeculativeAuthenticate;
+                var speculativeAuthenticateResult = description.HelloResult.SpeculativeAuthenticate;
                 if (_speculativeFirstStep != null && speculativeAuthenticateResult != null)
                 {
                     currentStep = Transition(conversation, _speculativeFirstStep, speculativeAuthenticateResult, out command);
