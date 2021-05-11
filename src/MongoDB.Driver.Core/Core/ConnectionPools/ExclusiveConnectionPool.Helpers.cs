@@ -44,6 +44,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
         {
             private static readonly bool[,] __transitions;
             private State _state;
+            private EndPoint _endPoint;
 
             static PoolState()
             {
@@ -60,9 +61,10 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 __transitions[(int)State.Disposed, (int)State.Disposed] = true;
             }
 
-            public PoolState()
+            public PoolState(EndPoint endPoint)
             {
                 _state = State.Initial;
+                _endPoint = endPoint;
             }
 
             public State State => _state;
@@ -90,9 +92,15 @@ namespace MongoDB.Driver.Core.ConnectionPools
             {
                 ThrowIfDisposed();
 
-                if (_state != State.Ready)
+                var state = _state;
+
+                if (state == State.Paused)
                 {
-                    throw new InvalidOperationException($"ConnectionPool must be ready, but is in {_state} state.");
+                    throw MongoPoolPausedException.ForConnectionPool(_endPoint);
+                }
+                else if (state != State.Ready)
+                {
+                    throw new InvalidOperationException($"ConnectionPool must be ready, but is in {state} state.");
                 }
             }
 

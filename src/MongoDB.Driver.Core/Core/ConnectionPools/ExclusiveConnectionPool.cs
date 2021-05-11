@@ -74,7 +74,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
             Ensure.IsNotNull(eventSubscriber, nameof(eventSubscriber));
 
             _maintenanceState = new MaintenanceState();
-            _poolState = new PoolState();
+            _poolState = new PoolState(_endPoint);
 
             _connectingQueue = new SemaphoreSlimSignalable(settings.MaxConnecting);
             _connectionHolder = new ListConnectionHolder(eventSubscriber, _connectingQueue);

@@ -154,6 +154,8 @@ namespace MongoDB.Driver.Core.Operations
         {
             using (EventContext.BeginOperation())
             {
+                context.InitializeChannel(cancellationToken);
+
                 if (_writeConcern.IsAcknowledged)
                 {
                     var emulator = CreateEmulator();
@@ -182,6 +184,8 @@ namespace MongoDB.Driver.Core.Operations
         {
             using (EventContext.BeginOperation())
             {
+                await context.InitializeChannelAsync(cancellationToken).ConfigureAwait(false);
+
                 if (_writeConcern.IsAcknowledged)
                 {
                     var emulator = CreateEmulator();

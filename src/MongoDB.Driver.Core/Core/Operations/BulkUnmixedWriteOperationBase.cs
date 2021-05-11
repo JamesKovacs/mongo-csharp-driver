@@ -115,8 +115,11 @@ namespace MongoDB.Driver.Core.Operations
         // public methods
         public BulkWriteOperationResult Execute(RetryableWriteContext context, CancellationToken cancellationToken)
         {
-            EnsureCollationIsSupportedIfAnyRequestHasCollation(context, _requests);
-            EnsureHintIsSupportedIfAnyRequestHasHint(context);
+            context.ChannelValidation += () =>
+                {
+                    EnsureCollationIsSupportedIfAnyRequestHasCollation(context, _requests);
+                    EnsureHintIsSupportedIfAnyRequestHasHint(context);
+                };
 
             return ExecuteBatches(context, cancellationToken);
         }
@@ -133,8 +136,11 @@ namespace MongoDB.Driver.Core.Operations
 
         public Task<BulkWriteOperationResult> ExecuteAsync(RetryableWriteContext context, CancellationToken cancellationToken)
         {
-            EnsureCollationIsSupportedIfAnyRequestHasCollation(context, _requests);
-            EnsureHintIsSupportedIfAnyRequestHasHint(context);
+            context.ChannelValidation += () =>
+                {
+                    EnsureCollationIsSupportedIfAnyRequestHasCollation(context, _requests);
+                    EnsureHintIsSupportedIfAnyRequestHasHint(context);
+                };
 
             return ExecuteBatchesAsync(context, cancellationToken);
         }
@@ -309,7 +315,7 @@ namespace MongoDB.Driver.Core.Operations
             {
                 var combiner = new BulkWriteBatchResultCombiner(_batchResults, _writeConcern.IsAcknowledged);
                 var remainingRequests = _requests.GetUnprocessedItems();
-                return combiner.CreateResultOrThrowIfHasErrors(channel.ConnectionDescription.ConnectionId, remainingRequests);
+                return combiner.CreateResultOrThrowIfHasErrors(channel?.ConnectionDescription?.ConnectionId, remainingRequests);
             }
 
             // private methods

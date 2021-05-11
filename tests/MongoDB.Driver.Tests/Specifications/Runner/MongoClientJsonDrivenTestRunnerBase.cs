@@ -331,7 +331,8 @@ namespace MongoDB.Driver.Tests.Specifications.Runner
                     break;
 
                 case "connectTimeoutMS":
-                    settings.ConnectTimeout = TimeSpan.FromMilliseconds(option.Value.ToInt32());
+                    var connectTimeoutMS = option.Value.ToInt32();
+                    settings.ConnectTimeout = connectTimeoutMS == 0 ? Timeout.InfiniteTimeSpan : TimeSpan.FromMilliseconds(connectTimeoutMS);
                     break;
 
                 case "directConnection":
@@ -356,12 +357,20 @@ namespace MongoDB.Driver.Tests.Specifications.Runner
                     settings.HeartbeatInterval = TimeSpan.FromMilliseconds(option.Value.ToInt32());
                     break;
 
+                case "maxPoolSize":
+                    settings.MaxConnectionPoolSize = option.Value.ToInt32();
+                    break;
+
                 case "minPoolSize":
                     settings.MinConnectionPoolSize = option.Value.ToInt32();
                     break;
 
                 case "serverSelectionTimeoutMS":
                     settings.ServerSelectionTimeout = TimeSpan.FromMilliseconds(option.Value.ToInt32());
+                    break;
+
+                case "socketTimeoutMS":
+                    settings.SocketTimeout = TimeSpan.FromMilliseconds(option.Value.ToInt32());
                     break;
 
                 default:

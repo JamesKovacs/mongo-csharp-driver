@@ -134,6 +134,7 @@ namespace MongoDB.Driver.Core.Operations
                 }
                 else
                 {
+                    context.InitializeChannel(cancellationToken);
                     return ExecuteProtocol(context.Channel, cancellationToken);
                 }
             }
@@ -165,6 +166,7 @@ namespace MongoDB.Driver.Core.Operations
                 }
                 else
                 {
+                    await context.InitializeChannelAsync(cancellationToken).ConfigureAwait(false);
                     return await ExecuteProtocolAsync(context.Channel, cancellationToken).ConfigureAwait(false);
                 }
             }

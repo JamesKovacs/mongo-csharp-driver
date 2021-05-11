@@ -1,98 +1,20 @@
 {
   "runOn": [
     {
-      "minServerVersion": "4.9"
+      "minServerVersion": "4.4"
     }
   ],
   "database_name": "sdam-tests",
-  "collection_name": "isMaster-command-error",
+  "collection_name": "connectTimeoutMS",
   "data": [],
   "tests": [
     {
-      "description": "Command error on Monitor handshake",
-      "failPoint": {
-        "configureFailPoint": "failCommand",
-        "mode": {
-          "times": 2
-        },
-        "data": {
-          "failCommands": [
-            "isMaster"
-          ],
-          "appName": "commandErrorHandshakeTest",
-          "closeConnection": false,
-          "errorCode": 91
-        }
-      },
+      "description": "connectTimeoutMS=0",
       "clientOptions": {
         "retryWrites": false,
-        "connectTimeoutMS": 250,
+        "connectTimeoutMS": 0,
         "heartbeatFrequencyMS": 500,
-        "appname": "commandErrorHandshakeTest"
-      },
-      "operations": [
-        {
-          "name": "waitForEvent",
-          "object": "testRunner",
-          "arguments": {
-            "event": "ServerMarkedUnknownEvent",
-            "count": 1
-          }
-        },
-        {
-          "name": "insertMany",
-          "object": "collection",
-          "arguments": {
-            "documents": [
-              {
-                "_id": 1
-              },
-              {
-                "_id": 2
-              }
-            ]
-          }
-        }
-      ],
-      "expectations": [
-        {
-          "command_started_event": {
-            "command": {
-              "insert": "isMaster-command-error",
-              "documents": [
-                {
-                  "_id": 1
-                },
-                {
-                  "_id": 2
-                }
-              ]
-            },
-            "command_name": "insert",
-            "database_name": "sdam-tests"
-          }
-        }
-      ],
-      "outcome": {
-        "collection": {
-          "data": [
-            {
-              "_id": 1
-            },
-            {
-              "_id": 2
-            }
-          ]
-        }
-      }
-    },
-    {
-      "description": "Command error on Monitor check",
-      "clientOptions": {
-        "retryWrites": false,
-        "connectTimeoutMS": 1000,
-        "heartbeatFrequencyMS": 500,
-        "appname": "commandErrorCheckTest"
+        "appname": "connectTimeoutMS=0"
       },
       "operations": [
         {
@@ -122,29 +44,18 @@
                 "failCommands": [
                   "isMaster"
                 ],
-                "appName": "commandErrorCheckTest",
-                "closeConnection": false,
+                "appName": "connectTimeoutMS=0",
                 "blockConnection": true,
-                "blockTimeMS": 750,
-                "errorCode": 91
+                "blockTimeMS": 550
               }
             }
           }
         },
         {
-          "name": "waitForEvent",
+          "name": "wait",
           "object": "testRunner",
           "arguments": {
-            "event": "ServerMarkedUnknownEvent",
-            "count": 1
-          }
-        },
-        {
-          "name": "waitForEvent",
-          "object": "testRunner",
-          "arguments": {
-            "event": "PoolClearedEvent",
-            "count": 1
+            "ms": 750
           }
         },
         {
@@ -166,7 +77,7 @@
           "object": "testRunner",
           "arguments": {
             "event": "ServerMarkedUnknownEvent",
-            "count": 1
+            "count": 0
           }
         },
         {
@@ -174,7 +85,7 @@
           "object": "testRunner",
           "arguments": {
             "event": "PoolClearedEvent",
-            "count": 1
+            "count": 0
           }
         }
       ],
@@ -182,7 +93,7 @@
         {
           "command_started_event": {
             "command": {
-              "insert": "isMaster-command-error",
+              "insert": "connectTimeoutMS",
               "documents": [
                 {
                   "_id": 1
@@ -199,7 +110,7 @@
         {
           "command_started_event": {
             "command": {
-              "insert": "isMaster-command-error",
+              "insert": "connectTimeoutMS",
               "documents": [
                 {
                   "_id": 3

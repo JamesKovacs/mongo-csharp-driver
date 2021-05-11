@@ -137,7 +137,7 @@ namespace MongoDB.Driver.Core.Operations
         {
             if (_retryRequested)
             {
-                if (requests.Any(r => !r.IsRetryable(_channel.ConnectionDescription)))
+                if (requests.Any(r => !r.IsRetryable(null)))
                 {
                     _retryRequested = false;
                 }
@@ -164,6 +164,8 @@ namespace MongoDB.Driver.Core.Operations
             Ensure.IsNotNull(channel, nameof(channel));
             _channel?.Dispose();
             _channel = channel;
+
+            ChannelValidation?.Invoke();
         }
 
         /// <summary>
@@ -183,13 +185,34 @@ namespace MongoDB.Driver.Core.Operations
         private void Initialize(CancellationToken cancellationToken)
         {
             _channelSource = _binding.GetWriteChannelSource(cancellationToken);
-            _channel = _channelSource.GetChannel(cancellationToken);
         }
 
         private async Task InitializeAsync(CancellationToken cancellationToken)
         {
             _channelSource = await _binding.GetWriteChannelSourceAsync(cancellationToken).ConfigureAwait(false);
-            _channel = await _channelSource.GetChannelAsync(cancellationToken).ConfigureAwait(false);
         }
+
+        internal void InitializeChannel(CancellationToken cancellationToken)
+        {
+            if (_channel == null)
+            {
+                _channel = _channelSource.GetChannel(cancellationToken);
+                ChannelValidation?.Invoke();
+            }
+        }
+
+        internal async Task InitializeChannelAsync(CancellationToken cancellationToken)
+        {
+            if (_channel == null)
+            {
+                _channel = await _channelSource.GetChannelAsync(cancellationToken).ConfigureAwait(false);
+                ChannelValidation?.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// Occurs on channel initialization or replacement.
+        /// </summary>
+        public event Action ChannelValidation;
     }
 }

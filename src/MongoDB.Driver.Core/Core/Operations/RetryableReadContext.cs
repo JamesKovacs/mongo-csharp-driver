@@ -14,8 +14,6 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Driver.Core.Bindings;
@@ -167,13 +165,47 @@ namespace MongoDB.Driver.Core.Operations
         private void Initialize(CancellationToken cancellationToken)
         {
             _channelSource = _binding.GetReadChannelSource(cancellationToken);
-            _channel = _channelSource.GetChannel(cancellationToken);
+            var serverVersion = _channelSource.ServerDescription.Version;
+
+            try
+            {
+                _channel = _channelSource.GetChannel(cancellationToken);
+            }
+            catch (MongoPoolPausedException)
+            {
+                if (RetryableReadOperationExecutor.ShouldConnectionAcquireBeRetried(this, serverVersion))
+                {
+                    ReplaceChannelSource(Binding.GetReadChannelSource(cancellationToken));
+                    ReplaceChannel(ChannelSource.GetChannel(cancellationToken));
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
 
         private async Task InitializeAsync(CancellationToken cancellationToken)
         {
             _channelSource = await _binding.GetReadChannelSourceAsync(cancellationToken).ConfigureAwait(false);
-            _channel = await _channelSource.GetChannelAsync(cancellationToken).ConfigureAwait(false);
+            var serverVersion = _channelSource.ServerDescription.Version;
+
+            try
+            {
+                _channel = await _channelSource.GetChannelAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (MongoPoolPausedException)
+            {
+                if (RetryableReadOperationExecutor.ShouldConnectionAcquireBeRetried(this, serverVersion))
+                {
+                    ReplaceChannelSource(await Binding.GetReadChannelSourceAsync(cancellationToken).ConfigureAwait(false));
+                    ReplaceChannel(await ChannelSource.GetChannelAsync(cancellationToken).ConfigureAwait(false));
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
     }
 }

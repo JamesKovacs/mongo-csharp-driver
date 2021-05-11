@@ -222,6 +222,12 @@ namespace MongoDB.Driver.Core.TestHelpers.XunitExtensions
             {
                 switch (item.Name)
                 {
+                    case "authEnabled":
+                        {
+                            var authEnabled = item.Value.AsBoolean;
+                            Check().Authentication(authEnabled);
+                            break;
+                        }
                     case "minServerVersion":
                         {
                             var actualVersion = CoreTestConfiguration.ServerVersion;

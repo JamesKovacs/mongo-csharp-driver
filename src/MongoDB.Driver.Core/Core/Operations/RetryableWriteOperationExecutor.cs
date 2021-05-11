@@ -35,45 +35,134 @@ namespace MongoDB.Driver.Core.Operations
 
         public static TResult Execute<TResult>(IRetryableWriteOperation<TResult> operation, RetryableWriteContext context, CancellationToken cancellationToken)
         {
-            if (!AreRetriesAllowed(operation, context))
+            Exception originalException = null;
+            Exception retryException = null;
+            long? transactionNumber = null;
+            bool executeNoRetries = false;
+            int attempt = 1;
+
+            for (int iteration = 0; iteration < 2; iteration++)
+            {
+                try
+                {
+                    if (iteration == 0)
+                    {
+                        context.InitializeChannel(cancellationToken);
+                    }
+                    else
+                    {
+                        context.ReplaceChannelSource(context.Binding.GetWriteChannelSource(cancellationToken));
+                        context.ReplaceChannel(context.ChannelSource.GetChannel(cancellationToken));
+                    }
+
+                    if (!AreRetriesAllowed(operation, context))
+                    {
+                        executeNoRetries = true;
+                        break;
+                    }
+
+                    if (transactionNumber == null)
+                    {
+                        transactionNumber = context.Binding.Session.AdvanceTransactionNumber();
+                    }
+
+                    return operation.ExecuteAttempt(context, attempt++, transactionNumber.Value, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    RetryabilityHelper.AddRetryableWriteErrorLabelOnCheckoutRetryableWrite(ex);
+
+                    if (RetryabilityHelper.IsRetryableWriteException(ex))
+                    {
+                        if (originalException == null)
+                        {
+                            originalException = ex;
+                        }
+                        else
+                        {
+                            retryException = ex;
+                        }
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+            }
+
+            if (executeNoRetries)
             {
                 return operation.ExecuteAttempt(context, 1, null, cancellationToken);
             }
 
-            var transactionNumber = context.Binding.Session.AdvanceTransactionNumber();
-            Exception originalException;
-            try
+            var exceptionToThrow = ShouldThrowOriginalException(retryException) ? originalException : retryException;
+            throw exceptionToThrow;
+        }
+
+        public static async Task<TResult> ExecuteAsync<TResult>(IRetryableWriteOperation<TResult> operation, RetryableWriteContext context, CancellationToken cancellationToken)
+        {
+            Exception originalException = null;
+            Exception retryException = null;
+            long? transactionNumber = null;
+            bool executeNoRetries = false;
+            int attempt = 1;
+
+            for (int iteration = 0; iteration < 2; iteration++)
             {
-                return operation.ExecuteAttempt(context, 1, transactionNumber, cancellationToken);
-            }
-            catch (Exception ex) when (RetryabilityHelper.IsRetryableWriteException(ex))
-            {
-                originalException = ex;
+                try
+                {
+                    if (iteration == 0)
+                    {
+                        await context.InitializeChannelAsync(cancellationToken).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        context.ReplaceChannelSource(await context.Binding.GetWriteChannelSourceAsync(cancellationToken).ConfigureAwait(false));
+                        context.ReplaceChannel(await context.ChannelSource.GetChannelAsync(cancellationToken).ConfigureAwait(false));
+                    }
+
+                    if (!AreRetriesAllowed(operation, context))
+                    {
+                        executeNoRetries = true;
+                        break;
+                    }
+
+                    if (transactionNumber == null)
+                    {
+                        transactionNumber = context.Binding.Session.AdvanceTransactionNumber();
+                    }
+
+                    return await operation.ExecuteAttemptAsync(context, attempt++, transactionNumber.Value, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    RetryabilityHelper.AddRetryableWriteErrorLabelOnCheckoutRetryableWrite(ex);
+
+                    if (RetryabilityHelper.IsRetryableWriteException(ex))
+                    {
+                        if (originalException == null)
+                        {
+                            originalException = ex;
+                        }
+                        else
+                        {
+                            retryException = ex;
+                        }
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
             }
 
-            try
+            if (executeNoRetries)
             {
-                context.ReplaceChannelSource(context.Binding.GetWriteChannelSource(cancellationToken));
-                context.ReplaceChannel(context.ChannelSource.GetChannel(cancellationToken));
-            }
-            catch
-            {
-                throw originalException;
+                return await operation.ExecuteAttemptAsync(context, 1, null, cancellationToken).ConfigureAwait(false);
             }
 
-            if (!AreRetryableWritesSupported(context.Channel.ConnectionDescription))
-            {
-                throw originalException;
-            }
-
-            try
-            {
-                return operation.ExecuteAttempt(context, 2, transactionNumber, cancellationToken);
-            }
-            catch (Exception ex) when (ShouldThrowOriginalException(ex))
-            {
-                throw originalException;
-            }
+            var exceptionToThrow = ShouldThrowOriginalException(retryException) ? originalException : retryException;
+            throw exceptionToThrow;
         }
 
         public async static Task<TResult> ExecuteAsync<TResult>(IRetryableWriteOperation<TResult> operation, IWriteBinding binding, bool retryRequested, CancellationToken cancellationToken)
@@ -81,49 +170,6 @@ namespace MongoDB.Driver.Core.Operations
             using (var context = await RetryableWriteContext.CreateAsync(binding, retryRequested, cancellationToken).ConfigureAwait(false))
             {
                 return await ExecuteAsync(operation, context, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        public static async Task<TResult> ExecuteAsync<TResult>(IRetryableWriteOperation<TResult> operation, RetryableWriteContext context, CancellationToken cancellationToken)
-        {
-            if (!AreRetriesAllowed(operation, context))
-            {
-                return await operation.ExecuteAttemptAsync(context, 1, null, cancellationToken).ConfigureAwait(false);
-            }
-
-            var transactionNumber = context.Binding.Session.AdvanceTransactionNumber();
-            Exception originalException;
-            try
-            {
-                return await operation.ExecuteAttemptAsync(context, 1, transactionNumber, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex) when (RetryabilityHelper.IsRetryableWriteException(ex))
-            {
-                originalException = ex;
-            }
-
-            try
-            {
-                context.ReplaceChannelSource(await context.Binding.GetWriteChannelSourceAsync(cancellationToken).ConfigureAwait(false));
-                context.ReplaceChannel(await context.ChannelSource.GetChannelAsync(cancellationToken).ConfigureAwait(false));
-            }
-            catch
-            {
-                throw originalException;
-            }
-
-            if (!AreRetryableWritesSupported(context.Channel.ConnectionDescription))
-            {
-                throw originalException;
-            }
-
-            try
-            {
-                return await operation.ExecuteAttemptAsync(context, 2, transactionNumber, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex) when (ShouldThrowOriginalException(ex))
-            {
-                throw originalException;
             }
         }
 
@@ -157,9 +203,8 @@ namespace MongoDB.Driver.Core.Operations
                 writeConcern.IsAcknowledged;
         }
 
-        private static bool ShouldThrowOriginalException(Exception retryException)
-        {
-            return retryException is MongoException && !(retryException is MongoConnectionException);
-        }
+        private static bool ShouldThrowOriginalException(Exception retryException) =>
+            retryException == null ||
+            retryException is MongoException && !(retryException is MongoConnectionException || retryException is MongoPoolPausedException);
     }
 }

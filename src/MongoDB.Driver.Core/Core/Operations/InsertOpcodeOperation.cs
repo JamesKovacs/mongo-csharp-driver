@@ -239,6 +239,7 @@ namespace MongoDB.Driver.Core.Operations
                 }
                 else
                 {
+                    context.InitializeChannel(cancellationToken);
                     return InsertBatches(context.Channel, cancellationToken);
                 }
             }
@@ -252,6 +253,7 @@ namespace MongoDB.Driver.Core.Operations
             using (EventContext.BeginOperation())
             using (var context = await RetryableWriteContext.CreateAsync(binding, false, cancellationToken).ConfigureAwait(false))
             {
+                await context.InitializeChannelAsync(cancellationToken).ConfigureAwait(false);
                 if (_writeConcern.IsAcknowledged)
                 {
                     var emulator = CreateEmulator();
@@ -260,6 +262,7 @@ namespace MongoDB.Driver.Core.Operations
                 }
                 else
                 {
+                    await context.InitializeChannelAsync(cancellationToken).ConfigureAwait(false);
                     return await InsertBatchesAsync(context.Channel, cancellationToken).ConfigureAwait(false);
                 }
             }

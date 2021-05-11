@@ -213,15 +213,18 @@ namespace MongoDB.Driver.Core.Operations
             using (EventContext.BeginOperation())
             using (var context = RetryableWriteContext.Create(binding, _retryRequested, cancellationToken))
             {
-                EnsureCollationIsSupportedIfAnyRequestHasCollation(context);
-                EnsureHintIsSupportedIfAnyRequestHasHint(context);
+                context.ChannelValidation += () =>
+                   {
+                       EnsureCollationIsSupportedIfAnyRequestHasCollation(context);
+                       EnsureHintIsSupportedIfAnyRequestHasHint(context);
+                   };
                 context.DisableRetriesIfAnyWriteRequestIsNotRetryable(_requests);
                 var helper = new BatchHelper(_requests, _isOrdered, _writeConcern);
                 foreach (var batch in helper.GetBatches())
                 {
                     batch.Result = ExecuteBatch(context, batch, cancellationToken);
                 }
-                return helper.GetFinalResultOrThrow(context.Channel.ConnectionDescription.ConnectionId);
+                return helper.GetFinalResultOrThrow(context.Channel?.ConnectionDescription?.ConnectionId);
             }
         }
 
@@ -231,15 +234,18 @@ namespace MongoDB.Driver.Core.Operations
             using (EventContext.BeginOperation())
             using (var context = await RetryableWriteContext.CreateAsync(binding, _retryRequested, cancellationToken).ConfigureAwait(false))
             {
-                EnsureCollationIsSupportedIfAnyRequestHasCollation(context);
-                EnsureHintIsSupportedIfAnyRequestHasHint(context);
+                context.ChannelValidation += () =>
+                    {
+                        EnsureCollationIsSupportedIfAnyRequestHasCollation(context);
+                        EnsureHintIsSupportedIfAnyRequestHasHint(context);
+                    };
                 context.DisableRetriesIfAnyWriteRequestIsNotRetryable(_requests);
                 var helper = new BatchHelper(_requests, _isOrdered, _writeConcern);
                 foreach (var batch in helper.GetBatches())
                 {
                     batch.Result = await ExecuteBatchAsync(context, batch, cancellationToken).ConfigureAwait(false);
                 }
-                return helper.GetFinalResultOrThrow(context.Channel.ConnectionDescription.ConnectionId);
+                return helper.GetFinalResultOrThrow(context.Channel?.ConnectionDescription?.ConnectionId);
             }
         }
 
