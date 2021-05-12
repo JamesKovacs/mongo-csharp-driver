@@ -25,9 +25,9 @@ namespace MongoDB.Driver.Core.Authentication
 {
     /// <summary>
     /// The default authenticator.
-    /// If saslSupportedMechs is not present in the isMaster results for mechanism negotiation
+    /// If saslSupportedMechs is not present in the hello or legacy hello results for mechanism negotiation
     /// uses SCRAM-SHA-1 when talking to servers >= 3.0. Prior to server 3.0, uses MONGODB-CR.
-    /// Else, uses SCRAM-SHA-256 if present in the list of mechanisms. Otherwise, uses 
+    /// Else, uses SCRAM-SHA-256 if present in the list of mechanisms. Otherwise, uses
     /// SCRAM-SHA-1 the default, regardless of whether SCRAM-SHA-1 is in the list.
     /// </summary>
     public class DefaultAuthenticator : IAuthenticator
@@ -82,7 +82,7 @@ namespace MongoDB.Driver.Core.Authentication
             Ensure.IsNotNull(description, nameof(description));
 
             // If we don't have SaslSupportedMechs as part of the response, that means we didn't piggyback the initial
-            // isMaster request and should query the server (provided that the server >= 4.0), merging results into 
+            // hello or legacy hello request and should query the server (provided that the server >= 4.0), merging results into
             // a new ConnectionDescription
             if (!description.HelloResult.HasSaslSupportedMechs
                 && Feature.ScramSha256Authentication.IsSupported(description.ServerVersion))
@@ -108,7 +108,7 @@ namespace MongoDB.Driver.Core.Authentication
             Ensure.IsNotNull(description, nameof(description));
 
             // If we don't have SaslSupportedMechs as part of the response, that means we didn't piggyback the initial
-            // isMaster request and should query the server (provided that the server >= 4.0), merging results into 
+            // isMaster request and should query the server (provided that the server >= 4.0), merging results into
             // a new ConnectionDescription
             if (!description.HelloResult.HasSaslSupportedMechs
                 && Feature.ScramSha256Authentication.IsSupported(description.ServerVersion))
