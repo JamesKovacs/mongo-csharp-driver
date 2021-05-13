@@ -460,17 +460,17 @@ namespace MongoDB.Driver.Core.Operations
             var endPoint = new DnsEndPoint("localhost", 27017);
             var serverId = new ServerId(clusterId, endPoint);
             var connectionId = new ConnectionId(serverId, 1);
-            var isMasterDocument = new BsonDocument
+            var helloDocument = new BsonDocument
             {
                 { "logicalSessionTimeoutMinutes", 30 }
             };
-            var isMasterResult = new HelloResult(isMasterDocument);
+            var helloResult = new HelloResult(helloDocument);
             var buildInfoDocument = new BsonDocument
             {
                 { "version", version }
             };
             var buildInfoResult = new BuildInfoResult(buildInfoDocument);
-            return new ConnectionDescription(connectionId, isMasterResult, buildInfoResult);
+            return new ConnectionDescription(connectionId, helloResult, buildInfoResult);
         }
 
         private AsyncCursor<BsonDocument> CreateSubject(

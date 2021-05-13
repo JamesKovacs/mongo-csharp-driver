@@ -238,23 +238,23 @@ namespace MongoDB.Driver.Core.Authentication
                     ok : 1 }"));
 
             var connection = new MockConnection(__serverId);
-            var isMasterResult = (BsonDocument)__descriptionQueryWireProtocol.HelloResult.Wrapped.Clone();
+            var helloResult = (BsonDocument)__descriptionQueryWireProtocol.HelloResult.Wrapped.Clone();
             if (useSpeculativeAuthenticate)
             {
-                isMasterResult.Add("speculativeAuthenticate", saslStartReply.Documents[0].ToBsonDocument());
+                helloResult.Add("speculativeAuthenticate", saslStartReply.Documents[0].ToBsonDocument());
             }
 
             /* set buildInfoResult to 3.4 to force authenticator to use Query Message Wire Protocol because MockConnection
              * does not support OP_MSG */
             connection.Description = new ConnectionDescription(
-                __descriptionQueryWireProtocol.ConnectionId, new HelloResult(isMasterResult), new BuildInfoResult(new BsonDocument("version", "3.4")));
+                __descriptionQueryWireProtocol.ConnectionId, new HelloResult(helloResult), new BuildInfoResult(new BsonDocument("version", "3.4")));
 
-            BsonDocument isMasterCommand = null;
+            BsonDocument helloCommand = null;
             if (useSpeculativeAuthenticate)
             {
-                // Call CustomizeIsMasterCommand so that the authenticator thinks its started to speculatively
+                // Call CustomizeInitialHelloCommand so that the authenticator thinks its started to speculatively
                 // authenticate
-                isMasterCommand = subject.CustomizeInitialIsMasterCommand(new BsonDocument { { "isMaster", 1 } });
+                helloCommand = subject.CustomizeInitialHelloCommand(new BsonDocument { { "hello", 1 } });
             }
             else
             {
@@ -340,8 +340,8 @@ namespace MongoDB.Driver.Core.Authentication
             sentMessages.Should().Equal(expectedMessages);
             if (useSpeculativeAuthenticate)
             {
-                isMasterCommand.Should().Contain("speculativeAuthenticate");
-                var speculativeAuthenticateDocument = isMasterCommand["speculativeAuthenticate"].AsBsonDocument;
+                helloCommand.Should().Contain("speculativeAuthenticate");
+                var speculativeAuthenticateDocument = helloCommand["speculativeAuthenticate"].AsBsonDocument;
                 var expectedSpeculativeAuthenticateDocument =
                     saslStartMessage["query"].AsBsonDocument.Add("db", __credential.Source);
                 speculativeAuthenticateDocument.Should().Be(expectedSpeculativeAuthenticateDocument);

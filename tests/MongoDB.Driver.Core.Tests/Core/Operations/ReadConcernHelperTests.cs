@@ -88,7 +88,7 @@ namespace MongoDB.Driver.Core.Operations
             var endPoint = new DnsEndPoint("localhost", 27017);
             var serverId = new ServerId(clusterId, endPoint);
             var connectionId = new ConnectionId(serverId, 1);
-            var isMasterResult = new BsonDocument
+            var helloResult = new BsonDocument
             {
                 { "ok", 1 },
                 { "logicalSessionTimeoutMinutes", 30, areSessionsSupported }
@@ -98,7 +98,7 @@ namespace MongoDB.Driver.Core.Operations
                 { "ok", 1 },
                 { "version", areSessionsSupported ? "4.0" : "3.6" }
             };
-            return new ConnectionDescription(connectionId, new HelloResult(isMasterResult), new BuildInfoResult(buildInfoResult));
+            return new ConnectionDescription(connectionId, new HelloResult(helloResult), new BuildInfoResult(buildInfoResult));
         }
 
         private ICoreSession CreateSession(

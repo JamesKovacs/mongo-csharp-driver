@@ -276,7 +276,7 @@ namespace MongoDB.Driver.Core.Tests.Jira
         {
             var connectionId = new ConnectionId(serverId);
             var serverVersion = streamable ? "4.4" : "2.6";
-            var isMasterDocument = new BsonDocument
+            var helloDocument = new BsonDocument
             {
                 { "ok", 1 },
                 { "minWireVersion", 6 },
@@ -294,7 +294,7 @@ namespace MongoDB.Driver.Core.Tests.Jira
                 .Returns(
                     new ConnectionDescription(
                         mockConnection.Object.ConnectionId,
-                        new IsMasterResult(isMasterDocument),
+                        new HelloResult(helloDocument),
                         new BuildInfoResult(new BsonDocument("version", serverVersion))));
 
             Func<ResponseMessage> commandResponseAction;

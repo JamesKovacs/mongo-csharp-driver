@@ -122,10 +122,10 @@ namespace MongoDB.Driver.Core.Authentication
         }
 
         /// <inheritdoc/>
-        public BsonDocument CustomizeInitialIsMasterCommand(BsonDocument isMasterCommand)
+        public BsonDocument CustomizeInitialHelloCommand(BsonDocument helloCommand)
         {
-            isMasterCommand.Add("speculativeAuthenticate", CreateAuthenticateCommand());
-            return isMasterCommand;
+            helloCommand.Add("speculativeAuthenticate", CreateAuthenticateCommand());
+            return helloCommand;
         }
 
         // private methods

@@ -410,7 +410,7 @@ namespace MongoDB.Driver.Core.Servers
             subject.Description.Type.Should().Be(ServerType.Unknown);
             subject.Description.ReasonChanged.Should().Contain("ChannelException during handshake");
         }
- 
+
         [Theory]
         [InlineData(nameof(MongoConnectionException), true)]
         [InlineData("MongoConnectionExceptionWithSocketTimeout", false)]
@@ -433,12 +433,12 @@ namespace MongoDB.Driver.Core.Servers
 
             var operationUsingChannelException = new MongoConnectionException(connectionId, "Oops", new IOException("Cry", innerMostException));
             var mockConnection = new Mock<IConnectionHandle>();
-            var isMasterResult = new HelloResult(new BsonDocument { { "compressors", new BsonArray() } });
+            var helloResult = new HelloResult(new BsonDocument { { "compressors", new BsonArray() } });
             // the server version doesn't matter when we're not testing MongoNotPrimaryExceptions, but is needed when
             // Server calls ShouldClearConnectionPoolForException
             var buildInfoResult = new BuildInfoResult(new BsonDocument { { "version", "4.4.0" } });
             mockConnection.SetupGet(c => c.Description)
-                .Returns(new ConnectionDescription(new ConnectionId(serverId, 0), isMasterResult, buildInfoResult));
+                .Returns(new ConnectionDescription(new ConnectionId(serverId, 0), helloResult, buildInfoResult));
             var mockConnectionPool = new Mock<IConnectionPool>();
             mockConnectionPool.Setup(p => p.AcquireConnection(It.IsAny<CancellationToken>())).Returns(mockConnection.Object);
             mockConnectionPool.Setup(p => p.AcquireConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(mockConnection.Object);
@@ -550,7 +550,7 @@ namespace MongoDB.Driver.Core.Servers
 
             result.Should().BeFalse();
         }
-        
+
         [Theory]
         [InlineData(null, false)]
         [InlineData("abc", false)]

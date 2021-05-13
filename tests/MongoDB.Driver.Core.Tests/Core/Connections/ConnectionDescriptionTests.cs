@@ -70,7 +70,7 @@ namespace MongoDB.Driver.Core.Connections
         }
 
         [Fact]
-        public void Constructor_should_throw_an_ArgumentNullException_when_isMasterResult_is_null()
+        public void Constructor_should_throw_an_ArgumentNullException_when_helloResult_is_null()
         {
             Action act = () => new ConnectionDescription(__connectionId, null, __buildInfoResult);
 
@@ -90,16 +90,16 @@ namespace MongoDB.Driver.Core.Connections
         {
             var connectionId1 = new ConnectionId(new ServerId(new ClusterId(), new DnsEndPoint("localhost", 27018)), 10);
             var connectionId2 = new ConnectionId(new ServerId(new ClusterId(), new DnsEndPoint("localhost", 27018)), 10);
-            var isMasterResult1 = new HelloResult(new BsonDocument("x", 1));
-            var isMasterResult2 = new HelloResult(new BsonDocument("x", 2));
+            var helloResult1 = new HelloResult(new BsonDocument("x", 1));
+            var helloResult2 = new HelloResult(new BsonDocument("x", 2));
             var buildInfoResult1 = new BuildInfoResult(new BsonDocument("version", "2.6.3"));
             var buildInfoResult2 = new BuildInfoResult(new BsonDocument("version", "2.4.10"));
 
-            var subject1 = new ConnectionDescription(connectionId1, isMasterResult1, buildInfoResult1);
-            var subject2 = new ConnectionDescription(connectionId1, isMasterResult1, buildInfoResult1);
-            var subject3 = new ConnectionDescription(connectionId1, isMasterResult1, buildInfoResult2);
-            var subject4 = new ConnectionDescription(connectionId1, isMasterResult2, buildInfoResult1);
-            var subject5 = new ConnectionDescription(connectionId2, isMasterResult1, buildInfoResult1);
+            var subject1 = new ConnectionDescription(connectionId1, helloResult1, buildInfoResult1);
+            var subject2 = new ConnectionDescription(connectionId1, helloResult1, buildInfoResult1);
+            var subject3 = new ConnectionDescription(connectionId1, helloResult1, buildInfoResult2);
+            var subject4 = new ConnectionDescription(connectionId1, helloResult2, buildInfoResult1);
+            var subject5 = new ConnectionDescription(connectionId2, helloResult1, buildInfoResult1);
 
             subject1.Equals(subject2).Should().BeTrue();
             subject1.Equals(subject3).Should().BeFalse();
@@ -116,7 +116,7 @@ namespace MongoDB.Driver.Core.Connections
         }
 
         [Fact]
-        public void MaxBatchCount_should_return_isMasterResult_MaxBatchCount()
+        public void MaxBatchCount_should_return_helloResult_MaxBatchCount()
         {
             var subject = new ConnectionDescription(__connectionId, __helloResult, __buildInfoResult);
 
@@ -124,7 +124,7 @@ namespace MongoDB.Driver.Core.Connections
         }
 
         [Fact]
-        public void MaxDocumentSize_should_return_isMasterResult_MaxDocumentSize()
+        public void MaxDocumentSize_should_return_helloResult_MaxDocumentSize()
         {
             var subject = new ConnectionDescription(__connectionId, __helloResult, __buildInfoResult);
 
@@ -132,7 +132,7 @@ namespace MongoDB.Driver.Core.Connections
         }
 
         [Fact]
-        public void MaxMessageSize_should_return_isMasterResult_MaxMessageSize()
+        public void MaxMessageSize_should_return_helloResult_MaxMessageSize()
         {
             var subject = new ConnectionDescription(__connectionId, __helloResult, __buildInfoResult);
 
@@ -154,9 +154,9 @@ namespace MongoDB.Driver.Core.Connections
             var serverId = new ServerId(clusterId, new DnsEndPoint("localhost", 1));
             var connectionId1 = new ConnectionId(serverId, 1);
             var connectionId2 = new ConnectionId(serverId, 1).WithServerValue(2);
-            var isMasterResult = new HelloResult(new BsonDocument());
+            var helloResult = new HelloResult(new BsonDocument());
             var buildInfoResult = new BuildInfoResult(new BsonDocument("version", "2.6.0"));
-            var subject = new ConnectionDescription(connectionId1, isMasterResult, buildInfoResult);
+            var subject = new ConnectionDescription(connectionId1, helloResult, buildInfoResult);
 
             var result = subject.WithConnectionId(connectionId2);
 

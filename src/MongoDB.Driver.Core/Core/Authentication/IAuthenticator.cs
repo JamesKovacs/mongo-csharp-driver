@@ -54,8 +54,8 @@ namespace MongoDB.Driver.Core.Authentication
         /// <summary>
         /// Optionally customizes isMaster command.
         /// </summary>
-        /// <param name="isMasterCommand">Initial isMaster command.</param>
+        /// <param name="helloCommand">Initial isMaster command.</param>
         /// <returns>Optionally mutated isMaster command.</returns>
-        BsonDocument CustomizeInitialIsMasterCommand(BsonDocument isMasterCommand);
+        BsonDocument CustomizeInitialHelloCommand(BsonDocument helloCommand);
     }
 }

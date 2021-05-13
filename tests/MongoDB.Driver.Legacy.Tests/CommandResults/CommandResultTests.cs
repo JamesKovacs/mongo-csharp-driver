@@ -135,9 +135,9 @@ namespace MongoDB.Driver.Tests.CommandResults
         }
 
         [Fact]
-        public void TestIsMasterCommand()
+        public void TestPingCommand()
         {
-            var result = _database.RunCommand("ismaster");
+            var result = _database.RunCommand("ping");
             Assert.True(result.Ok);
         }
 

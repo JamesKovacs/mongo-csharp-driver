@@ -243,12 +243,12 @@ namespace MongoDB.Driver.Core.Authentication
             var clusterId = new ClusterId(1);
             var serverId = new ServerId(clusterId, new DnsEndPoint("localhost", 27017));
             var connectionId = new ConnectionId(serverId, 1);
-            var isMasterResult = new HelloResult(new BsonDocument());
+            var helloResult = new HelloResult(new BsonDocument());
             var buildInfoResult = new BuildInfoResult(new BsonDocument
             {
                 { "version", serverVersion.ToString() }
             });
-            return new ConnectionDescription(connectionId, isMasterResult, buildInfoResult);
+            return new ConnectionDescription(connectionId, helloResult, buildInfoResult);
         }
     }
 }

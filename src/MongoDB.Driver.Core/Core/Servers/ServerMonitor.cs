@@ -169,7 +169,7 @@ namespace MongoDB.Driver.Core.Servers
         // private methods
         private CommandWireProtocol<BsonDocument> InitializeIsMasterProtocol(IConnection connection)
         {
-            BsonDocument isMasterCommand;
+            BsonDocument helloCommand;
             var commandResponseHandling = CommandResponseHandling.Return;
             if (connection.Description.HelloResult.TopologyVersion != null)
             {
@@ -178,14 +178,14 @@ namespace MongoDB.Driver.Core.Servers
 
                 var veryLargeHeartbeatInterval = TimeSpan.FromDays(1); // the server doesn't support Infinite value, so we set just a big enough value
                 var maxAwaitTime = _serverMonitorSettings.HeartbeatInterval == Timeout.InfiniteTimeSpan ? veryLargeHeartbeatInterval : _serverMonitorSettings.HeartbeatInterval;
-                isMasterCommand = IsMasterHelper.CreateCommand(connection.Description.HelloResult.TopologyVersion, maxAwaitTime);
+                helloCommand = HelloHelper.CreateCommand(_serverApi, connection.Description.HelloResult.TopologyVersion, maxAwaitTime);
             }
             else
             {
-                isMasterCommand = IsMasterHelper.CreateCommand();
+                helloCommand = HelloHelper.CreateCommand(_serverApi);
             }
 
-            return IsMasterHelper.CreateProtocol(isMasterCommand, _serverApi, commandResponseHandling);
+            return HelloHelper.CreateProtocol(helloCommand, _serverApi, commandResponseHandling);
         }
 
         private async Task<IConnection> InitializeConnectionAsync(CancellationToken cancellationToken) // called setUpConnection in spec
@@ -322,7 +322,7 @@ namespace MongoDB.Driver.Core.Servers
                     else
                     {
                         isMasterProtocol = isMasterProtocol ?? InitializeIsMasterProtocol(connection);
-                        heartbeatHelloResult = await GetIsMasterResultAsync(connection, isMasterProtocol, cancellationToken).ConfigureAwait(false);
+                        heartbeatHelloResult = await GetHelloResultAsync(connection, isMasterProtocol, cancellationToken).ConfigureAwait(false);
                     }
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -421,7 +421,7 @@ namespace MongoDB.Driver.Core.Servers
             }
         }
 
-        private async Task<HelloResult> GetIsMasterResultAsync(
+        private async Task<HelloResult> GetHelloResultAsync(
             IConnection connection,
             CommandWireProtocol<BsonDocument> isMasterProtocol,
             CancellationToken cancellationToken)
@@ -435,7 +435,7 @@ namespace MongoDB.Driver.Core.Servers
             try
             {
                 var stopwatch = Stopwatch.StartNew();
-                var isMasterResult = await IsMasterHelper.GetResultAsync(connection, isMasterProtocol, cancellationToken).ConfigureAwait(false);
+                var helloResult = await HelloHelper.GetResultAsync(connection, isMasterProtocol, cancellationToken).ConfigureAwait(false);
                 stopwatch.Stop();
 
                 if (_heartbeatSucceededEventHandler != null)
@@ -443,7 +443,7 @@ namespace MongoDB.Driver.Core.Servers
                     _heartbeatSucceededEventHandler(new ServerHeartbeatSucceededEvent(connection.ConnectionId, stopwatch.Elapsed, connection.Description.HelloResult.TopologyVersion != null));
                 }
 
-                return isMasterResult;
+                return helloResult;
             }
             catch (Exception ex)
             {

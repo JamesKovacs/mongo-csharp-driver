@@ -29,7 +29,7 @@ using MongoDB.Driver.Core.WireProtocol;
 
 namespace MongoDB.Driver.Core.Connections
 {
-    internal static class IsMasterHelper
+    internal static class HelloHelper
     {
         internal static BsonDocument AddClientDocumentToCommand(BsonDocument command, BsonDocument clientDocument)
         {
@@ -43,16 +43,18 @@ namespace MongoDB.Driver.Core.Connections
             return command.Add("compression", compressorsArray);
         }
 
-        internal static BsonDocument CreateCommand(TopologyVersion topologyVersion = null, TimeSpan? maxAwaitTime = null)
+        internal static BsonDocument CreateCommand(ServerApi serverApi, TopologyVersion topologyVersion = null, TimeSpan? maxAwaitTime = null)
         {
             Ensure.That(
                 (topologyVersion == null && !maxAwaitTime.HasValue) ||
                 (topologyVersion != null && maxAwaitTime.HasValue),
                 $"Both {nameof(topologyVersion)} and {nameof(maxAwaitTime)} must be filled or null.");
 
+            var helloCommand = serverApi != null ? "hello" : "isMaster";
+
             return new BsonDocument
             {
-                { "isMaster", 1 },
+                { helloCommand, 1 },
                 { "topologyVersion", () => topologyVersion.ToBsonDocument(), topologyVersion != null },
                 { "maxAwaitTimeMS", () => (long)maxAwaitTime.Value.TotalMilliseconds, maxAwaitTime.HasValue }
             };
@@ -60,17 +62,17 @@ namespace MongoDB.Driver.Core.Connections
 
         internal static BsonDocument CustomizeCommand(BsonDocument command, IReadOnlyList<IAuthenticator> authenticators)
         {
-            return authenticators.Count == 1 ? authenticators[0].CustomizeInitialIsMasterCommand(command) : command;
+            return authenticators.Count == 1 ? authenticators[0].CustomizeInitialHelloCommand(command) : command;
         }
 
         internal static CommandWireProtocol<BsonDocument> CreateProtocol(
-            BsonDocument isMasterCommand,
+            BsonDocument helloCommand,
             ServerApi serverApi,
             CommandResponseHandling commandResponseHandling = CommandResponseHandling.Return)
         {
             return new CommandWireProtocol<BsonDocument>(
                 databaseNamespace: DatabaseNamespace.Admin,
-                command: isMasterCommand,
+                command: helloCommand,
                 slaveOk: true,
                 commandResponseHandling: commandResponseHandling,
                 resultSerializer: BsonDocumentSerializer.Instance,
@@ -80,17 +82,17 @@ namespace MongoDB.Driver.Core.Connections
 
         internal static HelloResult GetResult(
             IConnection connection,
-            CommandWireProtocol<BsonDocument> isMasterProtocol,
+            CommandWireProtocol<BsonDocument> helloProtocol,
             CancellationToken cancellationToken)
         {
             try
             {
-                var isMasterResultDocument = isMasterProtocol.Execute(connection, cancellationToken);
-                return new HelloResult(isMasterResultDocument);
+                var helloResultDocument = helloProtocol.Execute(connection, cancellationToken);
+                return new HelloResult(helloResultDocument);
             }
             catch (MongoCommandException ex) when (ex.Code == 11)
             {
-                // If the isMaster command fails with error code 11 (UserNotFound), drivers must consider authentication
+                // If the hello or legacy hello command fails with error code 11 (UserNotFound), drivers must consider authentication
                 // to have failed.In such a case, drivers MUST raise an error that is equivalent to what they would have
                 // raised if the authentication mechanism were specified and the server responded the same way.
                 throw new MongoAuthenticationException(connection.ConnectionId, "User not found.", ex);
@@ -99,17 +101,17 @@ namespace MongoDB.Driver.Core.Connections
 
         internal static async Task<HelloResult> GetResultAsync(
             IConnection connection,
-            CommandWireProtocol<BsonDocument> isMasterProtocol,
+            CommandWireProtocol<BsonDocument> helloProtocol,
             CancellationToken cancellationToken)
         {
             try
             {
-                var isMasterResultDocument = await isMasterProtocol.ExecuteAsync(connection, cancellationToken).ConfigureAwait(false);
-                return new HelloResult(isMasterResultDocument);
+                var helloResultDocument = await helloProtocol.ExecuteAsync(connection, cancellationToken).ConfigureAwait(false);
+                return new HelloResult(helloResultDocument);
             }
             catch (MongoCommandException ex) when (ex.Code == 11)
             {
-                // If the isMaster command fails with error code 11 (UserNotFound), drivers must consider authentication
+                // If the hello or legacy hello command fails with error code 11 (UserNotFound), drivers must consider authentication
                 // to have failed.In such a case, drivers MUST raise an error that is equivalent to what they would have
                 // raised if the authentication mechanism were specified and the server responded the same way.
                 throw new MongoAuthenticationException(connection.ConnectionId, "User not found.", ex);

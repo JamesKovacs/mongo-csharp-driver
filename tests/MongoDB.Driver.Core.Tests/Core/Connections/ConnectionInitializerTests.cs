@@ -54,7 +54,7 @@ namespace MongoDB.Driver.Core.Connections
             var authenticator = CreateAuthenticator(authenticatorType, credentials);
             var connectionSettings = new ConnectionSettings(new[] { new AuthenticatorFactory(() => authenticator) });
 
-            var isMasterDocument = _subject.CreateInitialIsMasterCommand(new[] { authenticator });
+            var isMasterDocument = _subject.CreateInitialHelloCommand(new[] { authenticator });
 
             isMasterDocument.Should().Contain("speculativeAuthenticate");
             var speculativeAuthenticateDocument = isMasterDocument["speculativeAuthenticate"].AsBsonDocument;
@@ -95,7 +95,7 @@ namespace MongoDB.Driver.Core.Connections
 
         [Theory]
         [ParameterAttributeData]
-        public void InitializeConnection_should_call_Authenticator_CustomizeInitialIsMasterCommand(
+        public void InitializeConnection_should_call_Authenticator_CustomizeInitialHelloCommand(
             [Values("default", "SCRAM-SHA-256", "SCRAM-SHA-1")] string authenticatorType,
             [Values(false, true)] bool async)
         {
@@ -278,9 +278,9 @@ namespace MongoDB.Driver.Core.Connections
 
     internal static class ConnectionInitializerReflector
     {
-        public static BsonDocument CreateInitialIsMasterCommand(
+        public static BsonDocument CreateInitialHelloCommand(
             this ConnectionInitializer initializer,
             IReadOnlyList<IAuthenticator> authenticators) =>
-                (BsonDocument)Reflector.Invoke(initializer, nameof(CreateInitialIsMasterCommand), authenticators);
+                (BsonDocument)Reflector.Invoke(initializer, nameof(CreateInitialHelloCommand), authenticators);
     }
 }

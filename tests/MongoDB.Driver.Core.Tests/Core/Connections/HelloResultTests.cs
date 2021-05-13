@@ -25,7 +25,7 @@ using Xunit;
 
 namespace MongoDB.Driver.Core.Connections
 {
-    public class IsMasterResultTests
+    public class HelloResultTests
     {
         [Theory]
         [InlineData("{ compression : ['zlib'] }", new[] { CompressorType.Zlib })]

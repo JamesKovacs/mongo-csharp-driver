@@ -23,6 +23,7 @@ using MongoDB.Driver;
 using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.TestHelpers.XunitExtensions;
+using MongoDB.Driver.TestHelpers;
 using Xunit;
 
 namespace MongoDB.Driver.Tests
@@ -61,10 +62,10 @@ namespace MongoDB.Driver.Tests
         {
             if (__isReplicaSet)
             {
-                var isMasterResult = __database.RunCommand("isMaster").Response;
+                var helloResult = __database.RunCommand(HelloCommandName.Legacy).Response;
                 BsonValue arbiters;
                 int arbiterCount = 0;
-                if (isMasterResult.TryGetValue("arbiters", out arbiters))
+                if (helloResult.TryGetValue("arbiters", out arbiters))
                 {
                     arbiterCount = arbiters.AsBsonArray.Count;
                 }
