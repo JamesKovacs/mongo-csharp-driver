@@ -27,7 +27,6 @@ using MongoDB.Driver.Core.Configuration;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Events;
 using MongoDB.Driver.Core.Helpers;
-using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.Servers;
 using Moq;
 using Xunit;
@@ -1084,6 +1083,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                        .Setup(c => c.Open(It.IsAny<CancellationToken>()))
                        .Callback(() =>
                        {
+                           allEstablishing.Signal();
                            blockEstablishmentEvent.Wait();
                        });
 
@@ -1091,6 +1091,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                         .Setup(c => c.OpenAsync(It.IsAny<CancellationToken>()))
                         .Returns(() =>
                         {
+                            allEstablishing.Signal();
                             blockEstablishmentEvent.Wait();
                             return Task.FromResult(1);
                         });
@@ -1110,7 +1111,13 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 }
                 else
                 {
+                    // wait until maxConnecting connection are being established
+                    allEstablishing.Wait();
+
+                    // wait until all are waiting to establish
                     SpinWait.SpinUntil(() => subject.WaitQueueFreeSlots() == 0);
+
+                    // pause the pool, blockedInQueueCount threads waiting to establish should observe MongoPoolPausedException exception
                     subject.Clear();
 
                     SpinWait.SpinUntil(() => subject.WaitQueueFreeSlots() >= blockedInQueueCount);
