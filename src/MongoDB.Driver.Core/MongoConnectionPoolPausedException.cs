@@ -28,24 +28,24 @@ namespace MongoDB.Driver
 #if !NETSTANDARD1_5
     [Serializable]
 #endif
-    public class MongoPoolPausedException : MongoClientException
+    public class MongoConnectionPoolPausedException : MongoClientException
     {
         #region static
         // static methods
-        internal static MongoPoolPausedException ForConnectionPool(EndPoint endPoint)
+        internal static MongoConnectionPoolPausedException ForConnectionPool(EndPoint endPoint)
         {
             var message = $"The connection pool is in paused state for server {EndPointHelper.ToString(endPoint)}.";
-            return new MongoPoolPausedException(message);
+            return new MongoConnectionPoolPausedException(message);
         }
 
         #endregion
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="MongoPoolPausedException"/> class.
+        /// Initializes a new instance of the <see cref="MongoConnectionPoolPausedException"/> class.
         /// </summary>
         /// <param name="message">The error message.</param>
-        public MongoPoolPausedException(string message)
+        public MongoConnectionPoolPausedException(string message)
             : base(message, null)
         {
         }
@@ -56,7 +56,7 @@ namespace MongoDB.Driver
         /// </summary>
         /// <param name="info">The SerializationInfo.</param>
         /// <param name="context">The StreamingContext.</param>
-        protected MongoPoolPausedException(SerializationInfo info, StreamingContext context)
+        protected MongoConnectionPoolPausedException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
         }

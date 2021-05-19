@@ -20,15 +20,15 @@ using MongoDB.Driver.Core.Servers;
 namespace MongoDB.Driver.Core.ConnectionPools
 {
     /// <summary>
-    /// TODO
+    /// Handler for connections related exceptions raised in <see cref="IConnectionPool"/>.
     /// </summary>
     public interface IConnectionExceptionHandler
     {
         /// <summary>
-        /// Handles the exception.
+        /// Handles the exception raised during connection open.
         /// </summary>
         /// <param name="exception">The exception.</param>
-        void HandleException(Exception exception);
+        void HandleExceptionOnOpen(Exception exception);
     }
 
     /// <summary>

@@ -32,15 +32,16 @@ namespace MongoDB.Driver.Core.ConnectionPools
     internal sealed partial class ExclusiveConnectionPool : IConnectionPool
     {
         // nested classes
-        private enum State
+        internal enum State
         {
-            Initial,
+            Uninitialized,
             Paused,
             Ready,
             Disposed
         }
 
-        private sealed class PoolState
+        // Not thread safe
+        internal sealed class PoolState
         {
             private static readonly bool[,] __transitions;
             private State _state;
@@ -48,13 +49,13 @@ namespace MongoDB.Driver.Core.ConnectionPools
             static PoolState()
             {
                 __transitions = new bool[4, 4];
-                __transitions[(int)State.Initial, (int)State.Paused] = true;
+                __transitions[(int)State.Uninitialized, (int)State.Paused] = true;
                 __transitions[(int)State.Paused, (int)State.Paused] = true;
                 __transitions[(int)State.Ready, (int)State.Ready] = true;
                 __transitions[(int)State.Ready, (int)State.Paused] = true;
                 __transitions[(int)State.Paused, (int)State.Ready] = true;
 
-                __transitions[(int)State.Initial, (int)State.Disposed] = true;
+                __transitions[(int)State.Uninitialized, (int)State.Disposed] = true;
                 __transitions[(int)State.Paused, (int)State.Disposed] = true;
                 __transitions[(int)State.Ready, (int)State.Disposed] = true;
                 __transitions[(int)State.Disposed, (int)State.Disposed] = true;
@@ -62,29 +63,34 @@ namespace MongoDB.Driver.Core.ConnectionPools
 
             public PoolState()
             {
-                _state = State.Initial;
+                _state = State.Uninitialized;
             }
 
             public State State => _state;
             public bool IsDisposed => _state == State.Disposed;
-            public bool IsNotDisposed => _state != State.Disposed;
 
             public bool TransitionState(State newState)
             {
-                var currentState = _state;
-                if (!__transitions[(int)currentState, (int)newState])
+                var previousState = _state;
+                if (!__transitions[(int)_state, (int)newState])
                 {
-                    ThrowIfDisposed(_state);
+                    ThrowIfDisposed();
 
-                    throw new InvalidOperationException($"Invalid transition {_state} to {newState}");
+                    throw new InvalidOperationException($"Invalid transition {_state} to {newState}.");
                 }
 
                 _state = newState;
 
-                return currentState != newState;
+                return previousState != newState;
             }
 
-            public void ThrowIfDisposed() => ThrowIfDisposed(_state);
+            public void ThrowIfDisposed()
+            {
+                if (_state == State.Disposed)
+                {
+                    throw new ObjectDisposedException(typeof(ExclusiveConnectionPool).Name);
+                }
+            }
 
             public void ThrowIfDisposedOrNotReady()
             {
@@ -98,28 +104,25 @@ namespace MongoDB.Driver.Core.ConnectionPools
 
             public void ThrowIfNotInitialized()
             {
-                if (_state == State.Initial)
+                if (_state == State.Uninitialized)
                 {
                     throw new InvalidOperationException("ConnectionPool must be initialized.");
                 }
             }
 
             public override string ToString() => State.ToString();
-
-            // private methods
-            private void ThrowIfDisposed(State state)
-            {
-                if (state == State.Disposed)
-                {
-                    throw new ObjectDisposedException(typeof(ExclusiveConnectionPool).Name);
-                }
-            }
         }
 
-        private sealed class MaintenanceState : IDisposable
+        private sealed class MaintenanceHelper : IDisposable
         {
             private CancellationTokenSource _cancellationTokenSource = null;
+            private Func<CancellationToken, Task> _maintenanceTaskCreator;
             private Task _maintenanceTask;
+
+            public MaintenanceHelper(Func<CancellationToken, Task> maintenanceTaskCreator)
+            {
+                _maintenanceTaskCreator = Ensure.IsNotNull(maintenanceTaskCreator, nameof(maintenanceTaskCreator));
+            }
 
             public void Cancel()
             {
@@ -128,12 +131,12 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 _maintenanceTask = null;
             }
 
-            public void Start(Func<CancellationToken, Task> maintenanceTaskCreator)
+            public void Start()
             {
                 _cancellationTokenSource?.Cancel();
                 _cancellationTokenSource = new CancellationTokenSource();
 
-                _maintenanceTask = maintenanceTaskCreator(_cancellationTokenSource.Token);
+                _maintenanceTask = _maintenanceTaskCreator(_cancellationTokenSource.Token);
                 _maintenanceTask.ConfigureAwait(false);
             }
 
@@ -300,7 +303,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 _poolQueueWaitResult switch
                 {
                     SemaphoreSlimSignalable.SemaphoreWaitResult.Signaled =>
-                        MongoPoolPausedException.ForConnectionPool(_pool._endPoint),
+                        MongoConnectionPoolPausedException.ForConnectionPool(_pool._endPoint),
                     SemaphoreSlimSignalable.SemaphoreWaitResult.TimedOut =>
                         new TimeoutException($"Timed out waiting for a connection after {stopwatch.ElapsedMilliseconds}ms."),
                     _ => new ArgumentOutOfRangeException(nameof(_poolQueueWaitResult))

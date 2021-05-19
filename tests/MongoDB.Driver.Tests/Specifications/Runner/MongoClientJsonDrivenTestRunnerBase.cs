@@ -19,6 +19,7 @@ using System.Linq;
 using System.Threading;
 using FluentAssertions;
 using MongoDB.Bson;
+using MongoDB.Bson.TestHelpers;
 using MongoDB.Bson.TestHelpers.JsonDrivenTests;
 using MongoDB.Driver.Core;
 using MongoDB.Driver.Core.Bindings;
@@ -33,7 +34,6 @@ using MongoDB.Driver.Core.TestHelpers.XunitExtensions;
 using MongoDB.Driver.TestHelpers;
 using MongoDB.Driver.Tests.JsonDrivenTests;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace MongoDB.Driver.Tests.Specifications.Runner
 {
@@ -339,7 +339,7 @@ namespace MongoDB.Driver.Tests.Specifications.Runner
 
 #pragma warning disable CS0618 // Type or member is obsolete
                     settings.ConnectionMode = ConnectionMode.Automatic;
-                    settings.ConnectionModeSwitch = ConnectionModeSwitch.UseDirectConnection;
+                    settings._connectionModeSwitch( ConnectionModeSwitch.UseDirectConnection);
 #pragma warning restore CS0618 // Type or member is obsolete
                     settings.DirectConnection = isDirectConnection;
 
@@ -567,5 +567,13 @@ namespace MongoDB.Driver.Tests.Specifications.Runner
                 AssertOutcome(test);
             }
         }
+    }
+
+    internal static class MongoClientSettingsReflection
+    {
+#pragma warning disable CS0618 // Type or member is obsolete
+        public static void _connectionModeSwitch(this MongoClientSettings obj, ConnectionModeSwitch connectionModeSwitch)
+            => Reflector.SetFieldValue(obj, nameof(_connectionModeSwitch), connectionModeSwitch);
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 }

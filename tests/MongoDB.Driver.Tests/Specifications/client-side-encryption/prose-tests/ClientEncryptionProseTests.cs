@@ -1261,7 +1261,6 @@ namespace MongoDB.Driver.Tests.Specifications.client_side_encryption.prose_tests
             ReadConcern readConcern = null)
         {
             var mongoClientSettings = DriverTestConfiguration.GetClientSettings().Clone();
-
 #pragma warning disable 618
             if (BsonDefaults.GuidRepresentationMode == GuidRepresentationMode.V2)
             {

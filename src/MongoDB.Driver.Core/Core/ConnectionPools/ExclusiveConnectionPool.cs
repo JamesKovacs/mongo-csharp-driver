@@ -32,7 +32,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
         private readonly ListConnectionHolder _connectionHolder;
         private readonly EndPoint _endPoint;
         private int _generation;
-        private readonly MaintenanceState _maintenanceState;
+        private readonly MaintenanceHelper _maintenanceHelper;
         private readonly ServerId _serverId;
         private readonly ConnectionPoolSettings _settings;
         private readonly PoolState _poolState;
@@ -73,7 +73,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
             _connectionExceptionHandler = Ensure.IsNotNull(connectionExceptionHandler, nameof(connectionExceptionHandler));
             Ensure.IsNotNull(eventSubscriber, nameof(eventSubscriber));
 
-            _maintenanceState = new MaintenanceState();
+            _maintenanceHelper = new MaintenanceHelper(token => MaintainSizeAsync(token));
             _poolState = new PoolState();
 
             _connectingQueue = new SemaphoreSlimSignalable(settings.MaxConnecting);
@@ -135,6 +135,15 @@ namespace MongoDB.Driver.Core.ConnectionPools
             get { return _generation; }
         }
 
+        public int PendingCount
+        {
+            get
+            {
+                _poolState.ThrowIfDisposed();
+                return _settings.MaxConnecting - _connectingQueue.Count;
+            }
+        }
+
         public ServerId ServerId
         {
             get { return _serverId; }
@@ -148,18 +157,6 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 return _settings.MaxConnections - AvailableCount;
             }
         }
-
-        public int PendingCount
-        {
-            get
-            {
-                _poolState.ThrowIfDisposed();
-                return _settings.MaxConnecting - _connectingQueue.Count;
-            }
-        }
-
-        internal int WaitQueueFreeSlots =>
-            Interlocked.CompareExchange(ref _waitQueueFreeSlots, 0, 0);
 
         // public methods
         public IConnectionHandle AcquireConnection(CancellationToken cancellationToken)
@@ -184,7 +181,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 {
                     _clearingEventHandler?.Invoke(new ConnectionPoolClearingEvent(_serverId, _settings));
 
-                    _maintenanceState.Cancel();
+                    _maintenanceHelper.Cancel();
                     _generation++;
 
                     _poolQueue.Signal();
@@ -223,7 +220,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                     _poolQueue.Reset();
                     _readyEventHandler?.Invoke(new ConnectionPoolReadyEvent(_serverId, _settings));
 
-                    _maintenanceState.Start(token => MaintainSizeAsync(token));
+                    _maintenanceHelper.Start();
                 }
             }
         }
@@ -245,7 +242,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 }
 
                 _connectionHolder.Clear();
-                _maintenanceState.Dispose();
+                _maintenanceHelper.Dispose();
                 _poolQueue.Dispose();
                 _connectingQueue.Dispose();
                 if (_closedEventHandler != null)
@@ -255,10 +252,6 @@ namespace MongoDB.Driver.Core.ConnectionPools
             }
         }
 
-        /// <summary>
-        /// Maintains the size asynchronous.
-        /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
         private async Task MaintainSizeAsync(CancellationToken cancellationToken)
         {
             try
@@ -272,7 +265,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                     }
                     catch (MongoConnectionException exception)
                     {
-                        _connectionExceptionHandler?.HandleException(exception);
+                        _connectionExceptionHandler?.HandleExceptionOnOpen(exception);
                     }
                     catch
                     {
@@ -291,7 +284,8 @@ namespace MongoDB.Driver.Core.ConnectionPools
         {
             using (var poolAwaiter = _poolQueue.CreateAwaiter())
             {
-                if (!await poolAwaiter.WaitSignaledAsync(TimeSpan.FromMilliseconds(20), cancellationToken).ConfigureAwait(false))
+                var entered = await poolAwaiter.WaitSignaledAsync(TimeSpan.FromMilliseconds(20), cancellationToken).ConfigureAwait(false);
+                if (!entered)
                 {
                     return;
                 }
@@ -334,7 +328,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 _checkedInConnectionEventHandler(new ConnectionPoolCheckedInConnectionEvent(connection.ConnectionId, TimeSpan.Zero, EventContext.OperationId));
             }
 
-            if (!connection.IsExpired && _poolState.IsNotDisposed)
+            if (!connection.IsExpired && !_poolState.IsDisposed)
             {
                 _connectionHolder.Return(connection);
             }
@@ -343,7 +337,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 _connectionHolder.RemoveConnection(connection);
             }
 
-            if (_poolState.IsNotDisposed)
+            if (!_poolState.IsDisposed)
             {
                 _poolQueue.Release();
             }

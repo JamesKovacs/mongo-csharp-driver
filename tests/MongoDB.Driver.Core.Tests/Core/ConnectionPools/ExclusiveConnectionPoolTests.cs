@@ -838,7 +838,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 await subject.MaintainSizeAsync(tokenSource.Token);
 
                 authenticationFailedConnection.Verify(conn => conn.Dispose(), Times.Once);
-                _mockConnectionExceptionHandler.Verify(c => c.HandleException(authenticationException), Times.Once);
+                _mockConnectionExceptionHandler.Verify(c => c.HandleExceptionOnOpen(authenticationException), Times.Once);
             }
         }
 
@@ -1012,7 +1012,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
             subject.Initialize();
             subject.SetReady();
 
-            subject.WaitQueueFreeSlots().Should().Be(waitQueueSize);
+            subject._waitQueueFreeSlots().Should().Be(waitQueueSize);
 
             MongoWaitQueueFullException exception = null;
 
@@ -1042,7 +1042,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 });
 
             exception.Should().NotBeNull();
-            subject.WaitQueueFreeSlots().Should().Be(waitQueueSize);
+            subject._waitQueueFreeSlots().Should().Be(waitQueueSize);
         }
 
         [Theory]
@@ -1115,12 +1115,12 @@ namespace MongoDB.Driver.Core.ConnectionPools
                     allEstablishing.Wait();
 
                     // wait until all are waiting to establish
-                    SpinWait.SpinUntil(() => subject.WaitQueueFreeSlots() == 0);
+                    SpinWait.SpinUntil(() => subject._waitQueueFreeSlots() == 0);
 
                     // pause the pool, blockedInQueueCount threads waiting to establish should observe MongoPoolPausedException exception
                     subject.Clear();
 
-                    SpinWait.SpinUntil(() => subject.WaitQueueFreeSlots() >= blockedInQueueCount);
+                    SpinWait.SpinUntil(() => subject._waitQueueFreeSlots() >= blockedInQueueCount);
                     blockEstablishmentEvent.Set();
                 };
             });
@@ -1128,10 +1128,10 @@ namespace MongoDB.Driver.Core.ConnectionPools
             exceptions.Length.ShouldBeEquivalentTo(blockedInQueueCount);
             foreach (var e in exceptions)
             {
-                e.Should().BeOfType<MongoPoolPausedException>();
+                e.Should().BeOfType<MongoConnectionPoolPausedException>();
             }
 
-            subject.WaitQueueFreeSlots().Should().Be(waitQueueSize);
+            subject._waitQueueFreeSlots().Should().Be(waitQueueSize);
         }
 
         [Theory]
@@ -1167,14 +1167,14 @@ namespace MongoDB.Driver.Core.ConnectionPools
             subject.Initialize();
             subject.SetReady();
 
-            subject.WaitQueueFreeSlots().Should().Be(waitQueueSize);
+            subject._waitQueueFreeSlots().Should().Be(waitQueueSize);
 
             ThreadingUtilities.ExecuteOnNewThreads(waitQueueSize, threadIndex =>
             {
                 using var connection = AcquireConnection(subject, isAsync);
             });
 
-            subject.WaitQueueFreeSlots().Should().Be(waitQueueSize);
+            subject._waitQueueFreeSlots().Should().Be(waitQueueSize);
         }
 
         // private methods
@@ -1231,9 +1231,9 @@ namespace MongoDB.Driver.Core.ConnectionPools
             return (Task)Reflector.Invoke(obj, nameof(MaintainSizeAsync), cancellationToken);
         }
 
-        public static int WaitQueueFreeSlots(this ExclusiveConnectionPool obj)
+        public static int _waitQueueFreeSlots(this ExclusiveConnectionPool obj)
         {
-            return (int)Reflector.GetPropertyValue(obj, nameof(WaitQueueFreeSlots));
+            return (int)Reflector.GetFieldValue(obj, nameof(_waitQueueFreeSlots));
         }
     }
 }

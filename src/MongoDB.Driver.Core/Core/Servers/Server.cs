@@ -140,7 +140,7 @@ namespace MongoDB.Driver.Core.Servers
         int IClusterableServer.OutstandingOperationsCount => Interlocked.CompareExchange(ref _outstandingOperationsCount, 0, 0);
 
         // methods
-        void IConnectionExceptionHandler.HandleException(Exception exception) =>
+        void IConnectionExceptionHandler.HandleExceptionOnOpen(Exception exception) =>
             HandleBeforeHandshakeCompletesException(exception);
 
         public void Dispose()
@@ -249,7 +249,7 @@ namespace MongoDB.Driver.Core.Servers
             {
                 _connectionPool.Clear();
             }
-            else if (e.NewServerDescription.State == ServerState.Connected)
+            else if (e.NewServerDescription.Type != ServerType.Unknown)
             {
                 _connectionPool.SetReady();
             }
@@ -345,24 +345,29 @@ namespace MongoDB.Driver.Core.Servers
 
         private void HandleBeforeHandshakeCompletesException(Exception ex)
         {
-            if (!(ex is MongoConnectionException connectionException) ||
-                connectionException.Generation != null && connectionException.Generation != _connectionPool.Generation)
+            if (!(ex is MongoConnectionException connectionException))
             {
-                // stale generation number or non connection exception
+                // non connection exception
                 return;
             }
 
             var (invalidateAndClear, cancelCheck) = ex switch
             {
-                MongoAuthenticationException => (true, false),
-                _ => (connectionException.IsNetworkException || connectionException.ContainsTimeoutException,
-                      connectionException.IsNetworkException && !connectionException.ContainsTimeoutException)
+                MongoAuthenticationException => (invalidateAndClear: true, cancelCheck: false),
+                _ => (invalidateAndClear: connectionException.IsNetworkException || connectionException.ContainsTimeoutException,
+                      cancelCheck: connectionException.IsNetworkException && !connectionException.ContainsTimeoutException)
             };
 
             if (invalidateAndClear)
             {
                 lock (_monitor.Lock)
                 {
+                    if (connectionException.Generation != null && connectionException.Generation != _connectionPool.Generation)
+                    {
+                        // stale generation number
+                        return;
+                    }
+
                     if (cancelCheck)
                     {
                         _monitor.CancelCurrentCheck();

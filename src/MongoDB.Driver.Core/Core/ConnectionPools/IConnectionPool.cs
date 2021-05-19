@@ -59,12 +59,12 @@ namespace MongoDB.Driver.Core.ConnectionPools
         Task<IConnectionHandle> AcquireConnectionAsync(CancellationToken cancellationToken);
 
         /// <summary>
-        /// Clears the connection pool and transitions to paused state.
+        /// Clears the connection pool and marks it as paused.
         /// </summary>
         void Clear();
 
         /// <summary>
-        /// Transitions the pool to ready state.
+        /// Marks the pool as ready.
         /// </summary>
         void SetReady();
 
