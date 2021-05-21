@@ -185,6 +185,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                     _generation++;
 
                     _poolQueue.Signal();
+                    _connectingQueue.Signal();
 
                     _clearedEventHandler?.Invoke(new ConnectionPoolClearedEvent(_serverId, _settings));
                 }
@@ -298,7 +299,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
         {
             var minTimeout = TimeSpan.FromMilliseconds(20);
 
-            while (CreatedCount < _settings.MinConnections)
+            while (CreatedCount < _settings.MinConnections && !cancellationToken.IsCancellationRequested)
             {
                 using (var poolAwaiter = _poolQueue.CreateAwaiter())
                 {
@@ -313,6 +314,8 @@ namespace MongoDB.Driver.Core.ConnectionPools
                         _connectionHolder.Return(connection);
                     }
                 }
+
+                cancellationToken.ThrowIfCancellationRequested();
             }
         }
 

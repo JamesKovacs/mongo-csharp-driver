@@ -92,13 +92,18 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 }
             }
 
-            public void ThrowIfDisposedOrNotReady()
+            public void ThrowIfDisposedOrNotReady(EndPoint endPoint)
             {
                 ThrowIfDisposed();
 
-                if (_state != State.Ready)
+                var state = _state;
+                if (state == State.Paused)
                 {
-                    throw new InvalidOperationException($"ConnectionPool must be ready, but is in {_state} state.");
+                    throw MongoConnectionPoolPausedException.ForConnectionPool(endPoint);
+                }
+                else if (state != State.Ready)
+                {
+                    throw new InvalidOperationException($"ConnectionPool must be ready, but is in {state} state.");
                 }
             }
 
@@ -253,7 +258,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 _pool._checkingOutConnectionEventHandler?
                     .Invoke(new ConnectionPoolCheckingOutConnectionEvent(_pool._serverId, EventContext.OperationId));
 
-                _pool._poolState.ThrowIfDisposedOrNotReady();
+                _pool._poolState.ThrowIfDisposedOrNotReady(_pool._endPoint);
 
                 // enter the wait-queue, deprecated feature
                 int freeSlots;
@@ -717,6 +722,8 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 _connectingWaitStatus = await _pool._connectingQueue.WaitAsync(_connectingTimeout, cancellationToken).ConfigureAwait(false);
                 stopwatch.Stop();
 
+                _pool._poolState.ThrowIfDisposedOrNotReady(_pool._endPoint);
+
                 if (_connectingWaitStatus == SemaphoreSlimSignalable.SemaphoreWaitResult.TimedOut)
                 {
                     throw new TimeoutException($"Timed out waiting for in connecting queue after {stopwatch.ElapsedMilliseconds}ms.");
@@ -734,6 +741,8 @@ namespace MongoDB.Driver.Core.ConnectionPools
 
                 while (connection == null)
                 {
+                    _pool._poolState.ThrowIfDisposedOrNotReady(_pool._endPoint);
+
                     // Try to acquire connecting semaphore. Possible operation results:
                     // Entered: The request was successfully fulfilled, and a connection establishment can start
                     // Signaled: The request was interrupted because Connection was return to pool and can be reused
@@ -768,6 +777,8 @@ namespace MongoDB.Driver.Core.ConnectionPools
 
                 while (connection == null)
                 {
+                    _pool._poolState.ThrowIfDisposedOrNotReady(_pool._endPoint);
+
                     // Try to acquire connecting semaphore. Possible operation results:
                     // Entered: The request was successfully fulfilled, and a connection establishment can start
                     // Signaled: The request was interrupted because Connection was return to pool and can be reused

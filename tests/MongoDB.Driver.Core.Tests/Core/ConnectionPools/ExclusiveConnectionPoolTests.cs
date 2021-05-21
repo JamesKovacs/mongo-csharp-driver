@@ -743,6 +743,130 @@ namespace MongoDB.Driver.Core.ConnectionPools
             subject.PendingCount.Should().Be(0);
         }
 
+        [Theory]
+        [ParameterAttributeData]
+        public void Aquire_and_release_connection_stress_test(
+            [RandomSeed(new[] { 0 })]int seed,
+            [Values(2, 10, 30)]int threadsCount,
+            [Values(true, false, null)]bool? asyncOrRandom,
+            [Values(0, 1, null)]int? minPoolSizeOrRandom)
+        {
+            var random = new Random(seed);
+
+            const int iterations = 200;
+            const int minEstablishingTime = 0;
+            const int maxEstablishingTime = 50;
+
+            var minPoolSize = minPoolSizeOrRandom ?? random.Next(2, 50);
+            var maxPoolSize = Math.Max(minPoolSize, threadsCount + random.Next(0, 10));
+            var waitQueueSize = random.Next(threadsCount, threadsCount * 5);
+            var maintenanceInterval = TimeSpan.FromMilliseconds(random.Next(10, 40));
+            var settings = _settings.WithInternal(
+                minConnections: minPoolSize,
+                maxConnections: maxPoolSize,
+                maxConnecting: threadsCount,
+                waitQueueSize: waitQueueSize,
+                maintenanceInterval: maintenanceInterval);
+
+            // random probabilities for open/clear/setready operations in [0..100] range
+            var openOpMaxIndex = random.Next(10, 70);
+            var clearOpMaxIndex = random.Next(openOpMaxIndex, 90);
+
+            _capturedEvents.Clear();
+            var mockConnectionFactory = new Mock<IConnectionFactory>();
+            mockConnectionFactory
+                .Setup(c => c.CreateConnection(It.IsAny<ServerId>(), It.IsAny<EndPoint>()))
+                .Returns(() =>
+                {
+                    var connectionMock = new Mock<IConnection>();
+
+                    connectionMock
+                        .Setup(c => c.ConnectionId)
+                        .Returns(new ConnectionId(_serverId));
+                    connectionMock
+                        .Setup(c => c.Settings)
+                        .Returns(new ConnectionSettings());
+                    connectionMock
+                        .Setup(c => c.Open(It.IsAny<CancellationToken>()))
+                        .Callback(() =>
+                        {
+                            var sleepMS = random.Next(minEstablishingTime, maxEstablishingTime);
+                            Thread.Sleep(sleepMS);
+                        });
+                    connectionMock
+                        .Setup(c => c.OpenAsync(It.IsAny<CancellationToken>()))
+                        .Returns(async () =>
+                        {
+                            var sleepMS = random.Next(minEstablishingTime, maxEstablishingTime);
+                            await Task.Delay(sleepMS);
+                        });
+
+                    return connectionMock.Object;
+                });
+
+            using var subject = CreateSubject(settings, mockConnectionFactory.Object);
+            subject.Initialize();
+            subject.SetReady();
+
+            var clearedCount = 0;
+            var readyCount = 0;
+            var checkingOutCount = 0;
+            var checkoutFailedCount = 0;
+            var checkoutSuccesfullCount = 0;
+
+            ThreadingUtilities.ExecuteOnNewThreads(threadsCount, threadIndex =>
+            {
+                for (int i = 0; i < iterations; i++)
+                {
+                    var operationIndex = random.Next(0, 100);
+
+                    if (operationIndex < openOpMaxIndex)
+                    {
+                        try
+                        {
+                            Interlocked.Increment(ref checkingOutCount);
+
+                            var async = asyncOrRandom ?? random.NextDouble() < 0.5;
+                            using var connection = AcquireConnection(subject, async);
+
+                            subject.AvailableCount.Should().BeLessOrEqualTo(maxPoolSize);
+                            subject.UsedCount.Should().BeGreaterOrEqualTo(1);
+
+                            Interlocked.Increment(ref checkoutSuccesfullCount);
+                        }
+                        catch (MongoConnectionPoolPausedException)
+                        {
+                            Interlocked.Increment(ref checkoutFailedCount);
+                        }
+                    }
+                    else if (operationIndex < clearOpMaxIndex)
+                    {
+                        subject.Clear();
+                        Interlocked.Increment(ref clearedCount);
+                    }
+                    else
+                    {
+                        subject.SetReady();
+                        Interlocked.Increment(ref readyCount);
+                    }
+                }
+            });
+
+            var actualCleared = subject.Generation;
+            actualCleared.Should().BeInRange(1, clearedCount);
+
+            CountEvents<ConnectionPoolCheckingOutConnectionEvent>().Should().Be(checkingOutCount);
+            CountEvents<ConnectionPoolCheckingOutConnectionFailedEvent>().Should().Be(checkoutFailedCount);
+            CountEvents<ConnectionPoolCheckedOutConnectionEvent>().Should().Be(checkoutSuccesfullCount);
+            CountEvents<ConnectionPoolCheckedInConnectionEvent>().Should().Be(checkoutSuccesfullCount);
+            CountEvents<ConnectionPoolClearedEvent>().Should().Be(actualCleared);
+            CountEvents<ConnectionPoolReadyEvent>().Should().BeInRange(actualCleared, actualCleared + 1);
+
+            int CountEvents<T>() => _capturedEvents.Events
+                .OfType<T>()
+                .Count();
+        }
+
         [Fact]
         public void Clear_should_throw_an_InvalidOperationException_if_not_initialized()
         {
@@ -826,7 +950,9 @@ namespace MongoDB.Driver.Core.ConnectionPools
 
             using (var subject = CreateSubject())
             {
-                var tokenSource = new CancellationTokenSource();
+                // set test timeout to 3000 ms
+                var tokenSource = new CancellationTokenSource(3000);
+
                 _mockConnectionFactory
                     .Setup(f => f.CreateConnection(_serverId, _endPoint))
                     .Returns(() =>
@@ -834,6 +960,9 @@ namespace MongoDB.Driver.Core.ConnectionPools
                         tokenSource.Cancel();
                         return authenticationFailedConnection.Object;
                     });
+
+                subject.Initialize();
+                subject.SetReady();
 
                 await subject.MaintainSizeAsync(tokenSource.Token);
 
@@ -865,6 +994,100 @@ namespace MongoDB.Driver.Core.ConnectionPools
                     Task.Delay(TimeSpan.FromSeconds(1)));         // time to be sure that delay is happening,
                                                                   // if the method is running more than 1 second, then delay is happening
                 testResult.Should().Be(1);
+            }
+        }
+
+        [Theory]
+        [ParameterAttributeData]
+        public void MaxConnecting_queue_should_be_cleared_on_pool_clear(
+           [Values(true, false)] bool isAsync,
+           [Values(1, 2, 5)] int blockedInMaxConnecting)
+        {
+            const int maxConnecting = 2;
+            int threadsCount = maxConnecting + blockedInMaxConnecting;
+            var settings = _settings.WithInternal(
+                minConnections: 0,
+                maxConnections: threadsCount,
+                maxConnecting: maxConnecting,
+                waitQueueSize: threadsCount,
+                waitQueueTimeout: TimeSpan.FromMinutes(10));
+
+            var allEstablishing = new CountdownEvent(maxConnecting);
+            var allInQueueFailed = new CountdownEvent(blockedInMaxConnecting);
+            var blockEstablishmentEvent = new ManualResetEventSlim(false);
+
+            var mockConnectionFactory = new Mock<IConnectionFactory>();
+            mockConnectionFactory
+                .Setup(c => c.CreateConnection(It.IsAny<ServerId>(), It.IsAny<EndPoint>()))
+                .Returns(() =>
+                {
+                    var connectionMock = new Mock<IConnection>();
+
+                    connectionMock
+                        .Setup(c => c.ConnectionId)
+                        .Returns(new ConnectionId(_serverId));
+
+                    connectionMock
+                        .Setup(c => c.Settings)
+                        .Returns(new ConnectionSettings());
+
+                    connectionMock
+                       .Setup(c => c.Open(It.IsAny<CancellationToken>()))
+                       .Callback(() =>
+                       {
+                           allEstablishing.Signal();
+                           blockEstablishmentEvent.Wait();
+                       });
+
+                    connectionMock
+                        .Setup(c => c.OpenAsync(It.IsAny<CancellationToken>()))
+                        .Returns(() =>
+                        {
+                            allEstablishing.Signal();
+                            blockEstablishmentEvent.Wait();
+                            return Task.FromResult(1);
+                        });
+
+                    return connectionMock.Object;
+                });
+
+            using var subject = CreateSubject(settings, mockConnectionFactory.Object);
+            subject.Initialize();
+            subject.SetReady();
+
+            var exceptions = ThreadingUtilities.ExecuteOnNewThreadsCollectExceptions(threadsCount + 1, threadIndex =>
+            {
+                if (threadIndex < threadsCount)
+                {
+                    try
+                    {
+                        using var connection = AcquireConnection(subject, isAsync);
+                    }
+                    
+                    catch (MongoConnectionPoolPausedException)
+                    {
+                        allInQueueFailed.Signal();
+                        throw;
+                    }
+                }
+                else
+                {
+                    // wait until maxConnecting connection are being established
+                    allEstablishing.Wait();
+
+                    // clear, all in maxConnecting queue should fail
+                    subject.Clear();
+
+                    // unblock after all in maxConnecting queue failed
+                    allInQueueFailed.Wait();
+                    blockEstablishmentEvent.Set();
+                };
+            });
+
+            exceptions.Length.ShouldBeEquivalentTo(blockedInMaxConnecting);
+            foreach (var e in exceptions)
+            {
+                e.Should().BeOfType<MongoConnectionPoolPausedException>();
             }
         }
 
@@ -1133,6 +1356,8 @@ namespace MongoDB.Driver.Core.ConnectionPools
 
             subject._waitQueueFreeSlots().Should().Be(waitQueueSize);
         }
+
+
 
         [Theory]
         [ParameterAttributeData]

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using FluentAssertions;
 using Xunit;
 using PoolState = MongoDB.Driver.Core.ConnectionPools.ExclusiveConnectionPool.PoolState;
@@ -80,24 +81,30 @@ namespace MongoDB.Driver.Core.Tests.Core.ConnectionPools
         [InlineData(new[] { State.Paused })]
         internal void PoolState_ThrowIfDisposedOrNotReady_should_throw_when_not_ready(State[] states)
         {
+            var endpoint = new DnsEndPoint("host", 1234);
             var poolState = CreatePoolStateAndValidate(states);
-            var exception = Record.Exception(() => poolState.ThrowIfDisposedOrNotReady());
+            var exception = Record.Exception(() => poolState.ThrowIfDisposedOrNotReady(endpoint));
 
-            if (poolState.State == State.Disposed)
+            switch (poolState.State)
             {
-                exception.Should().BeOfType<ObjectDisposedException>();
-            }
-            else
-            {
-                exception.Should().BeOfType<InvalidOperationException>();
+                case State.Disposed:
+                    exception.Should().BeOfType<ObjectDisposedException>();
+                    break;
+                case State.Paused:
+                    exception.Should().BeOfType<MongoConnectionPoolPausedException>();
+                    break;
+                default:
+                    exception.Should().BeOfType<InvalidOperationException>();
+                    break;
             }
         }
 
         [Fact]
         internal void PoolState_ThrowIfDisposedOrNotReady_should_not_throw_when_ready()
         {
+            var endpoint = new DnsEndPoint("host", 1234);
             var poolState = CreatePoolStateAndValidate(State.Paused, State.Ready);
-            poolState.ThrowIfDisposedOrNotReady();
+            poolState.ThrowIfDisposedOrNotReady(endpoint);
         }
 
         [Fact]

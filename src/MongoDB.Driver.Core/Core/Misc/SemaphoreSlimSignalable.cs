@@ -58,6 +58,7 @@ namespace MongoDB.Driver.Core.Misc
 
         // private fields
         private CancellationTokenSource _signalCancellationTokenSource;
+        private bool _isCancellationScheduled;
 
         private readonly SemaphoreSlim _semaphore;
         private readonly object _syncRoot;
@@ -71,30 +72,36 @@ namespace MongoDB.Driver.Core.Misc
             _syncRoot = new object();
 
             _signalCancellationTokenSource = new CancellationTokenSource();
+            _isCancellationScheduled = false;
         }
 
         public int Count => _semaphore.CurrentCount;
 
         public void Signal()
         {
-            if (!_signalCancellationTokenSource.IsCancellationRequested)
+            if (!_isCancellationScheduled)
             {
                 lock (_syncRoot)
                 {
-                    _signalCancellationTokenSource.Cancel();
+                    if (!_isCancellationScheduled)
+                    {
+                        _signalCancellationTokenSource.CancelAfter(0);
+                        _isCancellationScheduled = true;
+                    }
                 }
             }
         }
 
         public void Reset()
         {
-            if (_signalCancellationTokenSource.IsCancellationRequested)
+            if (_isCancellationScheduled)
             {
                 lock (_syncRoot)
                 {
-                    if (_signalCancellationTokenSource.IsCancellationRequested)
+                    if (_isCancellationScheduled)
                     {
                         _signalCancellationTokenSource = new CancellationTokenSource();
+                        _isCancellationScheduled = false;
                     }
                 }
             }
