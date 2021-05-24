@@ -32,11 +32,14 @@ namespace MongoDB.Driver
     {
         #region static
         // static methods
-        internal static MongoConnectionPoolPausedException ForConnectionPool(EndPoint endPoint)
+        internal static MongoConnectionPoolPausedException ForConnectionPool(string poolIdentifier)
         {
-            var message = $"The connection pool is in paused state for server {EndPointHelper.ToString(endPoint)}.";
+            var message = $"The connection pool is in paused state for server {poolIdentifier}.";
             return new MongoConnectionPoolPausedException(message);
         }
+
+        internal static MongoConnectionPoolPausedException ForConnectionPool(EndPoint endPoint) =>
+            ForConnectionPool(EndPointHelper.ToString(endPoint));
 
         #endregion
 

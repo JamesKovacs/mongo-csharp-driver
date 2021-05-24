@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net;
 using FluentAssertions;
 using Xunit;
 using PoolState = MongoDB.Driver.Core.ConnectionPools.ExclusiveConnectionPool.PoolState;
@@ -12,7 +11,7 @@ namespace MongoDB.Driver.Core.Tests.Core.ConnectionPools
         [Fact]
         public void PoolState_should_start_at_initial_state()
         {
-            var poolState = new PoolState();
+            var poolState = new PoolState("TestPool");
             poolState.State.Should().Be(State.Uninitialized);
         }
 
@@ -81,9 +80,8 @@ namespace MongoDB.Driver.Core.Tests.Core.ConnectionPools
         [InlineData(new[] { State.Paused })]
         internal void PoolState_ThrowIfDisposedOrNotReady_should_throw_when_not_ready(State[] states)
         {
-            var endpoint = new DnsEndPoint("host", 1234);
             var poolState = CreatePoolStateAndValidate(states);
-            var exception = Record.Exception(() => poolState.ThrowIfDisposedOrNotReady(endpoint));
+            var exception = Record.Exception(() => poolState.ThrowIfDisposedOrNotReady());
 
             switch (poolState.State)
             {
@@ -102,9 +100,8 @@ namespace MongoDB.Driver.Core.Tests.Core.ConnectionPools
         [Fact]
         internal void PoolState_ThrowIfDisposedOrNotReady_should_not_throw_when_ready()
         {
-            var endpoint = new DnsEndPoint("host", 1234);
             var poolState = CreatePoolStateAndValidate(State.Paused, State.Ready);
-            poolState.ThrowIfDisposedOrNotReady(endpoint);
+            poolState.ThrowIfDisposedOrNotReady();
         }
 
         [Fact]
@@ -128,7 +125,7 @@ namespace MongoDB.Driver.Core.Tests.Core.ConnectionPools
         // private methods
         private PoolState CreatePoolStateAndValidate(params State[] states)
         {
-            var poolState = new PoolState();
+            var poolState = new PoolState("TestPool");
 
             if (states != null)
             {

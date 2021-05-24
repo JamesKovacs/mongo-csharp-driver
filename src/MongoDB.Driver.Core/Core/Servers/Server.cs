@@ -140,9 +140,6 @@ namespace MongoDB.Driver.Core.Servers
         int IClusterableServer.OutstandingOperationsCount => Interlocked.CompareExchange(ref _outstandingOperationsCount, 0, 0);
 
         // methods
-        void IConnectionExceptionHandler.HandleExceptionOnOpen(Exception exception) =>
-            HandleBeforeHandshakeCompletesException(exception);
-
         public void Dispose()
         {
             if (_state.TryChange(State.Disposed))
@@ -243,13 +240,16 @@ namespace MongoDB.Driver.Core.Servers
             _monitor.RequestHeartbeat();
         }
 
+        void IConnectionExceptionHandler.HandleExceptionOnOpen(Exception exception) =>
+            HandleBeforeHandshakeCompletesException(exception);
+
         private void OnDescriptionChanged(object sender, ServerDescriptionChangedEventArgs e)
         {
             if (e.NewServerDescription.HeartbeatException != null)
             {
                 _connectionPool.Clear();
             }
-            else if (e.NewServerDescription.Type != ServerType.Unknown)
+            else if (e.NewServerDescription.IsDataBearing)
             {
                 _connectionPool.SetReady();
             }
@@ -345,7 +345,7 @@ namespace MongoDB.Driver.Core.Servers
 
         private void HandleBeforeHandshakeCompletesException(Exception ex)
         {
-            if (!(ex is MongoConnectionException connectionException))
+            if ((ex is not MongoConnectionException connectionException))
             {
                 // non connection exception
                 return;
