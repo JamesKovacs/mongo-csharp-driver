@@ -256,13 +256,8 @@ namespace MongoDB.Driver.Core.ConnectionPools
             }
 
             // private methods
-            private void StartCheckingOut()
+            private void AcquireWaitQueueSlot()
             {
-                _pool._checkingOutConnectionEventHandler?
-                    .Invoke(new ConnectionPoolCheckingOutConnectionEvent(_pool._serverId, EventContext.OperationId));
-
-                _pool._poolState.ThrowIfDisposedOrNotReady();
-
                 // enter the wait-queue, deprecated feature
                 int freeSlots;
                 do
@@ -277,6 +272,16 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 while (Interlocked.CompareExchange(ref _pool._waitQueueFreeSlots, freeSlots - 1, freeSlots) != freeSlots);
 
                 _enteredWaitQueue = true;
+            }
+
+            private void StartCheckingOut()
+            {
+                _pool._checkingOutConnectionEventHandler?
+                    .Invoke(new ConnectionPoolCheckingOutConnectionEvent(_pool._serverId, EventContext.OperationId));
+
+                _pool._poolState.ThrowIfDisposedOrNotReady();
+
+                AcquireWaitQueueSlot();
             }
 
             private IConnectionHandle EndCheckingOut(PooledConnection pooledConnection, Stopwatch stopwatch)

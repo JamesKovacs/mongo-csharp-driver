@@ -463,12 +463,12 @@ namespace MongoDB.Driver.Core.ConnectionPools
             int maxAcquiringCount = maxConnecting * 2;
             const int queueTimeoutMS = 50;
 
-            var settings = _settings.WithInternal(
+            var settings = _settings.With(
                 waitQueueSize: maxAcquiringCount + initalAcquiredCount + maxConnecting,
                 maxConnections: maxAcquiringCount + initalAcquiredCount + maxConnecting,
-                maxConnecting: maxConnecting,
                 waitQueueTimeout: TimeSpan.FromMilliseconds(queueTimeoutMS),
-                minConnections: 0);
+                minConnections: 0)
+                .WithInternal(maxConnecting: maxConnecting);
 
             var allAcquiringCountEvent = new CountdownEvent(maxAcquiringCount + initalAcquiredCount);
             var blockEstablishmentEvent = new ManualResetEventSlim(true);
@@ -761,12 +761,12 @@ namespace MongoDB.Driver.Core.ConnectionPools
             var maxPoolSize = Math.Max(minPoolSize, threadsCount + random.Next(0, 10));
             var waitQueueSize = random.Next(threadsCount, threadsCount * 5);
             var maintenanceInterval = TimeSpan.FromMilliseconds(random.Next(10, 40));
-            var settings = _settings.WithInternal(
+            var settings = _settings.With(
                 minConnections: minPoolSize,
                 maxConnections: maxPoolSize,
-                maxConnecting: threadsCount,
                 waitQueueSize: waitQueueSize,
-                maintenanceInterval: maintenanceInterval);
+                maintenanceInterval: maintenanceInterval)
+                .WithInternal(maxConnecting: threadsCount);
 
             // random probabilities for open/clear/setready operations in [0..100] range
             var openOpMaxIndex = random.Next(10, 70);
@@ -1005,12 +1005,12 @@ namespace MongoDB.Driver.Core.ConnectionPools
         {
             const int maxConnecting = 2;
             int threadsCount = maxConnecting + blockedInMaxConnecting;
-            var settings = _settings.WithInternal(
+            var settings = _settings.With(
                 minConnections: 0,
                 maxConnections: threadsCount,
-                maxConnecting: maxConnecting,
                 waitQueueSize: threadsCount,
-                waitQueueTimeout: TimeSpan.FromMinutes(10));
+                waitQueueTimeout: TimeSpan.FromMinutes(10))
+                .WithInternal(maxConnecting: maxConnecting);
 
             var allEstablishing = new CountdownEvent(maxConnecting);
             var allInQueueFailed = new CountdownEvent(blockedInMaxConnecting);
@@ -1186,12 +1186,12 @@ namespace MongoDB.Driver.Core.ConnectionPools
             [Values(1, 10)] int waitQueueSize)
         {
             var maxConnections = waitQueueSize + 1;
-            var settings = _settings.WithInternal(
+            var settings = _settings.With(
                 minConnections: 0,
                 maxConnections: maxConnections,
-                maxConnecting: maxConnections,
                 waitQueueSize: waitQueueSize,
-                waitQueueTimeout: TimeSpan.FromSeconds(10));
+                waitQueueTimeout: TimeSpan.FromSeconds(10))
+                .WithInternal(maxConnecting: maxConnections);
 
             var blockEstablishmentEvent = new ManualResetEventSlim(false);
             var allAcquiringCountdownEvent = new CountdownEvent(waitQueueSize);
@@ -1277,12 +1277,12 @@ namespace MongoDB.Driver.Core.ConnectionPools
             const int maxConnecting = 2;
             var threadsCount = maxConnecting + blockedInQueueCount;
             var waitQueueSize = threadsCount;
-            var settings = _settings.WithInternal(
+            var settings = _settings.With(
                 minConnections: 0,
                 maxConnections: maxConnecting,
-                maxConnecting: maxConnecting,
                 waitQueueSize: waitQueueSize,
-                waitQueueTimeout: TimeSpan.FromMinutes(10));
+                waitQueueTimeout: TimeSpan.FromMinutes(10))
+                .WithInternal(maxConnecting: maxConnecting);
 
             var allEstablishing = new CountdownEvent(maxConnecting);
             var blockEstablishmentEvent = new ManualResetEventSlim(false);

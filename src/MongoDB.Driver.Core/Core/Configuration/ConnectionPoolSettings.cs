@@ -158,21 +158,15 @@ namespace MongoDB.Driver.Core.Configuration
                 waitQueueTimeout: waitQueueTimeout.WithDefault(_waitQueueTimeout));
         }
 
-        internal ConnectionPoolSettings WithInternal(
-            Optional<TimeSpan> maintenanceInterval = default(Optional<TimeSpan>),
-            Optional<int> maxConnections = default(Optional<int>),
-            Optional<int> maxConnecting = default(Optional<int>),
-            Optional<int> minConnections = default(Optional<int>),
-            Optional<int> waitQueueSize = default(Optional<int>),
-            Optional<TimeSpan> waitQueueTimeout = default(Optional<TimeSpan>))
+        internal ConnectionPoolSettings WithInternal(Optional<int> maxConnecting = default(Optional<int>))
         {
             return new ConnectionPoolSettings(
-                maintenanceInterval: maintenanceInterval.WithDefault(_maintenanceInterval),
-                maxConnections: maxConnections.WithDefault(_maxConnections),
+                maintenanceInterval: _maintenanceInterval,
+                maxConnections: _maxConnections,
                 maxConnecting: maxConnecting.WithDefault(_maxConnecting),
-                minConnections: minConnections.WithDefault(_minConnections),
-                waitQueueSize: waitQueueSize.WithDefault(_waitQueueSize),
-                waitQueueTimeout: waitQueueTimeout.WithDefault(_waitQueueTimeout));
+                minConnections: _minConnections,
+                waitQueueSize: _waitQueueSize,
+                waitQueueTimeout: _waitQueueTimeout);
         }
     }
 }
