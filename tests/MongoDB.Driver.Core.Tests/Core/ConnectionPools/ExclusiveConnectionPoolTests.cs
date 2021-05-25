@@ -853,7 +853,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
             });
 
             var actualCleared = subject.Generation;
-            actualCleared.Should().BeInRange(1, clearedCount);
+            actualCleared.Should().BeInRange(0, clearedCount);
 
             CountEvents<ConnectionPoolCheckingOutConnectionEvent>().Should().Be(checkingOutCount);
             CountEvents<ConnectionPoolCheckingOutConnectionFailedEvent>().Should().Be(checkoutFailedCount);
