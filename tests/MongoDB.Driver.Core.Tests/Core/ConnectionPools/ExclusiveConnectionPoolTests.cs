@@ -467,8 +467,8 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 waitQueueSize: maxAcquiringCount + initalAcquiredCount + maxConnecting,
                 maxConnections: maxAcquiringCount + initalAcquiredCount + maxConnecting,
                 waitQueueTimeout: TimeSpan.FromMilliseconds(queueTimeoutMS),
-                minConnections: 0)
-                .WithInternal(maxConnecting: maxConnecting);
+                minConnections: 0);
+            settings._maxConnecting(maxConnecting);
 
             var allAcquiringCountEvent = new CountdownEvent(maxAcquiringCount + initalAcquiredCount);
             var blockEstablishmentEvent = new ManualResetEventSlim(true);
@@ -765,8 +765,8 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 minConnections: minPoolSize,
                 maxConnections: maxPoolSize,
                 waitQueueSize: waitQueueSize,
-                maintenanceInterval: maintenanceInterval)
-                .WithInternal(maxConnecting: threadsCount);
+                maintenanceInterval: maintenanceInterval);
+            settings._maxConnecting(threadsCount);
 
             // random probabilities for open/clear/setready operations in [0..100] range
             var openOpMaxIndex = random.Next(10, 70);
@@ -1009,8 +1009,8 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 minConnections: 0,
                 maxConnections: threadsCount,
                 waitQueueSize: threadsCount,
-                waitQueueTimeout: TimeSpan.FromMinutes(10))
-                .WithInternal(maxConnecting: maxConnecting);
+                waitQueueTimeout: TimeSpan.FromMinutes(10));
+            settings._maxConnecting(maxConnecting);
 
             var allEstablishing = new CountdownEvent(maxConnecting);
             var allInQueueFailed = new CountdownEvent(blockedInMaxConnecting);
@@ -1190,8 +1190,8 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 minConnections: 0,
                 maxConnections: maxConnections,
                 waitQueueSize: waitQueueSize,
-                waitQueueTimeout: TimeSpan.FromSeconds(10))
-                .WithInternal(maxConnecting: maxConnections);
+                waitQueueTimeout: TimeSpan.FromSeconds(10));
+            settings._maxConnecting(maxConnections);
 
             var blockEstablishmentEvent = new ManualResetEventSlim(false);
             var allAcquiringCountdownEvent = new CountdownEvent(waitQueueSize);
@@ -1281,8 +1281,8 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 minConnections: 0,
                 maxConnections: maxConnecting,
                 waitQueueSize: waitQueueSize,
-                waitQueueTimeout: TimeSpan.FromMinutes(10))
-                .WithInternal(maxConnecting: maxConnecting);
+                waitQueueTimeout: TimeSpan.FromMinutes(10));
+            settings._maxConnecting(maxConnecting);
 
             var allEstablishing = new CountdownEvent(maxConnecting);
             var blockEstablishmentEvent = new ManualResetEventSlim(false);
@@ -1460,5 +1460,11 @@ namespace MongoDB.Driver.Core.ConnectionPools
         {
             return (int)Reflector.GetFieldValue(obj, nameof(_waitQueueFreeSlots));
         }
+    }
+
+    internal static class ConnectionPoolSettingsReflector
+    {
+        public static void _maxConnecting(this ConnectionPoolSettings obj, int maxConnecting) =>
+            Reflector.SetFieldValue(obj, nameof(_maxConnecting), maxConnecting);
     }
 }

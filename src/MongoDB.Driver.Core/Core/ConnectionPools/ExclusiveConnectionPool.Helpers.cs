@@ -319,7 +319,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                         MongoConnectionPoolPausedException.ForConnectionPool(_pool._endPoint),
                     SemaphoreSlimSignalable.SemaphoreWaitResult.TimedOut =>
                         new TimeoutException($"Timed out waiting for a connection after {stopwatch.ElapsedMilliseconds}ms."),
-                    _ => new InvalidOperationException($"Invalid {_poolQueueWaitResult}")
+                    _ => new InvalidOperationException($"Invalid {_poolQueueWaitResult}.")
                 };
 
             private void HandleException(Exception ex)
