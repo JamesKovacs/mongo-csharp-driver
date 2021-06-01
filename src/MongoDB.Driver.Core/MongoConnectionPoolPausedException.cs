@@ -55,7 +55,7 @@ namespace MongoDB.Driver
 
 #if !NETSTANDARD1_5
         /// <summary>
-        /// Initializes a new instance of the <see cref="MongoWaitQueueFullException"/> class.
+        /// Initializes a new instance of the <see cref="MongoConnectionPoolPausedException"/> class.
         /// </summary>
         /// <param name="info">The SerializationInfo.</param>
         /// <param name="context">The StreamingContext.</param>

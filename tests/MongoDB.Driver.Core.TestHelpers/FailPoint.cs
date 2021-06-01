@@ -209,9 +209,4 @@ namespace MongoDB.Driver.Core.TestHelpers
             operation.Execute(_binding, CancellationToken.None);
         }
     }
-
-    internal static class IServerReflector
-    {
-        public static IConnectionPool _connectionPool(this IServer server) => (IConnectionPool)Reflector.GetFieldValue(server, nameof(_connectionPool));
-    }
 }

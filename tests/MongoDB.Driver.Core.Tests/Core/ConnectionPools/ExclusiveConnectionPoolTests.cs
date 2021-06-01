@@ -862,9 +862,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
             CountEvents<ConnectionPoolClearedEvent>().Should().Be(actualCleared);
             CountEvents<ConnectionPoolReadyEvent>().Should().BeInRange(actualCleared, actualCleared + 1);
 
-            int CountEvents<T>() => _capturedEvents.Events
-                .OfType<T>()
-                .Count();
+            int CountEvents<T>() => _capturedEvents.Events.OfType<T>().Count();
         }
 
         [Fact]
@@ -1356,8 +1354,6 @@ namespace MongoDB.Driver.Core.ConnectionPools
 
             subject._waitQueueFreeSlots().Should().Be(waitQueueSize);
         }
-
-
 
         [Theory]
         [ParameterAttributeData]

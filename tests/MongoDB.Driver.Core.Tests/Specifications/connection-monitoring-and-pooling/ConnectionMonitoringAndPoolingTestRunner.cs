@@ -680,18 +680,18 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
 
                         eventsFilter = o =>
                         {
-                            if (o is ConnectionOpenedEvent ||
-                                o is ConnectionClosedEvent ||
-                                o is ConnectionCreatedEvent ||
-                                o is ConnectionFailedEvent)
+                            if (o is ConnectionOpenedEvent
+                                or ConnectionClosedEvent
+                                or ConnectionCreatedEvent
+                                or ConnectionFailedEvent)
                             {
                                 var connectionId = o.ConnectionId();
                                 return !connectionIdsToIgnore.Contains(connectionId.LocalValue) &&
                                     EndPointHelper.Equals(connectionId.ServerId.EndPoint, server.EndPoint);
                             }
 
-                            if (o is ConnectionPoolReadyEvent ||
-                                o is ConnectionPoolClearedEvent)
+                            if (o is ConnectionPoolReadyEvent
+                                or ConnectionPoolClearedEvent)
                             {
                                 var serverId = o.ServerId();
                                 return EndPointHelper.Equals(serverId.EndPoint, server.EndPoint);

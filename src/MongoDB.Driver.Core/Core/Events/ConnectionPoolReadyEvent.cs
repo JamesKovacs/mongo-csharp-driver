@@ -28,7 +28,7 @@ namespace MongoDB.Driver.Core.Events
         private readonly ConnectionPoolSettings _connectionPoolSettings;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConnectionPoolOpenedEvent"/> struct.
+        /// Initializes a new instance of the <see cref="ConnectionPoolReadyEvent"/> struct.
         /// </summary>
         /// <param name="serverId">The server identifier.</param>
         /// <param name="connectionPoolSettings">The connection pool settings.</param>
