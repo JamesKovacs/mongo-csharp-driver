@@ -345,7 +345,7 @@ namespace MongoDB.Driver.Core.Servers
 
         private void HandleBeforeHandshakeCompletesException(Exception ex)
         {
-            if ((ex is not MongoConnectionException connectionException))
+            if (ex is not MongoConnectionException connectionException)
             {
                 // non connection exception
                 return;
