@@ -9,10 +9,14 @@ Transactions Tests
 Introduction
 ============
 
-The YAML and JSON files in this directory are platform-independent tests that
-drivers can use to prove their conformance to the Transactions Spec. They are
-designed with the intention of sharing some test-runner code with the CRUD Spec
-tests and the Command Monitoring Spec tests.
+The YAML and JSON files in the ``legacy`` and ``unified`` sub-directories are
+platform-independent tests that drivers can use to prove their conformance to
+the Transactions Spec. The tests in the ``legacy`` directory are designed with
+the intention of sharing some test-runner code with the CRUD Spec tests and the
+Command Monitoring Spec tests. The format for these tests and instructions for
+executing them are provided in the following sections. Tests in the
+``unified`` directory are written using the `Unified Test Format
+<../../unified-test-format/unified-test-format.rst>`_.
 
 Several prose tests, which are not easily expressed in YAML, are also presented
 in this file. Those tests will need to be manually implemented by each driver.
@@ -41,7 +45,10 @@ The ``failCommand`` fail point may be configured like so::
           failCommands: ["commandName", "commandName2"],
           closeConnection: <true|false>,
           errorCode: <Number>,
-          writeConcernError: <document>
+          writeConcernError: <document>,
+          appName: <string>,
+          blockConnection: <true|false>,
+          blockTimeMS: <Number>,
         }
     });
 
@@ -66,10 +73,18 @@ control the fail point's behavior. ``failCommand`` supports the following
 - ``errorCode``: Integer option, which is unset by default. If set, the command
   will not be executed and the specified command error code will be returned as
   a command error.
-- ``writeConcernError``: A document, which is unset by default. If set, the
-  server will return this document in the "writeConcernError" field. This
-  failure response only applies to commands that support write concern and
-  happens *after* the command finishes (regardless of success or failure).
+- ``appName``: A string to filter which MongoClient should be affected by
+  the failpoint. `New in mongod 4.4.0-rc2 <https://jira.mongodb.org/browse/SERVER-47195>`_.
+- ``blockConnection``: Whether the server should block the affected commands.
+  Default false.
+- ``blockTimeMS``: The number of milliseconds the affect commands should be
+  blocked for. Required when blockConnection is true.
+  `New in mongod 4.3.4 <https://jira.mongodb.org/browse/SERVER-41070>`_.
+
+Speeding Up Tests
+=================
+
+See `Speeding Up Tests <../../retryable-reads/tests/README.rst#speeding-up-tests>`_ in the retryable reads spec tests.
 
 Test Format
 ===========
@@ -97,6 +112,18 @@ Each YAML file has the following keys:
     and "sharded". If this field is omitted, the default is all topologies (i.e.
     ``["single", "replicaset", "sharded"]``).
 
+  - ``serverless``: Optional string. Whether or not the test should be run on
+    serverless instances imitating sharded clusters. Valid values are "require",
+    "forbid", and "allow". If "require", the test MUST only be run on serverless
+    instances. If "forbid", the test MUST NOT be run on serverless instances. If
+    omitted or "allow", this option has no effect.
+
+    The test runner MUST be informed whether or not serverless is being used in
+    order to determine if this requirement is met (e.g. through an environment
+    variable or configuration option). Since the serverless proxy imitates a
+    mongos, the runner is not capable of determining this by issuing a server
+    command such as ``buildInfo`` or ``hello``.
+
 - ``database_name`` and ``collection_name``: The database and collection to use
   for testing.
 
@@ -122,8 +149,8 @@ Each YAML file has the following keys:
     configureFailPoint command to run on the admin database. This option and
     ``useMultipleMongoses: true`` are mutually exclusive.
 
-  - ``sessionOptions``: Optional, parameters to pass to
-    MongoClient.startSession().
+  - ``sessionOptions``: Optional, map of session names (e.g. "session0") to
+    parameters to pass to MongoClient.startSession() when creating that session.
 
   - ``operations``: Array of documents, each describing an operation to be
     executed. Each document has the following fields:
@@ -137,11 +164,17 @@ Each YAML file has the following keys:
     - ``collectionOptions``: Optional, parameters to pass to the Collection()
       used for this operation.
 
+    - ``databaseOptions``: Optional, parameters to pass to the Database()
+      used for this operation.
+
     - ``command_name``: Present only when ``name`` is "runCommand". The name
       of the command to run. Required for languages that are unable preserve
       the order keys in the "command" argument when parsing JSON/YAML.
 
     - ``arguments``: Optional, the names and values of arguments.
+
+    - ``error``: Optional. If true, the test should expect an error or
+      exception. This could be a server-generated or a driver-generated error.
 
     - ``result``: The return value from the operation, if any. This field may
       be a single document or an array of documents in the case of a
@@ -169,7 +202,7 @@ Each YAML file has the following keys:
     - ``collection``:
 
       - ``data``: The data that should exist in the collection after the
-        operations have run.
+        operations have run, sorted by "_id".
 
 Use as Integration Tests
 ========================
@@ -192,7 +225,8 @@ Then for each element in ``tests``:
 #. If the ``skipReason`` field is present, skip this test completely.
 #. Create a MongoClient and call
    ``client.admin.runCommand({killAllSessions: []})`` to clean up any open
-   transactions from previous test failures.
+   transactions from previous test failures. Ignore a command failure with
+   error code 11601 ("Interrupted") to work around `SERVER-38335`_.
 
    - Running ``killAllSessions`` cleans up any open transactions from
      a previously failed test to prevent the current test from blocking.
@@ -226,7 +260,7 @@ Then for each element in ``tests``:
 #. Call ``client.startSession`` twice to create ClientSession objects
    ``session0`` and ``session1``, using the test's "sessionOptions" if they
    are present. Save their lsids so they are available after calling
-   ``endSession``, see `Logical Session Id`.
+   ``endSession``, see `Logical Session Id`_.
 #. For each element in ``operations``:
 
    - If the operation ``name`` is a special test operation type, execute it and
@@ -236,8 +270,9 @@ Then for each element in ``tests``:
      field at the top level of the test file.
    - Create a Collection object from the Database, using the
      ``collection_name`` field at the top level of the test file.
-     If ``collectionOptions`` is present create the Collection object with the
-     provided options. Otherwise create the object with the default options.
+     If ``collectionOptions`` or ``databaseOptions`` is present, create the
+     Collection or Database object with the provided options, respectively.
+     Otherwise create the object with the default options.
    - Execute the named method on the provided ``object``, passing the
      arguments listed. Pass ``session0`` or ``session1`` to the method,
      depending on which session's name is in the arguments list.
@@ -245,6 +280,8 @@ Then for each element in ``tests``:
      method.
    - If the driver throws an exception / returns an error while executing this
      series of operations, store the error message and server error code.
+   - If the operation's ``error`` field is ``true``, verify that the method
+     threw an exception or returned an error.
    - If the result document has an "errorContains" field, verify that the
      method threw an exception or returned an error, and that the value of the
      "errorContains" field matches the error string. "errorContains" is a
@@ -289,6 +326,10 @@ Then for each element in ``tests``:
      latest data by using **primary read preference** with
      **local read concern** even when the MongoClient is configured with
      another read preference or read concern.
+     Note the server does not guarantee that documents returned by a find
+     command will be in inserted order. This find MUST sort by ``{_id:1}``.
+
+.. _SERVER-38335: https://jira.mongodb.org/browse/SERVER-38335
 
 Special Test Operations
 ```````````````````````
@@ -329,6 +370,26 @@ fail point on the mongos server which "session0" is pinned to::
             data:
               failCommands: ["commitTransaction"]
               closeConnection: true
+
+Tests that use the "targetedFailPoint" operation do not include
+``configureFailPoint`` commands in their command expectations. Drivers MUST
+ensure that ``configureFailPoint`` commands do not appear in the list of logged
+commands, either by manually filtering it from the list of observed commands or
+by using a different MongoClient to execute ``configureFailPoint``.
+
+assertSessionTransactionState
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The "assertSessionTransactionState" operation instructs the test runner to
+assert that the transaction state of the given session is equal to the
+specified value. The possible values are as follows: ``none``, ``starting``,
+``in_progress``, ``committed``, ``aborted``::
+
+      - name: assertSessionTransactionState
+        object: testRunner
+        arguments:
+          session: session0
+          state: in_progress
 
 assertSessionPinned
 ~~~~~~~~~~~~~~~~~~~
@@ -589,6 +650,7 @@ is the only command allowed in a sharded transaction that uses the
 Changelog
 =========
 
+:2019-05-15: Add operation level ``error`` field to assert any error.
 :2019-03-25: Add workaround for StaleDbVersion on distinct.
 :2019-03-01: Add top-level ``runOn`` field to denote server version and/or
              topology requirements requirements for the test file. Removes the
