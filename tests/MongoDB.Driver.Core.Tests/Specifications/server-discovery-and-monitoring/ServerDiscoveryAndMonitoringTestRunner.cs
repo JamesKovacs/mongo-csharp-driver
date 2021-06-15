@@ -547,10 +547,10 @@ namespace MongoDB.Driver.Specifications.server_discovery_and_monitoring
 
             protected override bool ShouldReadJsonDocument(string path)
             {
-                var loadBalancerTestDirectory = $"{Path.PathSeparator}load-balanced{Path.PathSeparator}";
+                var loadBalancerPrefix = "MongoDB.Driver.Core.Tests.Specifications.server_discovery_and_monitoring.tests.load_balanced.";
                 return base.ShouldReadJsonDocument(path) &&
                        !MonitoringPrefixes.Any(prefix => path.StartsWith(prefix)) &&
-                       !path.Contains(loadBalancerTestDirectory);  // load balancer support not yet implemented
+                       !path.StartsWith(loadBalancerPrefix);  // load balancer support not yet implemented
             }
         }
     }
