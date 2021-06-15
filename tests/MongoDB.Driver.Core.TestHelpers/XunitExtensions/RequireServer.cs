@@ -15,6 +15,7 @@
 
 using System;
 using System.Linq;
+using System.Reflection;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Misc;
@@ -242,6 +243,18 @@ namespace MongoDB.Driver.Core.TestHelpers.XunitExtensions
                             var actualVersion = CoreTestConfiguration.ServerVersion;
                             var maxServerVersion = SemanticVersion.Parse(item.Value.AsString);
                             if (SemanticVersionCompareToAsReleased(actualVersion, maxServerVersion) > 0)
+                            {
+                                return false;
+                            }
+                        }
+                        break;
+                    case "serverless":
+                        {
+                            // require - must run ONLY on serverless
+                            // allow   - can run on any cluster type
+                            // forbid  - must NOT run on serverless
+                            // TODO: Check whether cluster type is serverless and return false as appropriate
+                            if (item.Value.AsString == "require")
                             {
                                 return false;
                             }
