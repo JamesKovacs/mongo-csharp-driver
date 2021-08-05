@@ -140,7 +140,7 @@ namespace MongoDB.Driver.Builders
     /// <summary>
     /// A builder for the options used when creating a collection.
     /// </summary>
-#if NET452
+#if NET472
     [Serializable]
 #endif
     [BsonSerializer(typeof(CollectionOptionsBuilder.Serializer))]

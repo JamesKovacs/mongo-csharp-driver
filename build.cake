@@ -81,7 +81,7 @@ Task("BuildArtifacts")
     .IsDependentOn("Build")
     .Does(() =>
     {
-        foreach (var targetFramework in new[] { "net452", "netstandard1.5", "netstandard2.0", "netstandard2.1" })
+        foreach (var targetFramework in new[] { "net472", "netstandard2.0", "netstandard2.1" })
         {
             var toDirectory = artifactsBinDirectory.Combine(targetFramework);
             CleanDirectory(toDirectory);
@@ -99,7 +99,7 @@ Task("BuildArtifacts")
                 }
 
                 // add additional files needed by Sandcastle
-                if (targetFramework == "net452" && project == "MongoDB.Driver.Core")
+                if (targetFramework == "net472" && project == "MongoDB.Driver.Core")
                 {
                     fileNames.Add("DnsClient.dll");
                     fileNames.Add("MongoDB.Libmongocrypt.dll");
@@ -163,11 +163,9 @@ Task("Test")
         };
         switch (target.ToLowerInvariant())
         {
-            case "testnet452": settings.Framework = "net452"; break;
-            case "testnetstandard15": settings.Framework = "netcoreapp1.1"; break;
+            case "testnet472": settings.Framework = "net472"; break;
             case "testnetstandard20": settings.Framework = "netcoreapp2.1"; break;
             case "testnetstandard21": settings.Framework = "netcoreapp3.0"; break;
-            default: throw new ArgumentException($"Unexpected target: \"{target}\".");
         }
         DotNetCoreTest(
             testProject.FullPath,
@@ -176,8 +174,7 @@ Task("Test")
     })
     .DeferOnError();
 
-Task("TestNet452").IsDependentOn("Test");
-Task("TestNetStandard15").IsDependentOn("Test");
+Task("TestNet472").IsDependentOn("Test");
 Task("TestNetStandard20").IsDependentOn("Test");
 Task("TestNetStandard21").IsDependentOn("Test");
 
@@ -331,8 +328,7 @@ Task("TestGssapi")
         };
         switch (target.ToLowerInvariant())
         {
-            case "testgssapinet452": settings.Framework = "net452"; break;
-            case "testgssapinetstandard15": settings.Framework = "netcoreapp1.1"; break;
+            case "testgssapinet472": settings.Framework = "net472"; break;
             case "testgssapinetstandard20": settings.Framework = "netcoreapp2.1"; break;
             case "testgssapinetstandard21": settings.Framework = "netcoreapp3.0"; break;
             default: throw new ArgumentException($"Unexpected target: \"{target}\".");
@@ -343,8 +339,7 @@ Task("TestGssapi")
         );
     });
 
-Task("TestGssapiNet452").IsDependentOn("TestGssapi");
-Task("TestGssapiNetStandard15").IsDependentOn("TestGssapi");
+Task("TestGssapiNet472").IsDependentOn("TestGssapi");
 Task("TestGssapiNetStandard20").IsDependentOn("TestGssapi");
 Task("TestGssapiNetStandard21").IsDependentOn("TestGssapi");
 
@@ -364,8 +359,7 @@ Task("TestServerless")
             };
             switch (target.ToLowerInvariant())
             {
-                case "testserverlessnet452": settings.Framework = "net452"; break;
-                case "testserverlessnetstandard15": settings.Framework = "netcoreapp1.1"; break;
+                case "testserverlessnet472": settings.Framework = "net472"; break;
                 case "testserverlessnetstandard20": settings.Framework = "netcoreapp2.1"; break;
                 case "testserverlessnetstandard21": settings.Framework = "netcoreapp3.0"; break;
                 default: throw new ArgumentException($"Unexpected target: \"{target}\".");
@@ -376,8 +370,7 @@ Task("TestServerless")
             );
         });
 
-Task("TestServerlessNet452").IsDependentOn("TestServerless");
-Task("TestServerlessNetStandard15").IsDependentOn("TestServerless");
+Task("TestServerlessNet472").IsDependentOn("TestServerless");
 Task("TestServerlessNetStandard20").IsDependentOn("TestServerless");
 Task("TestServerlessNetStandard21").IsDependentOn("TestServerless");
 
@@ -398,7 +391,6 @@ Task("TestLoadBalanced")
 
         switch (target.ToLowerInvariant())
         {
-            case "testloadbalancednetstandard15": settings.Framework = "netcoreapp1.1"; break;
             case "testloadbalancednetstandard20": settings.Framework = "netcoreapp2.1"; break;
             case "testloadbalancednetstandard21": settings.Framework = "netcoreapp3.0"; break;
         }
@@ -409,7 +401,6 @@ Task("TestLoadBalanced")
         );
      });
 
-Task("TestLoadBalancedNetStandard15").IsDependentOn("TestLoadBalanced");
 Task("TestLoadBalancedNetStandard20").IsDependentOn("TestLoadBalanced");
 Task("TestLoadBalancedNetStandard21").IsDependentOn("TestLoadBalanced");
 

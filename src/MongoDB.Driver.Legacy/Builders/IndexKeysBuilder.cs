@@ -137,7 +137,7 @@ namespace MongoDB.Driver.Builders
     /// <summary>
     /// A builder for specifying the keys for an index.
     /// </summary>
-#if NET452
+#if NET472
     [Serializable]
 #endif
     [BsonSerializer(typeof(IndexKeysBuilder.Serializer))]
@@ -453,7 +453,7 @@ namespace MongoDB.Driver.Builders
     /// A builder for specifying the keys for an index.
     /// </summary>
     /// <typeparam name="TDocument">The type of the document.</typeparam>
-#if NET452
+#if NET472
     [Serializable]
 #endif
     [BsonSerializer(typeof(IndexKeysBuilder<>.Serializer))]

@@ -97,7 +97,7 @@ namespace MongoDB.Driver.Tests.Linq
             Name
         }
 
-#if NET452
+#if NET472
         [Serializable]
 #endif
         [BsonSerializer(typeof(TestDocumentClassSerializer))]
