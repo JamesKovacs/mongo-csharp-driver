@@ -55,10 +55,6 @@
     <PackageReference Include="JunitXml.TestLogger" Version="2.1.81" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
-    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\src\MongoDB.Bson\MongoDB.Bson.csproj" />
     <ProjectReference Include="..\..\src\MongoDB.Driver.Core\MongoDB.Driver.Core.csproj" />

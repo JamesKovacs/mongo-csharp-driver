@@ -417,14 +417,12 @@ namespace MongoDB.Bson.Serialization
         }
 
         // private static methods
-        private static Type GetFormatterServicesType() => typeof(FormatterServices);
-
         private static MethodInfo GetGetUninitializedObjectMethodInfo()
         {
             // don't let exceptions leak out of this method because it's called from the type initializer
             try
             {
-                var formatterServicesType = GetFormatterServicesType();
+                var formatterServicesType = typeof(FormatterServices);
                 if (formatterServicesType != null)
                 {
                     var formatterServicesTypeInfo = formatterServicesType.GetTypeInfo();
@@ -1251,31 +1249,21 @@ namespace MongoDB.Bson.Serialization
         {
             if (_creator == null)
             {
-                Expression body;
-                var bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+                const BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
                 var classTypeInfo = _classType.GetTypeInfo();
-                var defaultConstructor = classTypeInfo.GetConstructors(bindingFlags)
-                    .Where(c => c.GetParameters().Length == 0)
-                    .SingleOrDefault();
+                var defaultConstructor = classTypeInfo
+                    .GetConstructors(bindingFlags)
+                    .SingleOrDefault(c => c.GetParameters().Length == 0);
                 if (defaultConstructor != null)
                 {
-                    // lambdaExpression = () => (object) new TClass()
-                    body = Expression.New(defaultConstructor);
-                }
-                else if (__getUninitializedObjectMethodInfo != null)
-                {
-                    // lambdaExpression = () => FormatterServices.GetUninitializedObject(classType)
-                    body = Expression.Call(__getUninitializedObjectMethodInfo, Expression.Constant(_classType));
+                    _creator = () => defaultConstructor.Invoke(null);
                 }
                 else
                 {
-                    var message = $"Type '{_classType.GetType().Name}' does not have a default constructor.";
-                    throw new BsonSerializationException(message);
+                    _creator = () => FormatterServices.GetUninitializedObject(_classType);
                 }
-
-                var lambdaExpression = Expression.Lambda<Func<object>>(body);
-                _creator = lambdaExpression.Compile();
             }
+
             return _creator;
         }
 

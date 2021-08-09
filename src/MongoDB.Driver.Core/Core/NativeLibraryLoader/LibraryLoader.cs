@@ -71,8 +71,7 @@ namespace MongoDB.Driver.Core.NativeLibraryLoader
 
         private void ThrowIfNot64BitProcess()
         {
-            var is64Bit = Environment.Is64BitProcess;
-            if (!is64Bit)
+            if (!Environment.Is64BitProcess)
             {
                 throw new PlatformNotSupportedException("Native libraries can be loaded only in a 64-bit process.");
             }
