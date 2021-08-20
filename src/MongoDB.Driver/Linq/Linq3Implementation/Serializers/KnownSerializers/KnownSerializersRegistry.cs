@@ -15,8 +15,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq.Expressions;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 
 namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
 {
@@ -41,6 +43,22 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
             {
                 return new HashSet<IBsonSerializer>();
             }
+        }
+
+        public IBsonSerializer GetSerializer(Expression expr)
+        {
+            return BsonSerializer.LookupSerializer(expr.Type);
+        }
+
+        public IBsonSerializer GetSerializer(Type type)
+        {
+            if (type == typeof(DateTime))
+                return new DateTimeSerializer();
+            if (type == typeof(bool))
+                return new BooleanSerializer();
+            if (type == typeof(double))
+                return new DoubleSerializer();
+            return BsonSerializer.LookupSerializer(type);
         }
     }
 }

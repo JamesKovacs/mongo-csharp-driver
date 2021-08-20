@@ -14,7 +14,6 @@
 */
 
 using System.Linq.Expressions;
-using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions;
 using MongoDB.Driver.Linq.Linq3Implementation.Misc;
 using MongoDB.Driver.Support;
@@ -64,7 +63,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 ExpressionType.Subtract => AstExpression.Subtract(leftTranslation.Ast, rightTranslation.Ast),
                 _ => throw new ExpressionNotSupportedException(expression)
             };
-            var serializer = BsonSerializer.LookupSerializer(expression.Type); // TODO: get correct serializer
+            var serializer = context.KnownSerializersRegistry.GetSerializer(expression);
 
             return new AggregationExpression(expression, ast, serializer);
         }

@@ -48,7 +48,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToFilter
 
                 if (IsNumericType(targetType))
                 {
-                    var targetTypeSerializer = BsonSerializer.LookupSerializer(targetType); // TODO: use known serializer
+                    var targetTypeSerializer = context.KnownSerializersRegistry.GetSerializer(expression);
                     if (fieldSerializer is IRepresentationConfigurable representationConfigurableFieldSerializer &&
                         targetTypeSerializer is IRepresentationConfigurable representationConfigurableTargetTypeSerializer)
                     {
