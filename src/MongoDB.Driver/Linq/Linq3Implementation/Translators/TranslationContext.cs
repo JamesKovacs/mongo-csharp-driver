@@ -16,6 +16,7 @@
 using System.Linq.Expressions;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Linq.Linq3Implementation.Misc;
+using MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers;
 
 namespace MongoDB.Driver.Linq.Linq3Implementation.Translators
 {
@@ -23,6 +24,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators
     {
         // private fields
         private readonly SymbolTable _symbolTable;
+        private readonly KnownSerializersRegistry _knownKnownSerializersRegistry;
 
         // constructors
         public TranslationContext()
@@ -31,12 +33,21 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators
         }
 
         public TranslationContext(SymbolTable symbolTable)
+            : this(symbolTable, new KnownSerializersRegistry())
+        {
+        }
+
+
+        public TranslationContext(SymbolTable symbolTable, KnownSerializersRegistry knownSerializersRegistry)
         {
             _symbolTable = Ensure.IsNotNull(symbolTable, nameof(symbolTable));
+            _knownKnownSerializersRegistry = Ensure.IsNotNull(knownSerializersRegistry, nameof(knownSerializersRegistry));
         }
 
         // public properties
         public SymbolTable SymbolTable => _symbolTable;
+
+        public KnownSerializersRegistry KnownSerializersRegistry => _knownKnownSerializersRegistry;
 
         // public methods
         public override string ToString()

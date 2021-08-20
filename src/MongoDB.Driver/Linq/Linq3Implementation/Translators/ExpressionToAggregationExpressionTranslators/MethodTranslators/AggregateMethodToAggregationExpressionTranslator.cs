@@ -15,7 +15,6 @@
 
 using System.Linq.Expressions;
 using System.Reflection;
-using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions;
 using MongoDB.Driver.Linq.Linq3Implementation.Misc;
 using MongoDB.Driver.Linq.Linq3Implementation.Reflection;
@@ -74,7 +73,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                     var funcLambda = (LambdaExpression)arguments[2];
                     var funcParameters = funcLambda.Parameters;
                     var accumulatorParameter = funcParameters[0];
-                    var accumulatorSerializer = BsonSerializer.LookupSerializer(accumulatorParameter.Type); // TODO: use known serializer
+                    var accumulatorSerializer = context.KnownSerializersRegistry.GetSerializer(accumulatorParameter);
                     var itemParameter = funcParameters[1];
                     var accumulatorSymbol = new Symbol("$value", accumulatorSerializer); // note: MQL uses $$value for the accumulator
                     var itemSymbol = new Symbol("$this", itemSerializer);
@@ -91,7 +90,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                     {
                         var resultSelectorLambda = (LambdaExpression)arguments[3];
                         var resultSelectorParameter = resultSelectorLambda.Parameters[0];
-                        var resultSelectorParameterSerializer = BsonSerializer.LookupSerializer(resultSelectorParameter.Type); // TODO: use known serializer
+                        var resultSelectorParameterSerializer = context.KnownSerializersRegistry.GetSerializer(resultSelectorParameter);
                         var resultSelectorSymbol = new Symbol("$" + resultSelectorParameter.Name, resultSelectorParameterSerializer);
                         var resultSelectorContext = context.WithSymbol(resultSelectorParameter, resultSelectorSymbol);
                         var resultSelectorTranslation = ExpressionToAggregationExpressionTranslator.Translate(resultSelectorContext, resultSelectorLambda.Body);
@@ -99,7 +98,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                         ast = AstExpression.Let(
                             var: AstExpression.Var(resultSelectorParameter.Name, ast),
                             @in: resultSelectorTranslation.Ast);
-                        serializer = BsonSerializer.LookupSerializer(resultSelectorLambda.ReturnType); // TODO: use known serializer
+                        serializer = context.KnownSerializersRegistry.GetSerializer(resultSelectorLambda.ReturnType);
                     }
 
                     return new AggregationExpression(expression, ast, serializer);
