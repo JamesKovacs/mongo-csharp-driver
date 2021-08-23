@@ -14,7 +14,7 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Serializers.KnownSe
     public class KnownSerializersTests
     {
         private static readonly IMongoClient __client;
-        private static readonly IMongoCollection<C> __collection;
+        private static readonly IMongoCollection<C1> __collection;
         private static readonly IMongoCollection<C2> __collection2;
         private static readonly IMongoCollection<C3> __collection3;
         private static readonly IMongoDatabase __database;
@@ -23,7 +23,7 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Serializers.KnownSe
         {
             __client = DriverTestConfiguration.Client;
             __database = __client.GetDatabase(DriverTestConfiguration.DatabaseNamespace.DatabaseName);
-            __collection = __database.GetCollection<C>(DriverTestConfiguration.CollectionNamespace.CollectionName);
+            __collection = __database.GetCollection<C1>(DriverTestConfiguration.CollectionNamespace.CollectionName);
             __collection2 = __database.GetCollection<C2>(DriverTestConfiguration.CollectionNamespace.CollectionName);
 
             BsonClassMap.RegisterClassMap<C3>(cm =>
@@ -36,70 +36,75 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Serializers.KnownSe
 
         public enum E { A, B };
 
-        public class C
+        class C1
         {
             public E E { get; set; }
         }
 
-        public class C2
+        class C2
         {
             [BsonRepresentation(BsonType.String)]
             public E E { get; set; }
         }
 
-        public class C3
+        class C3
         {
             public E E { get; set; }
         }
 
+        class Results
+        {
+            public bool Result { get; set; }
+        }
+
         [Theory]
-        [InlineData(E.A, "{ \"E\" : 0 }")]
-        [InlineData(E.B, "{ \"E\" : 1 }")]
-        public void Where_operator_equal_should_render_correctly(E value, string expectedFilter)
+        [InlineData(E.A, "{ \"Result\" : { \"$eq\" : [ \"$E\", \"0\" ] } }")]
+        [InlineData(E.B, "{ \"Result\" : { \"$eq\" : [ \"$E\", \"1\" ] } }")]
+        public void Where_operator_equal_should_render_correctly(E value, string expectedProjection)
         {
             var subject = __collection.AsQueryable3();
 
-            var queryable = subject.Where(x => x.E == value);
+            var queryable = subject.Select(x => new Results { Result = x.E == value });
 
-            AssertFilter(queryable, expectedFilter);
+            AssertProjection<C1,Results>(queryable, expectedProjection);
         }
 
         [Theory]
-        [InlineData(E.A, "{ \"E\" : \"A\" }")]
-        [InlineData(E.B, "{ \"E\" : \"B\" }")]
-        public void Where_operator_equal_should_render_enum_as_string(E value, string expectedFilter)
+        [InlineData(E.A, "{ \"Result\" : { \"$eq\" : [ \"$E\", \"A\" ] } }")]
+        [InlineData(E.B, "{ \"Result\" : { \"$eq\" : [ \"$E\", \"B\" ] } }")]
+        public void Where_operator_equal_should_render_enum_as_string(E value, string expectedProjection)
         {
             var subject = __collection2.AsQueryable3();
 
-            var queryable = subject.Where(x => x.E == value);
+            var queryable = subject.Select(x => new Results { Result = x.E == value });
 
-            AssertFilter(queryable, expectedFilter);
+            AssertProjection<C2,Results>(queryable, expectedProjection);
         }
 
         [Theory]
-        [InlineData(E.A, "{ \"E\" : \"A\" }")]
-        [InlineData(E.B, "{ \"E\" : \"B\" }")]
-        public void Where_operator_equal_should_render_enum_as_string_when_configured_with_class_map(E value, string expectedFilter)
+        [InlineData(E.A, "{ \"Result\" : { \"$eq\" : [ \"$E\", \"A\" ] } }")]
+        [InlineData(E.B, "{ \"Result\" : { \"$eq\" : [ \"$E\", \"B\" ] } }")]
+        public void Where_operator_equal_should_render_enum_as_string_when_configured_with_class_map(E value, string expectedProjection)
         {
             var subject = __collection3.AsQueryable3();
 
-            var queryable = subject.Where(x => x.E == value);
+            var queryable = subject.Select(x => new Results { Result = x.E == value });
 
-            AssertFilter(queryable, expectedFilter);
+            AssertProjection<C3,Results>(queryable, expectedProjection);
         }
 
         // private methods
-        private static void AssertFilter<T>(IQueryable<T> queryable, string expectedFilter)
+        private static void AssertProjection<T,TOutput>(IQueryable<TOutput> queryable, string expectedProjection)
         {
-            var stages = Translate(queryable);
+            var stages = Translate<T, TOutput>(queryable);
             stages.Should().HaveCount(1);
-            stages[0].Should().Be($"{{ \"$match\" : {expectedFilter} }}");
+            stages[0].Should().Be($"{{ \"$project\" : {expectedProjection} }}");
         }
 
-        private static BsonDocument[] Translate<T>(IQueryable<T> queryable)
+        private static BsonDocument[] Translate<T, TOutput>(IQueryable<TOutput> queryable)
         {
             var provider = (MongoQueryProvider<T>)queryable.Provider;
-            var executableQuery = ExpressionToExecutableQueryTranslator.Translate<T, T>(provider, queryable.Expression);
+            var executableQuery = ExpressionToExecutableQueryTranslator.Translate<T, TOutput>(provider, queryable.Expression);
             return executableQuery.Pipeline.Stages.Select(s => (BsonDocument)s.Render()).ToArray();
         }
     }
