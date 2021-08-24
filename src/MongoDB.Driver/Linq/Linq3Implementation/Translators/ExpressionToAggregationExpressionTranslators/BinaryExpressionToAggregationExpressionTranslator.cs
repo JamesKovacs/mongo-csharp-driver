@@ -16,7 +16,6 @@
 using System.Linq.Expressions;
 using MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions;
 using MongoDB.Driver.Linq.Linq3Implementation.Misc;
-using MongoDB.Driver.Support;
 
 namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggregationExpressionTranslators
 {
@@ -29,13 +28,8 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 return StringGetCharsComparisonExpressionToAggregationExpressionTranslator.Translate(context, expression, getCharsExpression);
             }
 
-            var leftExpression = expression.Left;
-            var rightExpression = expression.Right;
-            if (IsArithmeticExpression(expression))
-            {
-                leftExpression = ConvertHelper.RemoveWideningConvert(leftExpression);
-                rightExpression = ConvertHelper.RemoveWideningConvert(rightExpression);
-            }
+            var leftExpression = ConvertHelper.RemoveUnnecessaryConvert(expression.Left);
+            var rightExpression = ConvertHelper.RemoveUnnecessaryConvert(expression.Right);
 
             var leftTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, leftExpression);
             var rightTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, rightExpression);
@@ -66,25 +60,6 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             var serializer = context.KnownSerializersRegistry.GetSerializer(expression);
 
             return new AggregationExpression(expression, ast, serializer);
-        }
-
-        private static bool IsArithmeticExpression(BinaryExpression expression)
-        {
-            return expression.Type.IsNumeric() && IsArithmeticOperator(expression.NodeType);
-        }
-
-        private static bool IsArithmeticOperator(ExpressionType nodeType)
-        {
-            return nodeType switch
-            {
-                ExpressionType.Add => true,
-                ExpressionType.Divide => true,
-                ExpressionType.Modulo => true,
-                ExpressionType.Multiply => true,
-                ExpressionType.Power => true,
-                ExpressionType.Subtract => true,
-                _ => false
-            };
         }
 
         private static bool IsStringConcatenationExpression(BinaryExpression expression)

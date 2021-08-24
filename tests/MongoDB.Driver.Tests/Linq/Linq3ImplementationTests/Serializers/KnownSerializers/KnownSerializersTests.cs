@@ -58,8 +58,8 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Serializers.KnownSe
         }
 
         [Theory]
-        [InlineData(E.A, "{ \"Result\" : { \"$eq\" : [ \"$E\", \"0\" ] } }")]
-        [InlineData(E.B, "{ \"Result\" : { \"$eq\" : [ \"$E\", \"1\" ] } }")]
+        [InlineData(E.A, "{ \"Result\" : { \"$eq\" : [ \"$E\", 0 ] }, \"_id\" : 0 }")]
+        [InlineData(E.B, "{ \"Result\" : { \"$eq\" : [ \"$E\", 1 ] }, \"_id\" : 0 }")]
         public void Where_operator_equal_should_render_correctly(E value, string expectedProjection)
         {
             var subject = __collection.AsQueryable3();
@@ -70,8 +70,8 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Serializers.KnownSe
         }
 
         [Theory]
-        [InlineData(E.A, "{ \"Result\" : { \"$eq\" : [ \"$E\", \"A\" ] } }")]
-        [InlineData(E.B, "{ \"Result\" : { \"$eq\" : [ \"$E\", \"B\" ] } }")]
+        [InlineData(E.A, "{ \"Result\" : { \"$eq\" : [ \"$E\", \"A\" ] }, \"_id\" : 0 }")]
+        [InlineData(E.B, "{ \"Result\" : { \"$eq\" : [ \"$E\", \"B\" ] }, \"_id\" : 0 }")]
         public void Where_operator_equal_should_render_enum_as_string(E value, string expectedProjection)
         {
             var subject = __collection2.AsQueryable3();
@@ -82,8 +82,8 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Serializers.KnownSe
         }
 
         [Theory]
-        [InlineData(E.A, "{ \"Result\" : { \"$eq\" : [ \"$E\", \"A\" ] } }")]
-        [InlineData(E.B, "{ \"Result\" : { \"$eq\" : [ \"$E\", \"B\" ] } }")]
+        [InlineData(E.A, "{ \"Result\" : { \"$eq\" : [ \"$E\", \"A\" ] }, \"_id\" : 0 }")]
+        [InlineData(E.B, "{ \"Result\" : { \"$eq\" : [ \"$E\", \"B\" ] }, \"_id\" : 0 }")]
         public void Where_operator_equal_should_render_enum_as_string_when_configured_with_class_map(E value, string expectedProjection)
         {
             var subject = __collection3.AsQueryable3();
