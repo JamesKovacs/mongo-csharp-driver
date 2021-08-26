@@ -32,6 +32,11 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators
         {
         }
 
+        public TranslationContext(KnownSerializersRegistry knownSerializersRegistry)
+            : this(new SymbolTable(), knownSerializersRegistry)
+        {
+        }
+
         public TranslationContext(SymbolTable symbolTable)
             : this(symbolTable, new KnownSerializersRegistry())
         {

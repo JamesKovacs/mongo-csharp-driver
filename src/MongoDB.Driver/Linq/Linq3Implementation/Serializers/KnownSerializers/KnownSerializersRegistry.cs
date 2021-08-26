@@ -15,7 +15,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
+using System.Linq;
 using System.Linq.Expressions;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
@@ -30,6 +30,8 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
         // public methods
         public void Add(Expression expression, KnownSerializersNode knownSerializers)
         {
+            if (_registry.ContainsKey(expression)) return;
+
             _registry.Add(expression, knownSerializers);
         }
 
@@ -47,7 +49,8 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
 
         public IBsonSerializer GetSerializer(Expression expr)
         {
-            return BsonSerializer.LookupSerializer(expr.Type);
+            return _registry[expr].KnownSerializers.First().Value.First();
+            // return BsonSerializer.LookupSerializer(expr.Type);
         }
 
         public IBsonSerializer GetSerializer(Type type)

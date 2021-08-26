@@ -42,7 +42,10 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
         // public methods
         public override Expression Visit(Expression node)
         {
+            if (node == null) return null;
+
             _expressionKnownSerializers = new KnownSerializersNode(_expressionKnownSerializers);
+            _expressionKnownSerializers.AddKnownSerializer(node.Type, null);
             _registry.Add(node, _expressionKnownSerializers);
 
             var result = base.Visit(node);
