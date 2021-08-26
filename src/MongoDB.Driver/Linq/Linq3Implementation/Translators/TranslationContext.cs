@@ -36,6 +36,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators
         }
 
         public TranslationContext(SymbolTable symbolTable, NameGenerator nameGenerator, KnownSerializersRegistry knownSerializersRegistry)
+            : this(new SymbolTable(), knownSerializersRegistry)
         {
             _symbolTable = Ensure.IsNotNull(symbolTable, nameof(symbolTable));
             _nameGenerator = Ensure.IsNotNull(nameGenerator, nameof(nameGenerator));
