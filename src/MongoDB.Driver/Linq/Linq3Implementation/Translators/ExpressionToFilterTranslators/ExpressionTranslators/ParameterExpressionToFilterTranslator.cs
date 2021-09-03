@@ -26,7 +26,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToFilter
             {
                 if (context.SymbolTable.TryGetSymbol(expression, out var symbol))
                 {
-                    var serializer = context.KnownSerializersRegistry.GetSerializer(typeof(bool));
+                    var serializer = context.KnownSerializersRegistry.GetSerializer(expression);
                     var field = AstFilter.Field(symbol.Name, serializer);
                     return AstFilter.Eq(field, true);
                 }

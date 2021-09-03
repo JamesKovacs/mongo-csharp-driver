@@ -63,21 +63,21 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators
         public TranslationContext WithSymbol(ParameterExpression parameter, Symbol symbol)
         {
             var newSymbolTable = _symbolTable.WithSymbol(parameter, symbol);
-            var newContext = new TranslationContext(newSymbolTable);
+            var newContext = new TranslationContext(newSymbolTable, _knownKnownSerializersRegistry);
             return newContext;
         }
 
         public TranslationContext WithSymbolAsCurrent(ParameterExpression parameter, Symbol symbol)
         {
             var newSymbolTable = _symbolTable.WithSymbolAsCurrent(parameter, symbol);
-            var newContext = new TranslationContext(newSymbolTable);
+            var newContext = new TranslationContext(newSymbolTable, _knownKnownSerializersRegistry);
             return newContext;
         }
 
         public TranslationContext WithSymbols(params (ParameterExpression, Symbol)[] symbols)
         {
             var newSymbolTable = _symbolTable.WithSymbols(symbols);
-            var newContext = new TranslationContext(newSymbolTable);
+            var newContext = new TranslationContext(newSymbolTable, _knownKnownSerializersRegistry);
             return newContext;
         }
     }

@@ -14,17 +14,20 @@
 */
 
 using System.Linq.Expressions;
+using MongoDB.Bson.Serialization;
 using ExpressionVisitor = System.Linq.Expressions.ExpressionVisitor;
 
 namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
 {
-    internal class KnownSerializerFinder : ExpressionVisitor
+    internal class KnownSerializerFinder<T> : ExpressionVisitor
     {
+        private readonly BsonClassMapSerializer<T> _providerCollectionDocumentSerializer;
+
         #region static
         // public static methods
-        public static KnownSerializersRegistry FindKnownSerializers(Expression root)
+        public static KnownSerializersRegistry FindKnownSerializers(Expression root, BsonClassMapSerializer<T> providerCollectionDocumentSerializer)
         {
-            var visitor = new KnownSerializerFinder();
+            var visitor = new KnownSerializerFinder<T>(providerCollectionDocumentSerializer);
             visitor.Visit(root);
             return visitor._registry;
         }
@@ -35,8 +38,9 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
         private readonly KnownSerializersRegistry _registry = new KnownSerializersRegistry();
 
         // constructors
-        public KnownSerializerFinder()
+        private KnownSerializerFinder(BsonClassMapSerializer<T> providerCollectionDocumentSerializer)
         {
+            _providerCollectionDocumentSerializer = providerCollectionDocumentSerializer;
         }
 
         // public methods
@@ -45,7 +49,14 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
             if (node == null) return null;
 
             _expressionKnownSerializers = new KnownSerializersNode(_expressionKnownSerializers);
-            _expressionKnownSerializers.AddKnownSerializer(node.Type, null);
+            _expressionKnownSerializers.AddKnownSerializer(_providerCollectionDocumentSerializer.ValueType, _providerCollectionDocumentSerializer);
+            if (node is MemberExpression memberExpression)
+            {
+                if (_providerCollectionDocumentSerializer.TryGetMemberSerializationInfo(memberExpression.Member.Name, out var memberSerializer))
+                {
+                    _expressionKnownSerializers.AddKnownSerializer(memberExpression.Type, memberSerializer.Serializer);
+                }
+            }
             _registry.Add(node, _expressionKnownSerializers);
 
             var result = base.Visit(node);
