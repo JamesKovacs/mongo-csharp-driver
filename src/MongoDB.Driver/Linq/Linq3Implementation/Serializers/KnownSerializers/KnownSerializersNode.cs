@@ -47,6 +47,8 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
             }
 
             set.Add(serializer);
+
+            _parent?.AddKnownSerializer(type, serializer);
         }
 
         public HashSet<IBsonSerializer> GetPossibleSerializers(Type type)

@@ -35,11 +35,11 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
             _registry.Add(expression, knownSerializers);
         }
 
-        public HashSet<IBsonSerializer> GetPossibleSerializers(Expression expression, Type type)
+        public HashSet<IBsonSerializer> GetPossibleSerializers(Expression expression)
         {
             if (_registry.TryGetValue(expression, out var knownSerializers))
             {
-                return knownSerializers.GetPossibleSerializers(type);
+                return knownSerializers.GetPossibleSerializers(expression.Type);
             }
             else
             {
@@ -49,12 +49,15 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
 
         public IBsonSerializer GetSerializer(Expression expr)
         {
-            return _registry[expr].KnownSerializers.First().Value.First();
+            // return _registry[expr].KnownSerializers[expr.Type].First();
             // return BsonSerializer.LookupSerializer(expr.Type);
+            // return GetPossibleSerializers(expr).FirstOrDefault() ?? BsonSerializer.LookupSerializer(expr.Type);
+            return GetPossibleSerializers(expr).FirstOrDefault();
         }
 
         public IBsonSerializer GetSerializer(Type type)
         {
+            // TODO: If we are getting a serializer by a type, we probably want to look in BsonSerializer or explicitly create it. KnownSerializersRegistry is not the place to be looking.
             if (type == typeof(DateTime))
                 return new DateTimeSerializer();
             if (type == typeof(bool))
