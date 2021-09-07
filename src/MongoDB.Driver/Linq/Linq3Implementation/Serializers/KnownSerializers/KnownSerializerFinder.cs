@@ -46,23 +46,34 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
         // public methods
         public override Expression Visit(Expression node)
         {
-            if (node == null) return null;
+            // if (node == null) return null;
+
+            // _expressionKnownSerializers = new KnownSerializersNode(_expressionKnownSerializers);
+            // _expressionKnownSerializers.AddKnownSerializer(_providerCollectionDocumentSerializer.ValueType, _providerCollectionDocumentSerializer);
+            // if (node is MemberExpression memberExpression)
+            // {
+                // if (_providerCollectionDocumentSerializer.TryGetMemberSerializationInfo(memberExpression.Member.Name, out var memberSerializer))
+                // {
+                    // _expressionKnownSerializers.AddKnownSerializer(memberExpression.Type, memberSerializer.Serializer);
+                // }
+            // }
+            // _registry.Add(node, _expressionKnownSerializers);
 
             _expressionKnownSerializers = new KnownSerializersNode(_expressionKnownSerializers);
-            _expressionKnownSerializers.AddKnownSerializer(_providerCollectionDocumentSerializer.ValueType, _providerCollectionDocumentSerializer);
-            if (node is MemberExpression memberExpression)
-            {
-                if (_providerCollectionDocumentSerializer.TryGetMemberSerializationInfo(memberExpression.Member.Name, out var memberSerializer))
-                {
-                    _expressionKnownSerializers.AddKnownSerializer(memberExpression.Type, memberSerializer.Serializer);
-                }
-            }
-            _registry.Add(node, _expressionKnownSerializers);
 
             var result = base.Visit(node);
 
             _expressionKnownSerializers = _expressionKnownSerializers.Parent;
             return result;
+        }
+
+        protected override Expression VisitMember(MemberExpression node)
+        {
+            if (_providerCollectionDocumentSerializer.TryGetMemberSerializationInfo(node.Member.Name, out var memberSerializer))
+            {
+                _expressionKnownSerializers.AddKnownSerializer(node.Type, memberSerializer.Serializer);
+            }
+            return base.VisitMember(node);
         }
     }
 }
