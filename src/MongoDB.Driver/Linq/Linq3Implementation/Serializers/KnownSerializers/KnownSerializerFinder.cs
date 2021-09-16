@@ -21,13 +21,11 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
 {
     internal class KnownSerializerFinder<T> : ExpressionVisitor
     {
-        private readonly BsonClassMapSerializer<T> _providerCollectionDocumentSerializer;
-
         #region static
         // public static methods
-        public static KnownSerializersRegistry FindKnownSerializers(Expression root, BsonClassMapSerializer<T> providerCollectionDocumentSerializer)
+        public static KnownSerializersRegistry FindKnownSerializers(Expression root, IBsonDocumentSerializer providerCollectionDocumentSerializer)
         {
-            var visitor = new KnownSerializerFinder<T>(providerCollectionDocumentSerializer);
+            var visitor = new KnownSerializerFinder<T>(providerCollectionDocumentSerializer, root);
             visitor.Visit(root);
             return visitor._registry;
         }
@@ -35,45 +33,75 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
 
         // private fields
         private KnownSerializersNode _expressionKnownSerializers = null;
+        private IBsonDocumentSerializer _parentSerializer;
+        private readonly IBsonDocumentSerializer _providerCollectionDocumentSerializer;
         private readonly KnownSerializersRegistry _registry = new KnownSerializersRegistry();
+        private readonly Expression _root;
 
         // constructors
-        private KnownSerializerFinder(BsonClassMapSerializer<T> providerCollectionDocumentSerializer)
+        private KnownSerializerFinder(IBsonDocumentSerializer providerCollectionDocumentSerializer, Expression root)
         {
             _providerCollectionDocumentSerializer = providerCollectionDocumentSerializer;
+            _root = root;
         }
 
         // public methods
         public override Expression Visit(Expression node)
         {
-            // if (node == null) return null;
+            if (node == null) return null;
 
-            // _expressionKnownSerializers = new KnownSerializersNode(_expressionKnownSerializers);
-            // _expressionKnownSerializers.AddKnownSerializer(_providerCollectionDocumentSerializer.ValueType, _providerCollectionDocumentSerializer);
-            // if (node is MemberExpression memberExpression)
-            // {
-                // if (_providerCollectionDocumentSerializer.TryGetMemberSerializationInfo(memberExpression.Member.Name, out var memberSerializer))
-                // {
-                    // _expressionKnownSerializers.AddKnownSerializer(memberExpression.Type, memberSerializer.Serializer);
-                // }
-            // }
-            // _registry.Add(node, _expressionKnownSerializers);
-
-            _expressionKnownSerializers = new KnownSerializersNode(_expressionKnownSerializers);
+            if (node == _root)
+            {
+                _parentSerializer = _providerCollectionDocumentSerializer;
+                _expressionKnownSerializers = new KnownSerializersNode(null);
+            }
 
             var result = base.Visit(node);
-
-            _expressionKnownSerializers = _expressionKnownSerializers.Parent;
+            _registry.Add(node, _expressionKnownSerializers);
             return result;
         }
 
         protected override Expression VisitMember(MemberExpression node)
         {
-            if (_providerCollectionDocumentSerializer.TryGetMemberSerializationInfo(node.Member.Name, out var memberSerializer))
+            var result = base.VisitMember(node);
+
+            _expressionKnownSerializers = new KnownSerializersNode(_expressionKnownSerializers);
+
+            if (_parentSerializer.TryGetMemberSerializationInfo(node.Member.Name, out var memberSerializer))
             {
-                _expressionKnownSerializers.AddKnownSerializer(node.Type, memberSerializer.Serializer);
+                var knownSerializers = _expressionKnownSerializers;
+                while (knownSerializers != null)
+                {
+                    knownSerializers.AddKnownSerializer(node.Type, memberSerializer.Serializer);
+                    knownSerializers = knownSerializers.Parent;
+                }
+
+                if (memberSerializer.Serializer is IBsonDocumentSerializer bsonDocumentSerializer)
+                {
+                    _parentSerializer = bsonDocumentSerializer;
+                }
             }
-            return base.VisitMember(node);
+
+            return result;
+        }
+
+        protected override Expression VisitParameter(ParameterExpression node)
+        {
+            var result = base.VisitParameter(node);
+
+            _expressionKnownSerializers = new KnownSerializersNode(_expressionKnownSerializers);
+
+            if (node.Type == _providerCollectionDocumentSerializer.ValueType)
+            {
+                var knownSerializers = _expressionKnownSerializers;
+                while (knownSerializers != null)
+                {
+                    knownSerializers.AddKnownSerializer(_root.Type, _providerCollectionDocumentSerializer);
+                    knownSerializers = knownSerializers.Parent;
+                }
+            }
+
+            return result;
         }
     }
 }
