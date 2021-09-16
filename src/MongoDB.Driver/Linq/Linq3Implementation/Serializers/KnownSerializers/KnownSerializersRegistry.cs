@@ -49,10 +49,17 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
 
         public IBsonSerializer GetSerializer(Expression expr)
         {
-            // return _registry[expr].KnownSerializers[expr.Type].First();
-            // return BsonSerializer.LookupSerializer(expr.Type);
             // return GetPossibleSerializers(expr).FirstOrDefault() ?? BsonSerializer.LookupSerializer(expr.Type);
-            return GetPossibleSerializers(expr).FirstOrDefault();
+            var possibleSerializers = GetPossibleSerializers(expr);
+            if (possibleSerializers.Count == 0)
+            {
+                throw new InvalidOperationException($"Cannot find serializer for {expr}.");
+            }
+            if (possibleSerializers.Count > 1)
+            {
+                throw new InvalidOperationException($"More than one possible serializer found for {expr}: {possibleSerializers}");
+            }
+            return possibleSerializers.First();
         }
 
         public IBsonSerializer GetSerializer(Type type)
