@@ -26,6 +26,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
     {
         // private fields
         private readonly Dictionary<Expression, KnownSerializersNode> _registry = new Dictionary<Expression, KnownSerializersNode>();
+        private readonly PrimitiveSerializationProvider _primitiveSerializationProvider = new PrimitiveSerializationProvider();
 
         // public methods
         public void Add(Expression expression, KnownSerializersNode knownSerializers)
@@ -49,10 +50,14 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
 
         public IBsonSerializer GetSerializer(Expression expr)
         {
-            // return GetPossibleSerializers(expr).FirstOrDefault() ?? BsonSerializer.LookupSerializer(expr.Type);
             var possibleSerializers = GetPossibleSerializers(expr);
             if (possibleSerializers.Count == 0)
             {
+                var serializer = _primitiveSerializationProvider.GetSerializer(expr.Type);
+                if (serializer != null)
+                {
+                    return serializer;
+                }
                 throw new InvalidOperationException($"Cannot find serializer for {expr}.");
             }
             if (possibleSerializers.Count > 1)
@@ -64,14 +69,15 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
 
         public IBsonSerializer GetSerializer(Type type)
         {
-            // TODO: If we are getting a serializer by a type, we probably want to look in BsonSerializer or explicitly create it. KnownSerializersRegistry is not the place to be looking.
-            if (type == typeof(DateTime))
-                return new DateTimeSerializer();
-            if (type == typeof(bool))
-                return new BooleanSerializer();
-            if (type == typeof(double))
-                return new DoubleSerializer();
-            return BsonSerializer.LookupSerializer(type);
+            return _primitiveSerializationProvider.GetSerializer(type);
+            // // TODO: If we are getting a serializer by a type, we probably want to look in BsonSerializer or explicitly create it. KnownSerializersRegistry is not the place to be looking.
+            // if (type == typeof(DateTime))
+            //     return new DateTimeSerializer();
+            // if (type == typeof(bool))
+            //     return new BooleanSerializer();
+            // if (type == typeof(double))
+            //     return new DoubleSerializer();
+            // return BsonSerializer.LookupSerializer(type);
         }
     }
 }
