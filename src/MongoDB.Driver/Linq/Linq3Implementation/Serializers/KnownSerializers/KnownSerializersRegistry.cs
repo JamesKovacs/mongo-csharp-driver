@@ -25,6 +25,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
     {
         // private fields
         private readonly BsonClassMapSerializationProvider _bsonClassMapSerializationProvider = new();
+        private readonly CollectionsSerializationProvider _collectionsSerializationProvider = new();
         private readonly PrimitiveSerializationProvider _primitiveSerializationProvider = new();
         private readonly Dictionary<Expression, KnownSerializersNode> _registry = new();
 
@@ -55,6 +56,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
             {
                 var type = expr.Type;
                 var serializer = _primitiveSerializationProvider.GetSerializer(type)
+                                 ?? _collectionsSerializationProvider.GetSerializer(type)
                                  ?? _bsonClassMapSerializationProvider.GetSerializer(type);
                 if (serializer != null)
                 {
