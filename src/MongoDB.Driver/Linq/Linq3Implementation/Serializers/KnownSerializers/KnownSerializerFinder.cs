@@ -69,12 +69,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
 
             if (_parentSerializer.TryGetMemberSerializationInfo(node.Member.Name, out var memberSerializer))
             {
-                var knownSerializers = _expressionKnownSerializers;
-                while (knownSerializers != null)
-                {
-                    knownSerializers.AddKnownSerializer(node.Type, memberSerializer.Serializer);
-                    knownSerializers = knownSerializers.Parent;
-                }
+                PropagateToRoot(node, memberSerializer.Serializer);
 
                 if (memberSerializer.Serializer is IBsonDocumentSerializer bsonDocumentSerializer)
                 {
@@ -93,15 +88,20 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
 
             if (node.Type == _providerCollectionDocumentSerializer.ValueType)
             {
-                var knownSerializers = _expressionKnownSerializers;
-                while (knownSerializers != null)
-                {
-                    knownSerializers.AddKnownSerializer(_root.Type, _providerCollectionDocumentSerializer);
-                    knownSerializers = knownSerializers.Parent;
-                }
+                PropagateToRoot(_root, _providerCollectionDocumentSerializer);
             }
 
             return result;
+        }
+
+        private void PropagateToRoot(Expression node, IBsonSerializer memberSerializer)
+        {
+            var knownSerializers = _expressionKnownSerializers;
+            while (knownSerializers != null)
+            {
+                knownSerializers.AddKnownSerializer(node.Type, memberSerializer);
+                knownSerializers = knownSerializers.Parent;
+            }
         }
     }
 }
