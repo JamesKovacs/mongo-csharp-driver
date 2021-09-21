@@ -74,14 +74,6 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
         public IBsonSerializer GetSerializer(Type type)
         {
             return _primitiveSerializationProvider.GetSerializer(type);
-            // // TODO: If we are getting a serializer by a type, we probably want to look in BsonSerializer or explicitly create it. KnownSerializersRegistry is not the place to be looking.
-            // if (type == typeof(DateTime))
-            //     return new DateTimeSerializer();
-            // if (type == typeof(bool))
-            //     return new BooleanSerializer();
-            // if (type == typeof(double))
-            //     return new DoubleSerializer();
-            // return BsonSerializer.LookupSerializer(type);
         }
     }
 }
