@@ -29,7 +29,7 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Serializers.KnownSe
             BsonClassMap.RegisterClassMap<C3>(cm =>
             {
                 cm.AutoMap();
-                cm.MapMember(p => p.E).SetSerializer(new EnumSerializer<E>(BsonType.String));
+                cm.MapMember(p => p.Es).SetSerializer(new EnumSerializer<E>(BsonType.String));
             });
             __collection3 = __database.GetCollection<C3>(DriverTestConfiguration.CollectionNamespace.CollectionName);
         }
@@ -38,18 +38,21 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Serializers.KnownSe
 
         class C1
         {
-            public E E { get; set; }
+            public E Ei { get; set; }
+            [BsonRepresentation(BsonType.String)]
+            public E Es { get; set; }
         }
 
         class C2
         {
+            public E Ei { get; set; }
             [BsonRepresentation(BsonType.String)]
-            public E E { get; set; }
+            public E Es { get; set; }
         }
 
         class C3
         {
-            public E E { get; set; }
+            public E Es { get; set; }
         }
 
         class Results
@@ -58,39 +61,51 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Serializers.KnownSe
         }
 
         [Theory]
-        [InlineData(E.A, "{ \"Result\" : { \"$eq\" : [ \"$E\", 0 ] }, \"_id\" : 0 }")]
-        [InlineData(E.B, "{ \"Result\" : { \"$eq\" : [ \"$E\", 1 ] }, \"_id\" : 0 }")]
+        [InlineData(E.A, "{ \"Result\" : { \"$eq\" : [ \"$Ei\", 0 ] }, \"_id\" : 0 }")]
+        [InlineData(E.B, "{ \"Result\" : { \"$eq\" : [ \"$Ei\", 1 ] }, \"_id\" : 0 }")]
         public void Where_operator_equal_should_render_correctly(E value, string expectedProjection)
         {
             var subject = __collection.AsQueryable3();
 
-            var queryable = subject.Select(x => new Results { Result = x.E == value });
+            var queryable = subject.Select(x => new Results { Result = x.Ei == value });
 
             AssertProjection<C1,Results>(queryable, expectedProjection);
         }
 
         [Theory]
-        [InlineData(E.A, "{ \"Result\" : { \"$eq\" : [ \"$E\", \"A\" ] }, \"_id\" : 0 }")]
-        [InlineData(E.B, "{ \"Result\" : { \"$eq\" : [ \"$E\", \"B\" ] }, \"_id\" : 0 }")]
+        [InlineData(E.A, "{ \"Result\" : { \"$eq\" : [ \"$Es\", \"A\" ] }, \"_id\" : 0 }")]
+        [InlineData(E.B, "{ \"Result\" : { \"$eq\" : [ \"$Es\", \"B\" ] }, \"_id\" : 0 }")]
         public void Where_operator_equal_should_render_enum_as_string(E value, string expectedProjection)
         {
             var subject = __collection2.AsQueryable3();
 
-            var queryable = subject.Select(x => new Results { Result = x.E == value });
+            var queryable = subject.Select(x => new Results { Result = x.Es == value });
 
             AssertProjection<C2,Results>(queryable, expectedProjection);
         }
 
         [Theory]
-        [InlineData(E.A, "{ \"Result\" : { \"$eq\" : [ \"$E\", \"A\" ] }, \"_id\" : 0 }")]
-        [InlineData(E.B, "{ \"Result\" : { \"$eq\" : [ \"$E\", \"B\" ] }, \"_id\" : 0 }")]
+        [InlineData(E.A, "{ \"Result\" : { \"$eq\" : [ \"$Es\", \"A\" ] }, \"_id\" : 0 }")]
+        [InlineData(E.B, "{ \"Result\" : { \"$eq\" : [ \"$Es\", \"B\" ] }, \"_id\" : 0 }")]
         public void Where_operator_equal_should_render_enum_as_string_when_configured_with_class_map(E value, string expectedProjection)
         {
             var subject = __collection3.AsQueryable3();
 
-            var queryable = subject.Select(x => new Results { Result = x.E == value });
+            var queryable = subject.Select(x => new Results { Result = x.Es == value });
 
             AssertProjection<C3,Results>(queryable, expectedProjection);
+        }
+
+        [Theory]
+        [InlineData(E.A, "{ \"Result\" : { \"$and\" : [{ \"$eq\" : [ \"$Ei\", 0 ] }, { \"$eq\" : [ \"$Es\", \"A\" ] }]}, \"_id\" : 0 }")]
+        [InlineData(E.B, "{ \"Result\" : { \"$and\" : [{ \"$eq\" : [ \"$Ei\", 1 ] }, { \"$eq\" : [ \"$Es\", \"B\" ] }]}, \"_id\" : 0 }")]
+        public void Where_operator_equal_should_render_string_enum_as_string_and_int32_enum_as_int32(E value, string expectedProjection)
+        {
+            var subject = __collection2.AsQueryable3();
+
+            var queryable = subject.Select(x => new Results { Result = x.Ei == value && x.Es == value });
+
+            AssertProjection<C2,Results>(queryable, expectedProjection);
         }
 
         // private methods

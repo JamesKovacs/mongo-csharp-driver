@@ -66,7 +66,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
             }
             if (possibleSerializers.Count > 1)
             {
-                throw new InvalidOperationException($"More than one possible serializer found for {expr}: {possibleSerializers}");
+                throw new InvalidOperationException($"More than one possible serializer found for {expr}.");
             }
             return possibleSerializers.First();
         }
