@@ -13,9 +13,12 @@
 * limitations under the License.
 */
 
+using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.TestHelpers;
 using MongoDB.Driver.Linq.Linq3Implementation;
 using MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToExecutableQueryTranslators;
 
@@ -26,6 +29,16 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests
         public static void AssertStages(BsonDocument[] stages, string[] expectedStages)
         {
             stages.Should().Equal(expectedStages.Select(json => BsonDocument.Parse(json)));
+        }
+
+        public static BsonDocument[] Translate<TDocument, TResult>(IMongoCollection<TDocument> collection, IAggregateFluent<TResult> aggregate)
+        {
+            var pipelineDefinition = (PipelineDefinition<TDocument, TResult>)Reflector.GetFieldValue(aggregate, "_pipeline");
+            var documentSerializer = collection.DocumentSerializer;
+            var serializerRegistry = BsonSerializer.SerializerRegistry;
+            var linqProvider = collection.Database.Client.Settings.LinqProvider;
+            var renderedPipeline = pipelineDefinition.Render(documentSerializer, serializerRegistry, linqProvider);
+            return renderedPipeline.Documents.ToArray();
         }
 
         // in this overload the collection argument is used only to infer the TDocument type
