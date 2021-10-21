@@ -21,6 +21,9 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Linq;
+using MongoDB.Driver.Linq.Linq3Implementation.Ast;
+using MongoDB.Driver.Linq.Linq3Implementation.Ast.Optimizers;
+using MongoDB.Driver.Linq.Linq3Implementation.Ast.Stages;
 
 namespace MongoDB.Driver
 {
@@ -618,6 +621,7 @@ namespace MongoDB.Driver
         /// <returns>
         /// The fluent aggregate interface.
         /// </returns>
+        /// <remarks>This method can only be used with LINQ2 but that can't be verified until Render is called.</remarks>
         public static PipelineDefinition<TInput, TOutput> Group<TInput, TIntermediate, TKey, TOutput>(
             this PipelineDefinition<TInput, TIntermediate> pipeline,
             Expression<Func<TIntermediate, TKey>> id,
@@ -626,6 +630,32 @@ namespace MongoDB.Driver
         {
             Ensure.IsNotNull(pipeline, nameof(pipeline));
             return pipeline.AppendStage(PipelineStageDefinitionBuilder.Group(id, group, translationOptions));
+        }
+
+        /// <summary>
+        /// Appends a group stage to the pipeline.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents.</typeparam>
+        /// <typeparam name="TIntermediate">The type of the intermediate documents.</typeparam>
+        /// <typeparam name="TKey">The type of the key.</typeparam>
+        /// <typeparam name="TOutput">The type of the output documents.</typeparam>
+        /// <param name="pipeline">The pipeline.</param>
+        /// <param name="id">The id.</param>
+        /// <param name="group">The group projection.</param>
+        /// <param name="translationOptions">The translation options.</param>
+        /// <returns>
+        /// The fluent aggregate interface.
+        /// </returns>
+        /// <remarks>This method can only be used with LINQ3 but that can't be verified until Render is called.</remarks>
+        public static PipelineDefinition<TInput, TOutput> Group3<TInput, TIntermediate, TKey, TOutput>(
+            this PipelineDefinition<TInput, TIntermediate> pipeline,
+            Expression<Func<TIntermediate, TKey>> id,
+            Expression<Func<IGrouping<TKey, TIntermediate>, TOutput>> group,
+            ExpressionTranslationOptions translationOptions = null)
+        {
+            Ensure.IsNotNull(pipeline, nameof(pipeline));
+            var (groupStage, projectStage) = PipelineStageDefinitionBuilder.Group3(id, group, translationOptions);
+            return pipeline.AppendStage(groupStage).AppendStage(projectStage);
         }
 
         /// <summary>
