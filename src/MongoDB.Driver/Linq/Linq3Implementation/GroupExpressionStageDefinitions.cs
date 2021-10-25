@@ -30,14 +30,14 @@ using MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToPipelineTr
 
 namespace MongoDB.Driver.Linq.Linq3Implementation
 {
-    internal sealed class Group3ExpressionStageDefinitions<TInput, TKey, TOutput>
+    internal sealed class GroupExpressionStageDefinitions<TInput, TKey, TOutput>
     {
         private readonly Expression<Func<TInput, TKey>> _idExpression;
         private readonly Expression<Func<IGrouping<TKey, TInput>, TOutput>> _groupExpression;
         private readonly GroupStageDefinition _groupStage;
         private readonly ProjectStageDefinition _projectStage;
 
-        public Group3ExpressionStageDefinitions(
+        public GroupExpressionStageDefinitions(
             Expression<Func<TInput, TKey>> idExpression,
             Expression<Func<IGrouping<TKey, TInput>, TOutput>> groupExpression)
         {

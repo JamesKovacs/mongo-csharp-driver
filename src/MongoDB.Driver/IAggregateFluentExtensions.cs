@@ -326,8 +326,8 @@ namespace MongoDB.Driver
             }
             else
             {
-                var (groupStage, projectStage) = PipelineStageDefinitionBuilder.Group3(id, group);
-                return aggregate.AppendStage(groupStage).AppendStage(projectStage);
+                var stages = new Linq.Linq3Implementation.GroupExpressionStageDefinitions<TResult, TKey, TNewResult>(id, group);
+                return aggregate.AppendStage(stages.GroupStage).AppendStage(stages.ProjectStage);
             }
         }
 
