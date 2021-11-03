@@ -15,7 +15,9 @@
 
 using System;
 using System.Linq.Expressions;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Linq.Linq3Implementation.Ast;
 using MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions;
 using MongoDB.Driver.Linq.Linq3Implementation.ExtensionMethods;
@@ -45,6 +47,24 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 return new AggregationExpression(expression, ast, valueSerializer);
             }
 
+            if (IsBsonValueGetItemMethodWithIntIndex(expression, out sourceExpression, out indexExpression))
+            {
+                var sourceTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, sourceExpression);
+                var indexTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, indexExpression);
+                var ast = AstExpression.ArrayElemAt(sourceTranslation.Ast, indexTranslation.Ast);
+                var valueSerializer = BsonValueSerializer.Instance;
+                return new AggregationExpression(expression, ast, valueSerializer);
+            }
+
+            if (IsBsonValueGetItemMethodWithStringKey(expression, out sourceExpression, out keyExpression))
+            {
+                var sourceTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, sourceExpression);
+                var keyTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, keyExpression);
+                var ast = AstExpression.GetField(sourceTranslation.Ast, keyTranslation.Ast);
+                var valueSerializer = BsonValueSerializer.Instance;
+                return new AggregationExpression(expression, ast, valueSerializer);
+            }
+
             throw new ExpressionNotSupportedException(expression);
         }
 
@@ -56,6 +76,48 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             }
 
             throw new InvalidOperationException($"Unable to determine value serializer for dictionary serializer: {serializer.GetType().FullName}.");
+        }
+
+        private static bool IsBsonValueGetItemMethodWithIntIndex(MethodCallExpression expression, out Expression sourceExpression, out Expression indexExpression)
+        {
+            var method = expression.Method;
+            var arguments = expression.Arguments;
+
+            if (!method.IsStatic && method.Name == "get_Item")
+            {
+                sourceExpression = expression.Object;
+                indexExpression = arguments[0];
+
+                if (typeof(BsonValue).IsAssignableFrom(sourceExpression.Type) && indexExpression.Type == typeof(int))
+                {
+                    return true;
+                }
+            }
+
+            sourceExpression = null;
+            indexExpression = null;
+            return false;
+        }
+
+        private static bool IsBsonValueGetItemMethodWithStringKey(MethodCallExpression expression, out Expression sourceExpression, out Expression keyExpression)
+        {
+            var method = expression.Method;
+            var arguments = expression.Arguments;
+
+            if (!method.IsStatic && method.Name == "get_Item")
+            {
+                sourceExpression = expression.Object;
+                keyExpression = arguments[0];
+
+                if (typeof(BsonValue).IsAssignableFrom(sourceExpression.Type) && keyExpression.Type == typeof(string))
+                {
+                    return true;
+                }
+            }
+
+            sourceExpression = null;
+            keyExpression = null;
+            return false;
         }
 
         private static bool IsEnumerableGetItemMethodWithIntIndex(MethodCallExpression expression, out Expression sourceExpression, out Expression indexExpression)
