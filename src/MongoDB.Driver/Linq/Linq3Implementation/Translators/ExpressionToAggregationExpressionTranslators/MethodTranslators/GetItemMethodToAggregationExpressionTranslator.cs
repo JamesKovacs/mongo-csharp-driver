@@ -22,6 +22,7 @@ using MongoDB.Driver.Linq.Linq3Implementation.Ast;
 using MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions;
 using MongoDB.Driver.Linq.Linq3Implementation.ExtensionMethods;
 using MongoDB.Driver.Linq.Linq3Implementation.Misc;
+using MongoDB.Driver.Linq.Linq3Implementation.Reflection;
 
 namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggregationExpressionTranslators.MethodTranslators
 {
@@ -29,24 +30,6 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
     {
         public static AggregationExpression Translate(TranslationContext context, MethodCallExpression expression)
         {
-            if (IsEnumerableGetItemMethodWithIntIndex(expression, out var sourceExpression, out var indexExpression))
-            {
-                var sourceTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, sourceExpression);
-                var indexTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, indexExpression);
-                var ast = AstExpression.ArrayElemAt(sourceTranslation.Ast, indexTranslation.Ast);
-                var serializer = ArraySerializerHelper.GetItemSerializer(sourceTranslation.Serializer);
-                return new AggregationExpression(expression, ast, serializer);
-            }
-
-            if (IsDictionaryGetItemMethodWithStringKey(expression, out sourceExpression, out var keyExpression))
-            {
-                var sourceTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, sourceExpression);
-                var key = keyExpression.GetConstantValue<string>(containingExpression: expression);
-                var ast = AstExpression.GetField(sourceTranslation.Ast, key); // TODO: verify that dictionary is using Document representation
-                var valueSerializer = GetDictionaryValueSerializer(sourceTranslation.Serializer);
-                return new AggregationExpression(expression, ast, valueSerializer);
-            }
-
             if (IsBsonValueGetItemMethodWithIntIndex(expression, out sourceExpression, out indexExpression))
             {
                 var sourceTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, sourceExpression);
@@ -62,6 +45,24 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 var keyTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, keyExpression);
                 var ast = AstExpression.GetField(sourceTranslation.Ast, keyTranslation.Ast);
                 var valueSerializer = BsonValueSerializer.Instance;
+                return new AggregationExpression(expression, ast, valueSerializer);
+            }
+
+            if (IsEnumerableGetItemMethodWithIntIndex(expression, out var sourceExpression, out var indexExpression))
+            {
+                var sourceTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, sourceExpression);
+                var indexTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, indexExpression);
+                var ast = AstExpression.ArrayElemAt(sourceTranslation.Ast, indexTranslation.Ast);
+                var serializer = ArraySerializerHelper.GetItemSerializer(sourceTranslation.Serializer);
+                return new AggregationExpression(expression, ast, serializer);
+            }
+
+            if (IsDictionaryGetItemMethodWithStringKey(expression, out sourceExpression, out var keyExpression))
+            {
+                var sourceTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, sourceExpression);
+                var key = keyExpression.GetConstantValue<string>(containingExpression: expression);
+                var ast = AstExpression.GetField(sourceTranslation.Ast, key); // TODO: verify that dictionary is using Document representation
+                var valueSerializer = GetDictionaryValueSerializer(sourceTranslation.Serializer);
                 return new AggregationExpression(expression, ast, valueSerializer);
             }
 
@@ -83,15 +84,11 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             var method = expression.Method;
             var arguments = expression.Arguments;
 
-            if (!method.IsStatic && method.Name == "get_Item")
+            if (method.Is(BsonValueMethod.GetItemWithInt))
             {
                 sourceExpression = expression.Object;
                 indexExpression = arguments[0];
-
-                if (typeof(BsonValue).IsAssignableFrom(sourceExpression.Type) && indexExpression.Type == typeof(int))
-                {
-                    return true;
-                }
+                return true;
             }
 
             sourceExpression = null;
@@ -104,15 +101,11 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             var method = expression.Method;
             var arguments = expression.Arguments;
 
-            if (!method.IsStatic && method.Name == "get_Item")
+            if (method.Is(BsonValueMethod.GetItemWithString))
             {
                 sourceExpression = expression.Object;
                 keyExpression = arguments[0];
-
-                if (typeof(BsonValue).IsAssignableFrom(sourceExpression.Type) && keyExpression.Type == typeof(string))
-                {
-                    return true;
-                }
+                return true;
             }
 
             sourceExpression = null;
