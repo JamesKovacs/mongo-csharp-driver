@@ -65,7 +65,7 @@ namespace MongoDB.Driver.Core.Bindings
             ThrowIfDisposed();
             var server = _cluster.SelectServerAndPinIfNeeded(_session, WritableServerSelector.Instance, cancellationToken);
 
-            return GetChannelSourceHelper(server);
+            return CreateServerChannelSource(server);
         }
 
         /// <inheritdoc/>
@@ -73,7 +73,7 @@ namespace MongoDB.Driver.Core.Bindings
         {
             ThrowIfDisposed();
             var server = await _cluster.SelectServerAndPinIfNeededAsync(_session, WritableServerSelector.Instance, cancellationToken).ConfigureAwait(false);
-            return GetChannelSourceHelper(server);
+            return CreateServerChannelSource(server);
         }
 
         /// <inheritdoc/>
@@ -81,7 +81,26 @@ namespace MongoDB.Driver.Core.Bindings
         {
             ThrowIfDisposed();
             var server = _cluster.SelectServerAndPinIfNeeded(_session, WritableServerSelector.Instance, cancellationToken);
-            return GetChannelSourceHelper(server);
+            return CreateServerChannelSource(server);
+        }
+
+        /// <inheritdoc/>
+        public ChannelSourceAndEffectiveReadPreference GetWriteChannelSource(IMayUseSecondaryCriteria mayUseSecondary, CancellationToken cancellationToken)
+        {
+            if (_cluster.IsPinnedToServer(_session))
+            {
+                throw new InvalidOperationException($"This overload of {nameof(GetWriteChannelSource)} cannot be called when pinned to a server.");
+            }
+
+            var selector = new WritableServerSelector(mayUseSecondary);
+            var server = _cluster.SelectServer(selector, cancellationToken);
+            var channelSource = CreateServerChannelSource(server);
+
+            return new ChannelSourceAndEffectiveReadPreference
+            {
+                ChannelSource = channelSource,
+                EffectiveReadPreference = selector.EffectiveReadPreference
+            };
         }
 
         /// <inheritdoc/>
@@ -89,10 +108,29 @@ namespace MongoDB.Driver.Core.Bindings
         {
             ThrowIfDisposed();
             var server = await _cluster.SelectServerAndPinIfNeededAsync(_session, WritableServerSelector.Instance, cancellationToken).ConfigureAwait(false);
-            return GetChannelSourceHelper(server);
+            return CreateServerChannelSource(server);
         }
 
-        private IChannelSourceHandle GetChannelSourceHelper(IServer server)
+        /// <inheritdoc/>
+        public async Task<ChannelSourceAndEffectiveReadPreference> GetWriteChannelSourceAsync(IMayUseSecondaryCriteria mayUseSecondary, CancellationToken cancellationToken)
+        {
+            if (_cluster.IsPinnedToServer(_session))
+            {
+                throw new InvalidOperationException($"This overload of {nameof(GetWriteChannelSource)} cannot be called when pinned to a server.");
+            }
+
+            var selector = new WritableServerSelector(mayUseSecondary);
+            var server = await _cluster.SelectServerAsync(selector, cancellationToken).ConfigureAwait(false);
+            var channelSource = CreateServerChannelSource(server);
+
+            return new ChannelSourceAndEffectiveReadPreference
+            {
+                ChannelSource = channelSource,
+                EffectiveReadPreference = selector.EffectiveReadPreference
+            };
+        }
+
+        private IChannelSourceHandle CreateServerChannelSource(IServer server)
         {
             return new ChannelSourceHandle(new ServerChannelSource(server, _session.Fork()));
         }

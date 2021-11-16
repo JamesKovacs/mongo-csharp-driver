@@ -26,6 +26,11 @@ namespace MongoDB.Driver.Core.Clusters
     /// </summary>
     internal static class IClusterExtensions
     {
+        public static bool IsPinnedToServer(this ICluster cluster, ICoreSessionHandle session)
+        {
+            return GetPinnedServerIfValid(cluster, session) != null;
+        }
+
         public static IServer SelectServerAndPinIfNeeded(
             this ICluster cluster,
             ICoreSessionHandle session,

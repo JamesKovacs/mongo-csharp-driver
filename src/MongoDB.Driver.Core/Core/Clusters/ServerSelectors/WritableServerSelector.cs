@@ -15,6 +15,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Servers;
 
 namespace MongoDB.Driver.Core.Clusters.ServerSelectors
@@ -42,26 +43,76 @@ namespace MongoDB.Driver.Core.Clusters.ServerSelectors
         #endregion
 
         // constructors
-        private WritableServerSelector()
+        private readonly IMayUseSecondaryCriteria _mayUseSecondary;
+        private ReadPreference _effectiveReadPreference;
+
+        /// <summary>
+        /// Initializes an instance of the WritableServerSelector class.
+        /// </summary>
+        public WritableServerSelector()
         {
         }
 
+        /// <summary>
+        /// Initializes an instance of the WritableServerSelector class.
+        /// </summary>
+        /// <param name="mayUseSecondary">The may use secondary criteria.</param>
+        public WritableServerSelector(IMayUseSecondaryCriteria mayUseSecondary)
+        {
+            _mayUseSecondary = mayUseSecondary; // can be null
+        }
+
+        /// <summary>
+        /// The effective read preference determined during server selection.
+        /// </summary>
+        public ReadPreference EffectiveReadPreference => _effectiveReadPreference;
+
         // methods
         /// <inheritdoc/>
-        public IEnumerable<ServerDescription> SelectServers(ClusterDescription cluster, IEnumerable<Servers.ServerDescription> servers)
+        public IEnumerable<ServerDescription> SelectServers(ClusterDescription cluster, IEnumerable<ServerDescription> servers)
         {
             if (cluster.IsDirectConnection)
             {
                 return servers;
             }
 
-            return servers.Where(x => x.Type.IsWritable());
+            var serversList = servers.ToList(); // avoid multiple enumeration
+            if (CanUseSecondaries(cluster, serversList))
+            {
+                _effectiveReadPreference = _mayUseSecondary.ReadPreference;
+                var readPreferenceSelector = new ReadPreferenceServerSelector(_mayUseSecondary.ReadPreference);
+                return readPreferenceSelector.SelectServers(cluster, serversList);
+            }
+
+            _effectiveReadPreference = ReadPreference.Primary;
+            return serversList.Where(x => x.Type.IsWritable());
         }
 
         /// <inheritdoc/>
         public override string ToString()
         {
             return "WritableServerSelector";
+        }
+
+        private bool CanUseSecondaries(ClusterDescription cluster, List<ServerDescription> servers)
+        {
+            if (_mayUseSecondary?.ReadPreference == null || servers.Count == 0)
+            {
+                return false;
+            }
+
+            switch (cluster.Type)
+            {
+                case ClusterType.ReplicaSet:
+                case ClusterType.Sharded:
+                    return servers.All(s => _mayUseSecondary.CanUseSecondary(s));
+
+                case ClusterType.LoadBalanced:
+                    return true;
+
+                default:
+                    return false;
+            }
         }
     }
 }

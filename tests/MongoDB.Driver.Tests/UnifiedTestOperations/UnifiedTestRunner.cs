@@ -22,7 +22,9 @@ using MongoDB.Bson;
 using MongoDB.Bson.TestHelpers.JsonDrivenTests;
 using MongoDB.Bson.TestHelpers.XunitExtensions;
 using MongoDB.Driver.Core;
+using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Misc;
+using MongoDB.Driver.Core.Servers;
 using MongoDB.Driver.Core.TestHelpers;
 using MongoDB.Driver.Core.TestHelpers.Logging;
 using MongoDB.Driver.Core.TestHelpers.XunitExtensions;
@@ -173,10 +175,18 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                 var databaseName = dataItem["databaseName"].AsString;
                 var documents = dataItem["documents"].AsBsonArray.Cast<BsonDocument>().ToList();
 
-                var database = client.GetDatabase(databaseName);
+                var writeConcern = WriteConcern.WMajority;
+                if (DriverTestConfiguration.IsReplicaSet(client))
+                {
+                    var n = DriverTestConfiguration.GetReplicaSetSize(client);
+                    writeConcern = new WriteConcern(n);
+                }
+
+                var database = client
+                    .GetDatabase(databaseName)
+                    .WithWriteConcern(writeConcern);
                 var collection = database
-                    .GetCollection<BsonDocument>(collectionName)
-                    .WithWriteConcern(WriteConcern.WMajority);
+                    .GetCollection<BsonDocument>(collectionName); // inherits WriteConcern from database
 
                 _logger.Debug("Dropping {0}", collectionName);
 

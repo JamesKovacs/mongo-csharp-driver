@@ -16,8 +16,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using MongoDB.Driver.Core.Clusters;
-using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.Servers;
 
@@ -31,6 +29,7 @@ namespace MongoDB.Driver.Core.Bindings
         // fields
         private readonly IChannelHandle _channel;
         private bool _disposed;
+        private readonly ReadPreference _effectiveReadPreference;
         private readonly IServer _server;
         private readonly ICoreSessionHandle _session;
 
@@ -42,9 +41,25 @@ namespace MongoDB.Driver.Core.Bindings
         /// <param name="channel">The channel.</param>
         /// <param name="session">The session.</param>
         public ChannelReadWriteBinding(IServer server, IChannelHandle channel, ICoreSessionHandle session)
+            : this(server, channel, effectiveReadPreference: ReadPreference.Primary, session)
         {
             _server = Ensure.IsNotNull(server, nameof(server));
             _channel = Ensure.IsNotNull(channel, nameof(channel));
+            _session = Ensure.IsNotNull(session, nameof(session));
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ChannelReadWriteBinding" /> class.
+        /// </summary>
+        /// <param name="server">The server.</param>
+        /// <param name="channel">The channel.</param>
+        /// <param name="effectiveReadPreference">The effective read preference.</param>
+        /// <param name="session">The session.</param>
+        public ChannelReadWriteBinding(IServer server, IChannelHandle channel, ReadPreference effectiveReadPreference, ICoreSessionHandle session)
+        {
+            _server = Ensure.IsNotNull(server, nameof(server));
+            _channel = Ensure.IsNotNull(channel, nameof(channel));
+            _effectiveReadPreference = Ensure.IsNotNull(effectiveReadPreference, nameof(effectiveReadPreference));
             _session = Ensure.IsNotNull(session, nameof(session));
         }
 
@@ -77,32 +92,58 @@ namespace MongoDB.Driver.Core.Bindings
         public IChannelSourceHandle GetReadChannelSource(CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
-            return GetChannelSourceHelper();
+            return CreateChannelSource();
         }
 
         /// <inheritdoc/>
         public Task<IChannelSourceHandle> GetReadChannelSourceAsync(CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
-            return Task.FromResult(GetChannelSourceHelper());
+            return Task.FromResult(CreateChannelSource());
         }
 
         /// <inheritdoc/>
         public IChannelSourceHandle GetWriteChannelSource(CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
-            return GetChannelSourceHelper();
+            return CreateChannelSource();
+        }
+
+        /// <inheritdoc/>
+        public ChannelSourceAndEffectiveReadPreference GetWriteChannelSource(IMayUseSecondaryCriteria mayUseSecondary, CancellationToken cancellationToken)
+        {
+            var channelSource = CreateChannelSource();
+
+            return new ChannelSourceAndEffectiveReadPreference
+            {
+                ChannelSource = channelSource,
+                EffectiveReadPreference = _effectiveReadPreference
+            };
         }
 
         /// <inheritdoc/>
         public Task<IChannelSourceHandle> GetWriteChannelSourceAsync(CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
-            return Task.FromResult(GetChannelSourceHelper());
+            return Task.FromResult(CreateChannelSource());
+        }
+
+        /// <inheritdoc/>
+        public Task<ChannelSourceAndEffectiveReadPreference> GetWriteChannelSourceAsync(IMayUseSecondaryCriteria mayUseSecondary, CancellationToken cancellationToken)
+        {
+            var channelSource = CreateChannelSource();
+
+            return Task.FromResult(
+                new ChannelSourceAndEffectiveReadPreference
+                {
+                    ChannelSource = channelSource,
+                    EffectiveReadPreference = _effectiveReadPreference
+                }
+            );
         }
 
         // private methods
-        private IChannelSourceHandle GetChannelSourceHelper()
+        private IChannelSourceHandle CreateChannelSource()
         {
             return new ChannelSourceHandle(new ChannelChannelSource(_server, _channel.Fork(), _session.Fork()));
         }

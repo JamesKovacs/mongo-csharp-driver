@@ -16,9 +16,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using FluentAssertions;
 using MongoDB.Driver.Core;
 using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Configuration;
+using MongoDB.Driver.Core.Servers;
 using MongoDB.Driver.Core.TestHelpers.Logging;
 using MongoDB.Driver.Linq;
 using MongoDB.Driver.TestHelpers;
@@ -200,6 +203,24 @@ namespace MongoDB.Driver.Tests
             clientSettings.ServerApi = CoreTestConfiguration.ServerApi;
 
             return clientSettings;
+        }
+
+        public static bool IsReplicaSet(IMongoClient client)
+        {
+            SpinWait.SpinUntil(() => client.Cluster.Description.Type != ClusterType.Unknown, TimeSpan.FromSeconds(5)).Should().BeTrue();
+            return client.Cluster.Description.Type == ClusterType.ReplicaSet;
+        }
+
+        public static int GetReplicaSetSize(IMongoClient client)
+        {
+            if (client.Cluster.Description.Type != ClusterType.ReplicaSet)
+            {
+                throw new InvalidOperationException("Client is not a replica set.");
+            }
+
+            ServerDescription primary = null;
+            SpinWait.SpinUntil(() => (primary = client.Cluster.Description.Servers.SingleOrDefault(s => s.Type == ServerType.ReplicaSetPrimary)) != null, TimeSpan.FromSeconds(5)).Should().BeTrue();
+            return primary.ReplicaSetConfig.Members.Count();
         }
 
         private static void EnsureUniqueCluster(MongoClientSettings settings)

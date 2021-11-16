@@ -23,6 +23,7 @@ using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Misc;
+using MongoDB.Driver.Core.Servers;
 using MongoDB.Driver.Core.WireProtocol.Messages.Encoders;
 using MongoDB.Shared;
 
@@ -46,6 +47,7 @@ namespace MongoDB.Driver.Core.Operations
         private readonly MessageEncoderSettings _messageEncoderSettings;
         private readonly IReadOnlyList<BsonDocument> _pipeline;
         private ReadConcern _readConcern;
+        private ReadPreference _readPreference;
         private WriteConcern _writeConcern;
 
         // constructors
@@ -222,6 +224,18 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <summary>
+        /// Gets or sets the read preference.
+        /// </summary>
+        public ReadPreference ReadPreference
+        {
+            get { return _readPreference; }
+            set
+            {
+                _readPreference = value;
+            }
+        }
+
+        /// <summary>
         /// Gets or sets the write concern.
         /// </summary>
         /// <value>
@@ -239,12 +253,15 @@ namespace MongoDB.Driver.Core.Operations
         {
             Ensure.IsNotNull(binding, nameof(binding));
 
-            using (var channelSource = binding.GetWriteChannelSource(cancellationToken))
+            var mayUseSecondary = new MayUseSecondary(_readPreference);
+            var (channelSource, effectiveReadPreference) = binding.GetWriteChannelSource(mayUseSecondary, cancellationToken);
+            using (channelSource)
             using (var channel = channelSource.GetChannel(cancellationToken))
-            using (var channelBinding = new ChannelReadWriteBinding(channelSource.Server, channel, binding.Session.Fork()))
+            using (var channelBinding = new ChannelReadWriteBinding(channelSource.Server, channel, effectiveReadPreference, binding.Session.Fork()))
             {
-                var operation = CreateOperation(channelBinding.Session, channel.ConnectionDescription);
+                var operation = CreateOperation(channelBinding.Session, channel.ConnectionDescription, effectiveReadPreference);
                 return operation.Execute(channelBinding, cancellationToken);
+
             }
         }
 
@@ -253,11 +270,13 @@ namespace MongoDB.Driver.Core.Operations
         {
             Ensure.IsNotNull(binding, nameof(binding));
 
-            using (var channelSource = await binding.GetWriteChannelSourceAsync(cancellationToken).ConfigureAwait(false))
+            var mayUseSecondary = new MayUseSecondary(_readPreference);
+            var (channelSource, effectiveReadPreference) = await binding.GetWriteChannelSourceAsync(mayUseSecondary, cancellationToken).ConfigureAwait(false);
+            using (channelSource)
             using (var channel = await channelSource.GetChannelAsync(cancellationToken).ConfigureAwait(false))
-            using (var channelBinding = new ChannelReadWriteBinding(channelSource.Server, channel, binding.Session.Fork()))
+            using (var channelBinding = new ChannelReadWriteBinding(channelSource.Server, channel, effectiveReadPreference, binding.Session.Fork()))
             {
-                var operation = CreateOperation(channelBinding.Session, channel.ConnectionDescription);
+                var operation = CreateOperation(channelBinding.Session, channel.ConnectionDescription, effectiveReadPreference);
                 return await operation.ExecuteAsync(channelBinding, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -288,10 +307,13 @@ namespace MongoDB.Driver.Core.Operations
             };
         }
 
-        private WriteCommandOperation<BsonDocument> CreateOperation(ICoreSessionHandle session, ConnectionDescription connectionDescription)
+        private WriteCommandOperation<BsonDocument> CreateOperation(ICoreSessionHandle session, ConnectionDescription connectionDescription, ReadPreference effectiveReadPreference)
         {
             var command = CreateCommand(session, connectionDescription);
-            return new WriteCommandOperation<BsonDocument>(CollectionNamespace.DatabaseNamespace, command, BsonDocumentSerializer.Instance, MessageEncoderSettings);
+            return new WriteCommandOperation<BsonDocument>(_databaseNamespace, command, BsonDocumentSerializer.Instance, MessageEncoderSettings)
+            {
+                ReadPreference = effectiveReadPreference
+            };
         }
 
         private void EnsureIsOutputToCollectionPipeline()
@@ -329,6 +351,23 @@ namespace MongoDB.Driver.Core.Operations
             }
 
             return pipeline; // unchanged
+        }
+
+        internal class MayUseSecondary : IMayUseSecondaryCriteria
+        {
+            private readonly ReadPreference _readPreference;
+
+            public MayUseSecondary (ReadPreference readPreference)
+            {
+                _readPreference = readPreference;
+            }
+
+            public ReadPreference ReadPreference => _readPreference;
+
+            public bool CanUseSecondary(ServerDescription server)
+            {
+                return Feature.AggregateOutOnSecondary.IsSupported(server.Version);
+            }
         }
     }
 }
