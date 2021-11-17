@@ -178,7 +178,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                 var writeConcern = WriteConcern.WMajority;
                 if (DriverTestConfiguration.IsReplicaSet(client))
                 {
-                    var n = DriverTestConfiguration.GetReplicaSetSize(client);
+                    var n = DriverTestConfiguration.GetReplicaSetNumberOfDataBearingMembers(client);
                     writeConcern = new WriteConcern(n);
                 }
 
@@ -197,7 +197,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                 }
                 else
                 {
-                    database.WithWriteConcern(WriteConcern.WMajority).CreateCollection(collectionName);
+                    database.CreateCollection(collectionName);
                 }
             }
         }

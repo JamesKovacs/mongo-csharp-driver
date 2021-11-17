@@ -207,20 +207,28 @@ namespace MongoDB.Driver.Tests
 
         public static bool IsReplicaSet(IMongoClient client)
         {
-            SpinWait.SpinUntil(() => client.Cluster.Description.Type != ClusterType.Unknown, TimeSpan.FromSeconds(5)).Should().BeTrue();
+            var clusterTypeIsKnown = SpinWait.SpinUntil(() => client.Cluster.Description.Type != ClusterType.Unknown, TimeSpan.FromSeconds(10));
+            if (!clusterTypeIsKnown)
+            {
+                throw new InvalidOperationException($"Unable to determine cluster type: {client.Cluster.Description}.");
+            }
             return client.Cluster.Description.Type == ClusterType.ReplicaSet;
         }
 
-        public static int GetReplicaSetSize(IMongoClient client)
+        public static int GetReplicaSetNumberOfDataBearingMembers(IMongoClient client)
         {
-            if (client.Cluster.Description.Type != ClusterType.ReplicaSet)
+            if (!IsReplicaSet(client))
             {
-                throw new InvalidOperationException("Client is not a replica set.");
+                throw new InvalidOperationException($"Cluster is not a replica set: {client.Cluster.Description}.");
             }
 
-            ServerDescription primary = null;
-            SpinWait.SpinUntil(() => (primary = client.Cluster.Description.Servers.SingleOrDefault(s => s.Type == ServerType.ReplicaSetPrimary)) != null, TimeSpan.FromSeconds(5)).Should().BeTrue();
-            return primary.ReplicaSetConfig.Members.Count();
+            var allServersAreConnected = SpinWait.SpinUntil(() => client.Cluster.Description.Servers.All(s => s.State == ServerState.Connected), TimeSpan.FromSeconds(10));
+            if (!allServersAreConnected)
+            {
+                throw new InvalidOperationException($"Unable to connect to all members of the replica set: {client.Cluster.Description}.");
+            }
+
+            return client.Cluster.Description.Servers.Count(s => s.IsDataBearing);
         }
 
         private static void EnsureUniqueCluster(MongoClientSettings settings)
