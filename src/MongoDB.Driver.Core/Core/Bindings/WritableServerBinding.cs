@@ -85,7 +85,7 @@ namespace MongoDB.Driver.Core.Bindings
         }
 
         /// <inheritdoc/>
-        public ChannelSourceAndEffectiveReadPreference GetWriteChannelSource(IMayUseSecondaryCriteria mayUseSecondary, CancellationToken cancellationToken)
+        public IChannelSourceHandle GetWriteChannelSource(IMayUseSecondaryCriteria mayUseSecondary, CancellationToken cancellationToken)
         {
             if (_cluster.IsPinnedToServer(_session))
             {
@@ -94,13 +94,7 @@ namespace MongoDB.Driver.Core.Bindings
 
             var selector = new WritableServerSelector(mayUseSecondary);
             var server = _cluster.SelectServer(selector, cancellationToken);
-            var channelSource = CreateServerChannelSource(server);
-
-            return new ChannelSourceAndEffectiveReadPreference
-            {
-                ChannelSource = channelSource,
-                EffectiveReadPreference = selector.EffectiveReadPreference
-            };
+            return CreateServerChannelSource(server);
         }
 
         /// <inheritdoc/>
@@ -112,7 +106,7 @@ namespace MongoDB.Driver.Core.Bindings
         }
 
         /// <inheritdoc/>
-        public async Task<ChannelSourceAndEffectiveReadPreference> GetWriteChannelSourceAsync(IMayUseSecondaryCriteria mayUseSecondary, CancellationToken cancellationToken)
+        public async Task<IChannelSourceHandle> GetWriteChannelSourceAsync(IMayUseSecondaryCriteria mayUseSecondary, CancellationToken cancellationToken)
         {
             if (_cluster.IsPinnedToServer(_session))
             {
@@ -121,13 +115,7 @@ namespace MongoDB.Driver.Core.Bindings
 
             var selector = new WritableServerSelector(mayUseSecondary);
             var server = await _cluster.SelectServerAsync(selector, cancellationToken).ConfigureAwait(false);
-            var channelSource = CreateServerChannelSource(server);
-
-            return new ChannelSourceAndEffectiveReadPreference
-            {
-                ChannelSource = channelSource,
-                EffectiveReadPreference = selector.EffectiveReadPreference
-            };
+            return CreateServerChannelSource(server);
         }
 
         private IChannelSourceHandle CreateServerChannelSource(IServer server)

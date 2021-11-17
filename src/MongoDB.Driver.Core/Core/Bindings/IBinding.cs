@@ -81,7 +81,7 @@ namespace MongoDB.Driver.Core.Bindings
         /// <param name="mayUseSecondary">The may use secondary criteria.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A channel source.</returns>
-        ChannelSourceAndEffectiveReadPreference GetWriteChannelSource(IMayUseSecondaryCriteria mayUseSecondary, CancellationToken cancellationToken);
+        IChannelSourceHandle GetWriteChannelSource(IMayUseSecondaryCriteria mayUseSecondary, CancellationToken cancellationToken);
 
         /// <summary>
         /// Gets a channel source for write operations.
@@ -96,34 +96,7 @@ namespace MongoDB.Driver.Core.Bindings
         /// <param name="mayUseSecondary">The may use secondary criteria.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A channel source.</returns>
-        Task<ChannelSourceAndEffectiveReadPreference> GetWriteChannelSourceAsync(IMayUseSecondaryCriteria mayUseSecondary, CancellationToken cancellationToken);
-    }
-
-    /// <summary>
-    /// Container class for a channel source and the effective read preference from the server selection process.
-    /// </summary>
-    public struct ChannelSourceAndEffectiveReadPreference
-    {
-        /// <summary>
-        /// The channel source.
-        /// </summary>
-        public IChannelSourceHandle ChannelSource { get; set; }
-
-        /// <summary>
-        /// The effective read preference.
-        /// </summary>
-        public ReadPreference EffectiveReadPreference { get; set; }
-
-        /// <summary>
-        /// The deconstructor for the class.
-        /// </summary>
-        /// <param name="channelSource">The channel source.</param>
-        /// <param name="effectiveReadPreference">The effective read preference.</param>
-        public void Deconstruct(out IChannelSourceHandle channelSource, out ReadPreference effectiveReadPreference)
-        {
-            channelSource = ChannelSource;
-            effectiveReadPreference = EffectiveReadPreference;
-        }
+        Task<IChannelSourceHandle> GetWriteChannelSourceAsync(IMayUseSecondaryCriteria mayUseSecondary, CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -174,6 +147,11 @@ namespace MongoDB.Driver.Core.Bindings
     /// </summary>
     public interface IMayUseSecondaryCriteria
     {
+        /// <summary>
+        /// The effective read preference (initially the same as ReadPreference but possibly altered by the server selector).
+        /// </summary>
+        ReadPreference EffectiveReadPreference { get; set; }
+
         /// <summary>
         /// The read preference.
         /// </summary>

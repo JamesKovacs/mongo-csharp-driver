@@ -85,7 +85,7 @@ namespace MongoDB.Driver.Core.Bindings
         }
 
         /// <inheritdoc/>
-        public ChannelSourceAndEffectiveReadPreference GetWriteChannelSource(IMayUseSecondaryCriteria mayUseSecondary, CancellationToken cancellationToken)
+        public IChannelSourceHandle GetWriteChannelSource(IMayUseSecondaryCriteria mayUseSecondary, CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
             return _reference.Instance.GetWriteChannelSource(mayUseSecondary, cancellationToken);
@@ -99,7 +99,7 @@ namespace MongoDB.Driver.Core.Bindings
         }
 
         /// <inheritdoc/>
-        public Task<ChannelSourceAndEffectiveReadPreference> GetWriteChannelSourceAsync(IMayUseSecondaryCriteria mayUseSecondary, CancellationToken cancellationToken)
+        public Task<IChannelSourceHandle> GetWriteChannelSourceAsync(IMayUseSecondaryCriteria mayUseSecondary, CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
             return _reference.Instance.GetWriteChannelSourceAsync(mayUseSecondary, cancellationToken);

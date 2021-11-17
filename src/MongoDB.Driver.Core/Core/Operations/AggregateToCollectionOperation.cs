@@ -254,12 +254,11 @@ namespace MongoDB.Driver.Core.Operations
             Ensure.IsNotNull(binding, nameof(binding));
 
             var mayUseSecondary = new MayUseSecondary(_readPreference);
-            var (channelSource, effectiveReadPreference) = binding.GetWriteChannelSource(mayUseSecondary, cancellationToken);
-            using (channelSource)
+            using (var channelSource = binding.GetWriteChannelSource(mayUseSecondary, cancellationToken))
             using (var channel = channelSource.GetChannel(cancellationToken))
-            using (var channelBinding = new ChannelReadWriteBinding(channelSource.Server, channel, effectiveReadPreference, binding.Session.Fork()))
+            using (var channelBinding = new ChannelReadWriteBinding(channelSource.Server, channel, binding.Session.Fork()))
             {
-                var operation = CreateOperation(channelBinding.Session, channel.ConnectionDescription, effectiveReadPreference);
+                var operation = CreateOperation(channelBinding.Session, channel.ConnectionDescription, mayUseSecondary.EffectiveReadPreference);
                 return operation.Execute(channelBinding, cancellationToken);
 
             }
@@ -271,12 +270,11 @@ namespace MongoDB.Driver.Core.Operations
             Ensure.IsNotNull(binding, nameof(binding));
 
             var mayUseSecondary = new MayUseSecondary(_readPreference);
-            var (channelSource, effectiveReadPreference) = await binding.GetWriteChannelSourceAsync(mayUseSecondary, cancellationToken).ConfigureAwait(false);
-            using (channelSource)
+            using (var channelSource = await binding.GetWriteChannelSourceAsync(mayUseSecondary, cancellationToken).ConfigureAwait(false))
             using (var channel = await channelSource.GetChannelAsync(cancellationToken).ConfigureAwait(false))
-            using (var channelBinding = new ChannelReadWriteBinding(channelSource.Server, channel, effectiveReadPreference, binding.Session.Fork()))
+            using (var channelBinding = new ChannelReadWriteBinding(channelSource.Server, channel, binding.Session.Fork()))
             {
-                var operation = CreateOperation(channelBinding.Session, channel.ConnectionDescription, effectiveReadPreference);
+                var operation = CreateOperation(channelBinding.Session, channel.ConnectionDescription, mayUseSecondary.EffectiveReadPreference);
                 return await operation.ExecuteAsync(channelBinding, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -310,10 +308,12 @@ namespace MongoDB.Driver.Core.Operations
         private WriteCommandOperation<BsonDocument> CreateOperation(ICoreSessionHandle session, ConnectionDescription connectionDescription, ReadPreference effectiveReadPreference)
         {
             var command = CreateCommand(session, connectionDescription);
-            return new WriteCommandOperation<BsonDocument>(_databaseNamespace, command, BsonDocumentSerializer.Instance, MessageEncoderSettings)
+            var operation = new WriteCommandOperation<BsonDocument>(_databaseNamespace, command, BsonDocumentSerializer.Instance, MessageEncoderSettings);
+            if (effectiveReadPreference != null)
             {
-                ReadPreference = effectiveReadPreference
-            };
+                operation.ReadPreference = effectiveReadPreference;
+            }
+            return operation;
         }
 
         private void EnsureIsOutputToCollectionPipeline()
@@ -355,14 +355,13 @@ namespace MongoDB.Driver.Core.Operations
 
         internal class MayUseSecondary : IMayUseSecondaryCriteria
         {
-            private readonly ReadPreference _readPreference;
-
-            public MayUseSecondary (ReadPreference readPreference)
+            public MayUseSecondary(ReadPreference readPreference)
             {
-                _readPreference = readPreference;
+                ReadPreference = EffectiveReadPreference = readPreference;
             }
 
-            public ReadPreference ReadPreference => _readPreference;
+            public ReadPreference EffectiveReadPreference { get; set; }
+            public ReadPreference ReadPreference { get; }
 
             public bool CanUseSecondary(ServerDescription server)
             {

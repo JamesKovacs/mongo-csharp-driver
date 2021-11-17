@@ -28,7 +28,6 @@ namespace MongoDB.Driver.Core.Bindings
     {
         // fields
         private bool _disposed;
-        private readonly ReadPreference _effectiveReadPreference;
         private readonly IServer _server;
         private readonly ICoreSessionHandle _session;
 
@@ -39,21 +38,9 @@ namespace MongoDB.Driver.Core.Bindings
         /// <param name="server">The server.</param>
         /// <param name="session">The session.</param>
         public SingleServerReadWriteBinding(IServer server, ICoreSessionHandle session)
-            : this(server, session, effectiveReadPreference: ReadPreference.Primary)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SingleServerReadWriteBinding" /> class.
-        /// </summary>
-        /// <param name="server">The server.</param>
-        /// <param name="session">The session.</param>
-        /// <param name="effectiveReadPreference">The effective read preference.</param>
-        public SingleServerReadWriteBinding(IServer server, ICoreSessionHandle session, ReadPreference effectiveReadPreference)
         {
             _server = Ensure.IsNotNull(server, nameof(server));
             _session = Ensure.IsNotNull(session, nameof(session));
-            _effectiveReadPreference = Ensure.IsNotNull(effectiveReadPreference, nameof(effectiveReadPreference));
         }
 
         // properties
@@ -84,57 +71,43 @@ namespace MongoDB.Driver.Core.Bindings
         public IChannelSourceHandle GetReadChannelSource(CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
-            return CreateChannelSource();
+            return GetChannelSourceHelper();
         }
 
         /// <inheritdoc/>
         public Task<IChannelSourceHandle> GetReadChannelSourceAsync(CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
-            return Task.FromResult(CreateChannelSource());
+            return Task.FromResult(GetChannelSourceHelper());
         }
 
         /// <inheritdoc/>
         public IChannelSourceHandle GetWriteChannelSource(CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
-            return CreateChannelSource();
+            return GetChannelSourceHelper();
         }
 
         /// <inheritdoc/>
-        public ChannelSourceAndEffectiveReadPreference GetWriteChannelSource(IMayUseSecondaryCriteria mayUseSecondary, CancellationToken cancellationToken)
+        public IChannelSourceHandle GetWriteChannelSource(IMayUseSecondaryCriteria mayUseSecondary, CancellationToken cancellationToken)
         {
-            var channelSource = CreateChannelSource();
-
-            return new ChannelSourceAndEffectiveReadPreference
-            {
-                ChannelSource = channelSource,
-                EffectiveReadPreference = _effectiveReadPreference
-            };
+            return GetWriteChannelSource(cancellationToken); // ignore mayUseSecondary
         }
 
         /// <inheritdoc/>
         public Task<IChannelSourceHandle> GetWriteChannelSourceAsync(CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
-            return Task.FromResult(CreateChannelSource());
+            return Task.FromResult(GetChannelSourceHelper());
         }
 
         /// <inheritdoc/>
-        public Task<ChannelSourceAndEffectiveReadPreference> GetWriteChannelSourceAsync(IMayUseSecondaryCriteria mayUseSecondary, CancellationToken cancellationToken)
+        public Task<IChannelSourceHandle> GetWriteChannelSourceAsync(IMayUseSecondaryCriteria mayUseSecondary, CancellationToken cancellationToken)
         {
-            var channelSource = CreateChannelSource();
-
-            return Task.FromResult(
-                new ChannelSourceAndEffectiveReadPreference
-                {
-                    ChannelSource = channelSource,
-                    EffectiveReadPreference = _effectiveReadPreference
-                }
-            );
+            return GetWriteChannelSourceAsync(cancellationToken); // ignore mayUseSecondary
         }
 
-        private IChannelSourceHandle CreateChannelSource()
+        private IChannelSourceHandle GetChannelSourceHelper()
         {
             return new ChannelSourceHandle(new ServerChannelSource(_server, _session.Fork()));
         }

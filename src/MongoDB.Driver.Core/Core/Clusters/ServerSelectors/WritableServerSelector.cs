@@ -44,7 +44,6 @@ namespace MongoDB.Driver.Core.Clusters.ServerSelectors
 
         // constructors
         private readonly IMayUseSecondaryCriteria _mayUseSecondary;
-        private ReadPreference _effectiveReadPreference;
 
         /// <summary>
         /// Initializes an instance of the WritableServerSelector class.
@@ -62,11 +61,6 @@ namespace MongoDB.Driver.Core.Clusters.ServerSelectors
             _mayUseSecondary = mayUseSecondary; // can be null
         }
 
-        /// <summary>
-        /// The effective read preference determined during server selection.
-        /// </summary>
-        public ReadPreference EffectiveReadPreference => _effectiveReadPreference;
-
         // methods
         /// <inheritdoc/>
         public IEnumerable<ServerDescription> SelectServers(ClusterDescription cluster, IEnumerable<ServerDescription> servers)
@@ -79,12 +73,14 @@ namespace MongoDB.Driver.Core.Clusters.ServerSelectors
             var serversList = servers.ToList(); // avoid multiple enumeration
             if (CanUseSecondaries(cluster, serversList))
             {
-                _effectiveReadPreference = _mayUseSecondary.ReadPreference;
                 var readPreferenceSelector = new ReadPreferenceServerSelector(_mayUseSecondary.ReadPreference);
                 return readPreferenceSelector.SelectServers(cluster, serversList);
             }
 
-            _effectiveReadPreference = ReadPreference.Primary;
+            if (_mayUseSecondary != null)
+            {
+                _mayUseSecondary.EffectiveReadPreference = ReadPreference.Primary; // fallback to primary
+            }
             return serversList.Where(x => x.Type.IsWritable());
         }
 
