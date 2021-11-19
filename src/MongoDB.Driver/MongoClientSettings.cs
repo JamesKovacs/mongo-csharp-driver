@@ -69,6 +69,7 @@ namespace MongoDB.Driver
         private List<MongoServerAddress> _servers;
         private TimeSpan _serverSelectionTimeout;
         private TimeSpan _socketTimeout;
+        private int _srvMaxHosts;
         private SslSettings _sslSettings;
         private bool _useTls;
         private int _waitQueueSize;
@@ -126,6 +127,7 @@ namespace MongoDB.Driver
             _servers = new List<MongoServerAddress> { new MongoServerAddress("localhost") };
             _serverSelectionTimeout = MongoDefaults.ServerSelectionTimeout;
             _socketTimeout = MongoDefaults.SocketTimeout;
+            _srvMaxHosts = 0;
             _sslSettings = null;
             _useTls = false;
 #pragma warning disable 618
@@ -631,7 +633,7 @@ namespace MongoDB.Driver
                 if (_isFrozen) { throw new InvalidOperationException("MongoClientSettings is frozen."); }
                 if (value == null)
                 {
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException(nameof(value));
                 }
                 _servers = new List<MongoServerAddress> { value };
             }
@@ -642,15 +644,26 @@ namespace MongoDB.Driver
         /// </summary>
         public IEnumerable<MongoServerAddress> Servers
         {
-            get { return new ReadOnlyCollection<MongoServerAddress>(_servers); }
+            get
+            {
+                var servers = _srvMaxHosts > 0 ? _servers.Take(_srvMaxHosts).ToList() : _servers;
+                return new ReadOnlyCollection<MongoServerAddress>(servers);
+            }
             set
             {
                 if (_isFrozen) { throw new InvalidOperationException("MongoClientSettings is frozen."); }
                 if (value == null)
                 {
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException(nameof(value));
                 }
-                _servers = new List<MongoServerAddress>(value);
+
+                var servers = new List<MongoServerAddress>(value);
+                if (_srvMaxHosts > 0)
+                {
+                    FisherYatesShuffle.Shuffle(servers);
+                }
+
+                _servers = servers;
             }
         }
 
@@ -677,6 +690,21 @@ namespace MongoDB.Driver
             {
                 if (_isFrozen) { throw new InvalidOperationException("MongoClientSettings is frozen."); }
                 _socketTimeout = value;
+            }
+        }
+
+        /// <summary>
+        /// Limits the number of SRV records used to populate the seedlist
+        /// during initial discovery, as well as the number of additional hosts
+        /// that may be added during SRV polling.
+        /// </summary>
+        public int SrvMaxHosts
+        {
+            get { return _srvMaxHosts; }
+            set
+            {
+                if (_isFrozen) { throw new InvalidOperationException("MongoClientSettings is frozen."); }
+                _srvMaxHosts = Ensure.IsGreaterThanOrEqualToZero(value, nameof(value));
             }
         }
 
@@ -917,6 +945,7 @@ namespace MongoDB.Driver
             clientSettings.Servers = new List<MongoServerAddress>(url.Servers);
             clientSettings.ServerSelectionTimeout = url.ServerSelectionTimeout;
             clientSettings.SocketTimeout = url.SocketTimeout;
+            clientSettings.SrvMaxHosts = url.SrvMaxHosts.GetValueOrDefault(0);
             clientSettings.SslSettings = null;
             if (url.TlsDisableCertificateRevocationCheck)
             {
@@ -973,6 +1002,7 @@ namespace MongoDB.Driver
             clone._servers = new List<MongoServerAddress>(_servers);
             clone._serverSelectionTimeout = _serverSelectionTimeout;
             clone._socketTimeout = _socketTimeout;
+            clone._srvMaxHosts = _srvMaxHosts;
             clone._sslSettings = (_sslSettings == null) ? null : _sslSettings.Clone();
             clone._useTls = _useTls;
             clone._waitQueueSize = _waitQueueSize;
@@ -1039,6 +1069,7 @@ namespace MongoDB.Driver
                 _servers.SequenceEqual(rhs._servers) &&
                 _serverSelectionTimeout == rhs._serverSelectionTimeout &&
                 _socketTimeout == rhs._socketTimeout &&
+                _srvMaxHosts == rhs._srvMaxHosts &&
                 _sslSettings == rhs._sslSettings &&
                 _useTls == rhs._useTls &&
                 _waitQueueSize == rhs._waitQueueSize &&
@@ -1122,6 +1153,7 @@ namespace MongoDB.Driver
                 .HashElements(_servers)
                 .Hash(_serverSelectionTimeout)
                 .Hash(_socketTimeout)
+                .Hash(_srvMaxHosts)
                 .Hash(_sslSettings)
                 .Hash(_useTls)
                 .Hash(_waitQueueSize)
@@ -1203,6 +1235,7 @@ namespace MongoDB.Driver
             sb.AppendFormat("Servers={0};", string.Join(",", _servers.Select(s => s.ToString()).ToArray()));
             sb.AppendFormat("ServerSelectionTimeout={0};", _serverSelectionTimeout);
             sb.AppendFormat("SocketTimeout={0};", _socketTimeout);
+            sb.AppendFormat("SrvMaxHosts={0}", _srvMaxHosts);
             if (_sslSettings != null)
             {
                 sb.AppendFormat("SslSettings={0};", _sslSettings);
@@ -1252,6 +1285,7 @@ namespace MongoDB.Driver
                 _servers.ToList(),
                 _serverSelectionTimeout,
                 _socketTimeout,
+                _srvMaxHosts,
                 _sslSettings,
                 _useTls,
                 _waitQueueSize,
@@ -1280,6 +1314,16 @@ namespace MongoDB.Driver
                 }
             }
 
+            if (_srvMaxHosts > 0 && _scheme != ConnectionStringScheme.MongoDBPlusSrv)
+            {
+                throw new InvalidOperationException("srvMaxHosts can only be used with the mongodb+srv scheme.");
+            }
+
+            if (_replicaSetName != null && _srvMaxHosts > 0)
+            {
+                throw new InvalidOperationException("Specifying srvMaxHosts when connecting to a replica set is invalid.");
+            }
+
             if (_loadBalanced)
             {
                 if (_servers.Count > 1)
@@ -1290,6 +1334,11 @@ namespace MongoDB.Driver
                 if (_replicaSetName != null)
                 {
                     throw new InvalidOperationException("ReplicaSetName cannot be used with load balanced mode.");
+                }
+
+                if (_srvMaxHosts > 0)
+                {
+                    throw new InvalidOperationException("srvMaxHosts cannot be used with load balanced mode.");
                 }
 
                 if (IsDirectConnection())
