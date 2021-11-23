@@ -24,7 +24,7 @@ namespace MongoDB.Driver.Tests.Jira
     public class CSharp3397Tests
     {
         [Fact]
-        public void Aggregate_out()
+        public void Aggregate_out_to_collection_should_work()
         {
             var client = DriverTestConfiguration.Client;
             var database = client.GetDatabase("test");

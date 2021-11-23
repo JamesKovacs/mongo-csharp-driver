@@ -260,7 +260,6 @@ namespace MongoDB.Driver.Core.Operations
             {
                 var operation = CreateOperation(channelBinding.Session, channel.ConnectionDescription, mayUseSecondary.EffectiveReadPreference);
                 return operation.Execute(channelBinding, cancellationToken);
-
             }
         }
 

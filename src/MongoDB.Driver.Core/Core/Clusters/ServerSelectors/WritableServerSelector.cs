@@ -61,6 +61,12 @@ namespace MongoDB.Driver.Core.Clusters.ServerSelectors
             _mayUseSecondary = mayUseSecondary; // can be null
         }
 
+        // properties
+        /// <summary>
+        /// Returns the may use secondary criteria.
+        /// </summary>
+        public IMayUseSecondaryCriteria MayUseSecondary => _mayUseSecondary;
+
         // methods
         /// <inheritdoc/>
         public IEnumerable<ServerDescription> SelectServers(ClusterDescription cluster, IEnumerable<ServerDescription> servers)
