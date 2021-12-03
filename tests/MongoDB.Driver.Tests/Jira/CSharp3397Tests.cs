@@ -31,9 +31,18 @@ namespace MongoDB.Driver.Tests.Jira
             var collection = database.GetCollection<BsonDocument>("test");
             var outCollection = database.GetCollection<AggregateCountResult>("out");
 
+            var writeConcern = WriteConcern.WMajority;
+            if (DriverTestConfiguration.IsReplicaSet(client))
+            {
+                var n = DriverTestConfiguration.GetReplicaSetNumberOfDataBearingMembers(client);
+                writeConcern = new WriteConcern(n);
+            }
+
             database.DropCollection("test");
             database.DropCollection("out");
-            collection.InsertOne(new BsonDocument("_id", 1));
+            collection
+                .WithWriteConcern(writeConcern)
+                .InsertOne(new BsonDocument("_id", 1));
 
             var pipeline = new EmptyPipelineDefinition<BsonDocument>()
                 .Count()
