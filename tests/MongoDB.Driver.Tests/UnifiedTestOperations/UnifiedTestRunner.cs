@@ -22,9 +22,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.TestHelpers.JsonDrivenTests;
 using MongoDB.Bson.TestHelpers.XunitExtensions;
 using MongoDB.Driver.Core;
-using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Misc;
-using MongoDB.Driver.Core.Servers;
 using MongoDB.Driver.Core.TestHelpers;
 using MongoDB.Driver.Core.TestHelpers.Logging;
 using MongoDB.Driver.Core.TestHelpers.XunitExtensions;
@@ -175,17 +173,10 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                 var databaseName = dataItem["databaseName"].AsString;
                 var documents = dataItem["documents"].AsBsonArray.Cast<BsonDocument>().ToList();
 
-                var writeConcern = WriteConcern.WMajority;
-                //if (DriverTestConfiguration.IsReplicaSet(client))
-                //{
-                //    var n = DriverTestConfiguration.GetReplicaSetNumberOfDataBearingMembers(client);
-                //    writeConcern = new WriteConcern(n);
-                //}
-
                 var database = client.GetDatabase(databaseName);
                 var collection = database
                     .GetCollection<BsonDocument>(collectionName)
-                    .WithWriteConcern(writeConcern);
+                    .WithWriteConcern(WriteConcern.WMajority);
 
                 _logger.Debug("Dropping {0}", collectionName);
 
@@ -196,7 +187,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                 }
                 else
                 {
-                    database.WithWriteConcern(writeConcern).CreateCollection(collectionName);
+                    database.WithWriteConcern(WriteConcern.WMajority).CreateCollection(collectionName);
                 }
             }
         }
