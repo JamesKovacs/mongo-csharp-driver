@@ -87,7 +87,7 @@ namespace MongoDB.Driver.Core.Bindings
         /// <inheritdoc/>
         public IChannelSourceHandle GetWriteChannelSource(IMayUseSecondaryCriteria mayUseSecondary, CancellationToken cancellationToken)
         {
-            if (_cluster.IsPinnedToServer(_session))
+            if (IsSessionPinnedToServer())
             {
                 throw new InvalidOperationException($"This overload of {nameof(GetWriteChannelSource)} cannot be called when pinned to a server.");
             }
@@ -108,7 +108,7 @@ namespace MongoDB.Driver.Core.Bindings
         /// <inheritdoc/>
         public async Task<IChannelSourceHandle> GetWriteChannelSourceAsync(IMayUseSecondaryCriteria mayUseSecondary, CancellationToken cancellationToken)
         {
-            if (_cluster.IsPinnedToServer(_session))
+            if (IsSessionPinnedToServer())
             {
                 throw new InvalidOperationException($"This overload of {nameof(GetWriteChannelSource)} cannot be called when pinned to a server.");
             }
@@ -131,6 +131,11 @@ namespace MongoDB.Driver.Core.Bindings
                 _session.Dispose();
                 _disposed = true;
             }
+        }
+
+        private bool IsSessionPinnedToServer()
+        {
+            return _session.IsInTransaction && _session.CurrentTransaction.PinnedServer != null;
         }
 
         private void ThrowIfDisposed()
