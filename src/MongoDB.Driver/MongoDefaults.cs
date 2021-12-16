@@ -49,6 +49,7 @@ namespace MongoDB.Driver
         private static UTF8Encoding __writeEncoding = Utf8Encodings.Strict;
         private static int __maxDocumentSize = 4 * 1024 * 1024; // 4 MiB. Original MongoDB max document size
 
+
         // public static properties
         /// <summary>
         /// Gets or sets whether the driver should assign a value to empty Ids on Insert.
@@ -204,6 +205,8 @@ namespace MongoDB.Driver
                 __readEncoding = value;
             }
         }
+
+
 
         /// <summary>
         /// Gets or sets the server selection timeout.

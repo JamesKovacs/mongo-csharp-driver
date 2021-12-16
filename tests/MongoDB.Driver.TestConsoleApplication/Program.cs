@@ -14,7 +14,11 @@
 */
 
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Net.Sockets;
+using System.Threading;
+using MongoDB.Bson;
 using MongoDB.Driver.Core.Configuration;
 using MongoDB.Driver.Core.Events.Diagnostics;
 
@@ -22,23 +26,93 @@ namespace MongoDB.Driver.TestConsoleApplication
 {
     class Program
     {
-        static void Main(string[] args)
+        static StreamWriter ConfigureConsoleOutputToFile(FileStream fileStream)
         {
-            //FilterMeasuring.TestAsync().GetAwaiter().GetResult();
-            int numConcurrentWorkers = 50;
-            //new CoreApi().Run(numConcurrentWorkers, ConfigureCluster);
-            new CoreApiSync().Run(numConcurrentWorkers, ConfigureCluster);
+            FileStream oldStream;
+            StreamWriter writer;
+            TextWriter oldOut = Console.Out;
+            try
+            {
+                writer = new StreamWriter(fileStream);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Cannot open Redirect.txt for writing");
+                Console.WriteLine(e.Message);
+                throw;
+            }
 
-            new Api().Run(numConcurrentWorkers, ConfigureCluster);
-
-            //new LegacyApi().Run(numConcurrentWorkers, ConfigureCluster);
+            Console.SetOut(writer);
+            return writer;
         }
 
-        private static void ConfigureCluster(ClusterBuilder cb)
+        static void Main(string[] args)
         {
-#if NET472
-            cb.UsePerformanceCounters("test", true);
-#endif
+            const string MONGODB_URI = "mongodb://james:QgW4Ncupi-F-4P3s@ec2-3-140-238-187.us-east-2.compute.amazonaws.com,ec2-3-144-169-184.us-east-2.compute.amazonaws.com,ec2-18-216-4-122.us-east-2.compute.amazonaws.com/test?replicaSet=rs0&authSource=admin";
+            var url = new MongoUrl(MONGODB_URI);
+            var settings = MongoClientSettings.FromUrl(url);
+
+            MongoInternalDefaults.RttTimeout = TimeSpan.FromSeconds(5);
+            MongoInternalDefaults.RttReadTimeout = TimeSpan.FromSeconds(3);
+
+            void socketConfigurator(Socket socket)
+            {
+                const SocketOptionName TCP_USER_TIMEOUT = (SocketOptionName)18;
+                const uint timeoutMS = 5000;
+                var timeoutBytes = BitConverter.GetBytes(timeoutMS);
+                // TCP_USER_TIMEOUT = TCP_KEEPIDLE + TCP_KEEPINTVL * TCP_KEEPCNT
+                // See https://blog.cloudflare.com/when-tcp-sockets-refuse-to-die/ for more information.
+                //socket.SetRawSocketOption((int)SocketOptionLevel.Tcp, (int)TCP_USER_TIMEOUT, timeoutBytes);
+                //socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+                //socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 3);
+                //socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 1);
+                //socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 2);
+            }
+            settings.ClusterConfigurator = cb =>
+            {
+                cb.Subscribe(new CustomEventSubscriber());
+                //cb.ConfigureTcp(tcp => tcp.With(socketConfigurator: (Action<Socket>)socketConfigurator));
+            };
+
+            using var fileStream = new FileStream(@"c:\Logs\bosh.log", FileMode.OpenOrCreate, FileAccess.Write);
+            using var writeStream = ConfigureConsoleOutputToFile(fileStream);
+
+            Console.WriteLine($"{DateTime.UtcNow}:Starting");
+
+            var client = new MongoClient(settings);
+            var db = client.GetDatabase("dotnet_test");
+            var coll = db.GetCollection<BsonDocument>("test");
+            coll.DeleteMany(FilterDefinition<BsonDocument>.Empty);
+            Console.WriteLine($"{DateTime.UtcNow:O}\tDeleted all documents");
+            int counter = 0;
+
+            var stopwatch = new Stopwatch();
+
+            while (true)
+            {
+                try
+                {
+                    var document = new BsonDocument { { "timestamp", DateTime.UtcNow }, { "counter", counter } };
+
+                    stopwatch.Restart();
+                    coll.InsertOne(document);
+                    stopwatch.Stop();
+                    Console.WriteLine($"{DateTime.UtcNow:O}\tInsert counter {counter}");
+                    counter++;
+                    if (stopwatch.ElapsedMilliseconds > 1000)
+                    {
+                        Console.WriteLine($"\n\n\n\n{DateTime.UtcNow:O}\t^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Recovered from loss of primary. Test terminated.\n\n\n\n");
+                        break;
+                    }
+
+                    Thread.Sleep(50);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("\n\n############Failed to insert into collection\n\n");
+                    Console.WriteLine("Error :" + ex.Message);
+                }
+            }
         }
     }
 }
