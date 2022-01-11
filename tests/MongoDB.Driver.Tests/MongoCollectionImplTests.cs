@@ -28,7 +28,6 @@ using MongoDB.Bson.TestHelpers.XunitExtensions;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Connections;
-using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.Operations;
 using MongoDB.Driver.Core.Servers;
 using MongoDB.Driver.Core.TestHelpers.XunitExtensions;
@@ -1268,9 +1267,59 @@ namespace MongoDB.Driver
             operation.RetryRequested.Should().BeTrue();
         }
 
+        [SkippableTheory]
+        [ParameterAttributeData]
+        public void Find_with_explain_should_return_cursor_with_explained_results(
+            [Values(
+                ExplainVerbosity.AllPlansExecution,
+                ExplainVerbosity.ExecutionStats,
+                ExplainVerbosity.QueryPlanner)] ExplainVerbosity explainVerbosity,
+            [Values(false, true)] bool useTProjection,
+            [Values(false, true)] bool async)
+        {
+            RequireServer.Check();
+
+            var client = DriverTestConfiguration.Client;
+            var database = client.GetDatabase(DriverTestConfiguration.DatabaseNamespace.DatabaseName);
+            var collection = database.GetCollection<BsonDocument>(DriverTestConfiguration.CollectionNamespace.CollectionName);
+            collection.InsertOne(new BsonDocument()); // ensure that database exists to prevent $explain failing on sharded cluster
+
+            FindOptions<BsonDocument, BsonDocument> findOptions;
+            if (useTProjection)
+            {
+                findOptions = new FindOptions<BsonDocument, BsonDocument>();
+            }
+            else
+            {
+                findOptions = new FindOptions<BsonDocument>();
+            }
+#pragma warning disable CS0618 // Type or member is obsolete
+            findOptions.Modifiers = new BsonDocument("$explain", explainVerbosity);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            IAsyncCursor<BsonDocument> cursor;
+            if (async)
+            {
+                cursor = collection.FindAsync(FilterDefinition<BsonDocument>.Empty, findOptions).GetAwaiter().GetResult();
+            }
+            else
+            {
+                cursor = collection.FindSync(FilterDefinition<BsonDocument>.Empty, findOptions);
+            }
+
+            cursor.Single()
+                .Elements
+                .Should()
+                .ContainSingle(e => e.Name == "serverInfo"); // this node presents in $explain response regardless server version
+        }
+
         [Theory]
         [ParameterAttributeData]
         public void Find_should_execute_a_FindOperation(
+            [Values(
+                ExplainVerbosity.AllPlansExecution,
+                ExplainVerbosity.ExecutionStats,
+                ExplainVerbosity.QueryPlanner, null)] ExplainVerbosity? explainVerbosity,
             [Values(false, true)] bool usingSession,
             [Values(false, true)] bool async)
         {
@@ -1294,7 +1343,11 @@ namespace MongoDB.Driver
                 MaxAwaitTime = TimeSpan.FromSeconds(4),
                 MaxTime = TimeSpan.FromSeconds(3),
 #pragma warning disable 618
-                Modifiers = BsonDocument.Parse("{ $snapshot : true }"),
+                Modifiers = new BsonDocument
+                {
+                    { "$snapshot", true },
+                    { "$explain", () => explainVerbosity.Value, explainVerbosity.HasValue }
+                },
 #pragma warning restore 618
                 NoCursorTimeout = true,
 #pragma warning disable 618
@@ -1363,6 +1416,7 @@ namespace MongoDB.Driver
         [Theory]
         [ParameterAttributeData]
         public void Find_with_an_expression_execute_a_FindOperation(
+            [Values(ExplainVerbosity.AllPlansExecution, ExplainVerbosity.ExecutionStats, ExplainVerbosity.QueryPlanner, null)] ExplainVerbosity? explainVerbosity,
             [Values(false, true)] bool usingSession,
             [Values(false, true)] bool async)
         {
@@ -1385,7 +1439,11 @@ namespace MongoDB.Driver
                 MaxAwaitTime = TimeSpan.FromSeconds(4),
                 MaxTime = TimeSpan.FromSeconds(3),
 #pragma warning disable 618
-                Modifiers = BsonDocument.Parse("{ $snapshot : true }"),
+                Modifiers = new BsonDocument
+                {
+                    { "$snapshot", true },
+                    { "$explain", () => explainVerbosity.Value, explainVerbosity.HasValue }
+                },
 #pragma warning restore 618
                 NoCursorTimeout = true,
 #pragma warning disable 618

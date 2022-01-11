@@ -14,26 +14,24 @@
 */
 
 using System;
-using System.Threading;
 using FluentAssertions;
 using MongoDB.Bson;
 using MongoDB.Bson.TestHelpers.XunitExtensions;
 using MongoDB.Driver.Core.Clusters;
-using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.TestHelpers;
 using MongoDB.Driver.Core.TestHelpers.XunitExtensions;
 using Xunit;
 
 namespace MongoDB.Driver.Core.Operations
 {
-    public class AggregateExplainOperationTests : OperationTestBase
+    public class AggregateLegacyExplainOperationTests : OperationTestBase
     {
         private static BsonDocument[] __pipeline = new[] { BsonDocument.Parse("{ $match : { x : 1 } }") };
 
         [Fact]
         public void Constructor_should_create_a_valid_instance()
         {
-            var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
+            var subject = new AggregateLegacyExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
 
             subject.CollectionNamespace.Should().BeSameAs(_collectionNamespace);
             subject.Pipeline.Should().Equal(__pipeline);
@@ -47,7 +45,7 @@ namespace MongoDB.Driver.Core.Operations
         [Fact]
         public void Constructor_should_throw_when_collectionNamespace_is_null()
         {
-            var exception = Record.Exception(() => new AggregateExplainOperation(null, __pipeline, _messageEncoderSettings));
+            var exception = Record.Exception(() => new AggregateLegacyExplainOperation(null, __pipeline, _messageEncoderSettings));
 
             var argumentNullException = exception.Should().BeOfType<ArgumentNullException>().Subject;
             argumentNullException.ParamName.Should().Be("collectionNamespace");
@@ -56,7 +54,7 @@ namespace MongoDB.Driver.Core.Operations
         [Fact]
         public void Constructor_should_throw_when_pipeline_is_null()
         {
-            var exception = Record.Exception(() => new AggregateExplainOperation(_collectionNamespace, null, _messageEncoderSettings));
+            var exception = Record.Exception(() => new AggregateLegacyExplainOperation(_collectionNamespace, null, _messageEncoderSettings));
 
             var argumentNullException = exception.Should().BeOfType<ArgumentNullException>().Subject;
             argumentNullException.ParamName.Should().Be("pipeline");
@@ -65,7 +63,7 @@ namespace MongoDB.Driver.Core.Operations
         [Fact]
         public void Constructor_should_throw_when_messageEncoderSettings_is_null()
         {
-            var exception = Record.Exception(() => new AggregateExplainOperation(_collectionNamespace, __pipeline, null));
+            var exception = Record.Exception(() => new AggregateLegacyExplainOperation(_collectionNamespace, __pipeline, null));
 
             var argumentNullException = exception.Should().BeOfType<ArgumentNullException>().Subject;
             argumentNullException.ParamName.Should().Be("messageEncoderSettings");
@@ -74,7 +72,7 @@ namespace MongoDB.Driver.Core.Operations
         [Fact]
         public void AllowDiskUse_get_and_set_should_work()
         {
-            var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
+            var subject = new AggregateLegacyExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
 
             subject.AllowDiskUse = true;
             var result = subject.AllowDiskUse;
@@ -85,7 +83,7 @@ namespace MongoDB.Driver.Core.Operations
         [Fact]
         public void Collation_get_and_set_should_work()
         {
-            var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
+            var subject = new AggregateLegacyExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
             var value = new Collation("en_US");
 
             subject.Collation = value;
@@ -97,7 +95,7 @@ namespace MongoDB.Driver.Core.Operations
         [Fact]
         public void Comment_get_and_set_should_work()
         {
-            var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
+            var subject = new AggregateLegacyExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
             var value = "test";
 
             subject.Comment = value;
@@ -109,7 +107,7 @@ namespace MongoDB.Driver.Core.Operations
         [Fact]
         public void Hint_get_and_set_should_work()
         {
-            var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
+            var subject = new AggregateLegacyExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
             var value = new BsonDocument("x", 1);
 
             subject.Hint = value;
@@ -123,7 +121,7 @@ namespace MongoDB.Driver.Core.Operations
         public void MaxTime_get_and_set_should_work(
             [Values(-10000, 0, 1, 10000, 99999)] long maxTimeTicks)
         {
-            var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
+            var subject = new AggregateLegacyExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
             var value = TimeSpan.FromTicks(maxTimeTicks);
 
             subject.MaxTime = value;
@@ -137,7 +135,7 @@ namespace MongoDB.Driver.Core.Operations
         public void MaxTime_set_should_throw_when_value_is_invalid(
             [Values(-10001, -9999, -1)] long maxTimeTicks)
         {
-            var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
+            var subject = new AggregateLegacyExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
             var value = TimeSpan.FromTicks(maxTimeTicks);
 
             var exception = Record.Exception(() => subject.MaxTime = value);
@@ -149,7 +147,7 @@ namespace MongoDB.Driver.Core.Operations
         [Fact]
         public void CreateCommand_should_return_expected_result()
         {
-            var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
+            var subject = new AggregateLegacyExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
 
             var result = subject.CreateCommand();
 
@@ -168,7 +166,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool allowDiskUse)
         {
-            var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
+            var subject = new AggregateLegacyExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
             {
                 AllowDiskUse = allowDiskUse
             };
@@ -192,7 +190,7 @@ namespace MongoDB.Driver.Core.Operations
             string locale)
         {
             var collation = new Collation(locale);
-            var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
+            var subject = new AggregateLegacyExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
             {
                 Collation = collation
             };
@@ -215,7 +213,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(null, "test")]
             string comment)
         {
-            var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
+            var subject = new AggregateLegacyExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
             {
                 Comment = comment,
             };
@@ -239,7 +237,7 @@ namespace MongoDB.Driver.Core.Operations
             string hintJson)
         {
             var hint = hintJson == null ? null : BsonDocument.Parse(hintJson);
-            var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
+            var subject = new AggregateLegacyExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
             {
                 Hint = hint
             };
@@ -265,7 +263,7 @@ namespace MongoDB.Driver.Core.Operations
         [InlineData(10001, 2)]
         public void CreateCommand_should_return_expected_result_when_MaxTime_is_set(long maxTimeTicks, int expectedMaxTimeMS)
         {
-            var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
+            var subject = new AggregateLegacyExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
             {
                 MaxTime = TimeSpan.FromTicks(maxTimeTicks)
             };
@@ -290,7 +288,7 @@ namespace MongoDB.Driver.Core.Operations
             bool async)
         {
             RequireServer.Check();
-            var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
+            var subject = new AggregateLegacyExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
 
             var result = ExecuteOperation(subject, async);
 
@@ -304,7 +302,7 @@ namespace MongoDB.Driver.Core.Operations
             bool async)
         {
             RequireServer.Check();
-            var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
+            var subject = new AggregateLegacyExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
             {
                 AllowDiskUse = true
             };
@@ -321,7 +319,7 @@ namespace MongoDB.Driver.Core.Operations
             bool async)
         {
             RequireServer.Check();
-            var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
+            var subject = new AggregateLegacyExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
             {
                 Collation = new Collation("en_US")
             };
@@ -338,7 +336,7 @@ namespace MongoDB.Driver.Core.Operations
         {
             RequireServer.Check().ClusterTypes(ClusterType.Standalone, ClusterType.ReplicaSet);
 
-            var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings) { MaxTime = TimeSpan.FromSeconds(9001) };
+            var subject = new AggregateLegacyExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings) { MaxTime = TimeSpan.FromSeconds(9001) };
 
             using (var failPoint = FailPoint.ConfigureAlwaysOn(_cluster, _session, FailPointName.MaxTimeAlwaysTimeout))
             {
@@ -355,7 +353,7 @@ namespace MongoDB.Driver.Core.Operations
             bool async)
         {
             RequireServer.Check().ClusterTypes(ClusterType.Standalone, ClusterType.ReplicaSet);
-            var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
+            var subject = new AggregateLegacyExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
             {
                 Comment = "test"
             };
@@ -379,7 +377,7 @@ namespace MongoDB.Driver.Core.Operations
             bool async)
         {
             RequireServer.Check();
-            var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
+            var subject = new AggregateLegacyExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
             {
                 Hint = "_id_"
             };
@@ -396,7 +394,7 @@ namespace MongoDB.Driver.Core.Operations
             bool async)
         {
             RequireServer.Check();
-            var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
+            var subject = new AggregateLegacyExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
             {
                 MaxTime = TimeSpan.FromSeconds(1)
             };
@@ -412,8 +410,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)] bool async)
         {
             RequireServer.Check();
-            var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
-            var cancellationToken = new CancellationTokenSource().Token;
+            var subject = new AggregateLegacyExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
 
             VerifySessionIdWasSentWhenSupported(subject, "aggregate", async);
         }

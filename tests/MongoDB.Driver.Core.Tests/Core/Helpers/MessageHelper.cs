@@ -104,6 +104,39 @@ namespace MongoDB.Driver.Core.Helpers
 #pragma warning restore 618
         }
 
+        public static CommandRequestMessage BuildCommandRequest(
+            BsonDocument command,
+            int requestId = 0,
+            DatabaseNamespace databaseNamespace = null)
+        {
+            if (databaseNamespace == null)
+            {
+                databaseNamespace = __defaultDatabaseNamespace;
+            }
+
+            Action<BsonWriterSettings> writerSettingsConfigurator = null;
+#pragma warning disable CS0618 // Type or member is obsolete
+            if (BsonDefaults.GuidRepresentationMode == GuidRepresentationMode.V2)
+            {
+                writerSettingsConfigurator = s => s.GuidRepresentation = GuidRepresentation.Unspecified;
+            }
+#pragma warning restore CS0618 // Type or member is obsolete
+            var extraElements = new List<BsonElement>
+            {
+                new BsonElement("$db", databaseNamespace.DatabaseName)
+            };
+            var elementAppendingSerializer = new ElementAppendingSerializer<BsonDocument>(BsonDocumentSerializer.Instance, extraElements, writerSettingsConfigurator);
+            var commandMessage = new CommandMessage(
+                requestId,
+                0,
+                new CommandMessageSection[] { new Type0CommandMessageSection<BsonDocument>(command, elementAppendingSerializer) },
+                moreToCome: false);
+
+#pragma warning disable 618
+            return new CommandRequestMessage(commandMessage, () => true);
+#pragma warning restore 618
+        }
+
         public static CommandResponseMessage BuildCommandResponse(
             RawBsonDocument command,
             int requestId = 0,
@@ -116,16 +149,6 @@ namespace MongoDB.Driver.Core.Helpers
                 responseTo: responseTo,
                 sections: new[] { new Type0CommandMessageSection<RawBsonDocument>(command, RawBsonDocumentSerializer.Instance) },
                 moreToCome: moreToCome));
-        }
-
-        public static QueryMessage BuildGetLastError(
-            WriteConcern writeConcern,
-            int requestId = 0,
-            DatabaseNamespace databaseNamespace = null)
-        {
-            var command = writeConcern.ToBsonDocument();
-            command.InsertAt(0, new BsonElement("getLastError", 1));
-            return BuildCommand(command, requestId, databaseNamespace);
         }
 
         public static ReplyMessage<T> BuildQueryFailedReply<T>(

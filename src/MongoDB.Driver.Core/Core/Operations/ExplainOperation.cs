@@ -17,9 +17,12 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
+using MongoDB.Bson.IO;
+using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Misc;
+using MongoDB.Driver.Core.WireProtocol;
 using MongoDB.Driver.Core.WireProtocol.Messages.Encoders;
 
 namespace MongoDB.Driver.Core.Operations
@@ -27,27 +30,31 @@ namespace MongoDB.Driver.Core.Operations
     /// <summary>
     /// Represents an explain operation.
     /// </summary>
-    public class ExplainOperation : IReadOperation<BsonDocument>, IWriteOperation<BsonDocument>
+    internal class ExplainOperation<TResult> : IReadOperation<CursorBatch<TResult>>, IExecutableInRetryableReadContext<CursorBatch<TResult>>
     {
         // fields
         private readonly DatabaseNamespace _databaseNamespace;
         private readonly BsonDocument _command;
         private readonly MessageEncoderSettings _messageEncoderSettings;
+        private readonly IBsonSerializer<TResult> _resultSerializer;
+        private bool _retryRequested;
         private ExplainVerbosity _verbosity;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="ExplainOperation"/> class.
+        /// Initializes a new instance of the <see cref="ExplainOperation{TResult}"/> class.
         /// </summary>
         /// <param name="databaseNamespace">The database namespace.</param>
         /// <param name="command">The command.</param>
+        /// <param name="resultSerializer">The result serializer.</param>
         /// <param name="messageEncoderSettings">The message encoder settings.</param>
-        public ExplainOperation(DatabaseNamespace databaseNamespace, BsonDocument command, MessageEncoderSettings messageEncoderSettings)
+        public ExplainOperation(DatabaseNamespace databaseNamespace, BsonDocument command, IBsonSerializer<TResult> resultSerializer, MessageEncoderSettings messageEncoderSettings)
         {
             _databaseNamespace = Ensure.IsNotNull(databaseNamespace, nameof(databaseNamespace));
             _command = Ensure.IsNotNull(command, nameof(command));
             _messageEncoderSettings = Ensure.IsNotNull(messageEncoderSettings, nameof(messageEncoderSettings));
-            _verbosity = ExplainVerbosity.QueryPlanner;
+            _resultSerializer = Ensure.IsNotNull(resultSerializer, nameof(resultSerializer));
+            _verbosity = ExplainVerbosity.AllPlansExecution; // default
         }
 
         // properties
@@ -85,6 +92,16 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether to retry.
+        /// </summary>
+        /// <value>Whether to retry.</value>
+        public bool RetryRequested
+        {
+            get { return _retryRequested; }
+            set { _retryRequested = value; }
+        }
+
+        /// <summary>
         /// Gets or sets the verbosity.
         /// </summary>
         /// <value>
@@ -98,31 +115,41 @@ namespace MongoDB.Driver.Core.Operations
 
         // public methods
         /// <inheritdoc/>
-        public BsonDocument Execute(IReadBinding binding, CancellationToken cancellationToken)
+        public CursorBatch<TResult> Execute(IReadBinding binding, CancellationToken cancellationToken)
+        {
+            Ensure.IsNotNull(binding, nameof(binding));
+
+            using (var context = RetryableReadContext.Create(binding, _retryRequested, cancellationToken))
+            {
+                return Execute(context, cancellationToken);
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<CursorBatch<TResult>> ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken)
+        {
+            Ensure.IsNotNull(binding, nameof(binding));
+
+            using (var context = await RetryableReadContext.CreateAsync(binding, _retryRequested, cancellationToken).ConfigureAwait(false))
+            {
+                return await ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        /// <inheritdoc/>
+        public CursorBatch<TResult> Execute(RetryableReadContext context, CancellationToken cancellationToken)
         {
             var operation = CreateReadOperation();
-            return operation.Execute(binding, cancellationToken);
+            var result = operation.Execute(context, cancellationToken);
+            return TransformToCursorBatch(result);
         }
 
         /// <inheritdoc/>
-        public BsonDocument Execute(IWriteBinding binding, CancellationToken cancellationToken)
-        {
-            var operation = CreateWriteOperation();
-            return operation.Execute(binding, cancellationToken);
-        }
-
-        /// <inheritdoc/>
-        public Task<BsonDocument> ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken)
+        public async Task<CursorBatch<TResult>> ExecuteAsync(RetryableReadContext context, CancellationToken cancellationToken)
         {
             var operation = CreateReadOperation();
-            return operation.ExecuteAsync(binding, cancellationToken);
-        }
-
-        /// <inheritdoc/>
-        public Task<BsonDocument> ExecuteAsync(IWriteBinding binding, CancellationToken cancellationToken)
-        {
-            var operation = CreateWriteOperation();
-            return operation.ExecuteAsync(binding, cancellationToken);
+            var result = await operation.ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
+            return TransformToCursorBatch(result);
         }
 
         // private methods
@@ -160,18 +187,19 @@ namespace MongoDB.Driver.Core.Operations
                 BsonDocumentSerializer.Instance,
                 _messageEncoderSettings)
             {
-                RetryRequested = false
+                RetryRequested = _retryRequested
             };
         }
 
-        private WriteCommandOperation<BsonDocument> CreateWriteOperation()
+        private CursorBatch<TResult> TransformToCursorBatch(BsonDocument explainedResult)
         {
-            var command = CreateCommand();
-            return new WriteCommandOperation<BsonDocument>(
-                _databaseNamespace,
-                command,
-                BsonDocumentSerializer.Instance,
-                _messageEncoderSettings);
+            using var bsonDocumentReader = new BsonDocumentReader(explainedResult);
+            var context = BsonDeserializationContext.CreateRoot(bsonDocumentReader);
+            var result = _resultSerializer.Deserialize(context);
+
+            return new CursorBatch<TResult>(
+                cursorId: 0,
+                documents: new[] { result });
         }
     }
 }

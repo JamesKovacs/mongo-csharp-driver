@@ -26,8 +26,8 @@ using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Events;
 using MongoDB.Driver.Core.Misc;
+using MongoDB.Driver.Core.WireProtocol;
 using MongoDB.Driver.Core.WireProtocol.Messages.Encoders;
-using MongoDB.Shared;
 
 namespace MongoDB.Driver.Core.Operations
 {
@@ -295,7 +295,6 @@ namespace MongoDB.Driver.Core.Operations
             {
                 var operation = CreateOperation(context);
                 var result = operation.Execute(context, cancellationToken);
-
                 context.ChannelSource.Session.SetSnapshotTimeIfNeeded(result.AtClusterTime);
 
                 return CreateCursor(context.ChannelSource, context.Channel, result);
@@ -330,21 +329,6 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        /// <summary>
-        /// Returns an AggregateExplainOperation for this AggregateOperation.
-        /// </summary>
-        /// <param name="verbosity">The verbosity.</param>
-        /// <returns>An AggregateExplainOperation.</returns>
-        public IReadOperation<BsonDocument> ToExplainOperation(ExplainVerbosity verbosity)
-        {
-            return new AggregateExplainOperation(_collectionNamespace, _pipeline, _messageEncoderSettings)
-            {
-                AllowDiskUse = _allowDiskUse,
-                Collation = _collation,
-                MaxTime = _maxTime
-            };
-        }
-
         internal BsonDocument CreateCommand(ConnectionDescription connectionDescription, ICoreSession session)
         {
             var readConcern = ReadConcernHelper.GetReadConcernForCommand(session, connectionDescription, _readConcern);
@@ -371,56 +355,33 @@ namespace MongoDB.Driver.Core.Operations
             return command;
         }
 
-        private ReadCommandOperation<AggregateResult> CreateOperation(RetryableReadContext context)
+        private IExecutableInRetryableReadContext<CursorBatch<TResult>> CreateOperation(RetryableReadContext context)
         {
             var databaseNamespace = _collectionNamespace == null ? _databaseNamespace : _collectionNamespace.DatabaseNamespace;
             var command = CreateCommand(context.Channel.ConnectionDescription, context.Binding.Session);
-            var serializer = new AggregateResultDeserializer(_resultSerializer);
-            return new ReadCommandOperation<AggregateResult>(databaseNamespace, command, serializer, MessageEncoderSettings)
+
+            var serializer = new CursorBatchDeserializer<TResult>(_resultSerializer);
+            return new ReadCommandOperation<CursorBatch<TResult>>(
+                databaseNamespace,
+                command,
+                serializer,
+                MessageEncoderSettings)
             {
                 RetryRequested = _retryRequested // might be overridden by retryable read context
             };
         }
 
-        private AsyncCursor<TResult> CreateCursor(IChannelSourceHandle channelSource, IChannelHandle channel, AggregateResult result)
+        private IAsyncCursor<TResult> CreateCursor(IChannelSourceHandle channelSource, IChannelHandle channel, CursorBatch<TResult> cursorBatch)
         {
-            if (result.CursorId.HasValue)
-            {
-                return CreateCursorFromCursorResult(channelSource, channel, result);
-            }
-            else
-            {
-                // don't need connection pinning
-                return CreateCursorFromInlineResult(result);
-            }
-        }
-
-        private AsyncCursor<TResult> CreateCursorFromCursorResult(IChannelSourceHandle channelSource, IChannelHandle channel, AggregateResult result)
-        {
-            var cursorId = result.CursorId.GetValueOrDefault(0);
+            var cursorId = cursorBatch.CursorId;
             var getMoreChannelSource = ChannelPinningHelper.CreateGetMoreChannelSource(channelSource, channel, cursorId);
             return new AsyncCursor<TResult>(
                 getMoreChannelSource,
-                result.CollectionNamespace,
-                result.Results,
+                cursorBatch.CollectionNamespace,
+                cursorBatch.Documents,
                 cursorId,
-                result.PostBatchResumeToken,
+                cursorBatch.PostBatchResumeToken,
                 _batchSize,
-                null, // limit
-                _resultSerializer,
-                MessageEncoderSettings,
-                _maxAwaitTime);
-        }
-
-        private AsyncCursor<TResult> CreateCursorFromInlineResult(AggregateResult result)
-        {
-            return new AsyncCursor<TResult>(
-                null, // channelSource
-                CollectionNamespace,
-                result.Results,
-                0, // cursorId
-                null, // postBatchResumeToken
-                null, // batchSize
                 null, // limit
                 _resultSerializer,
                 MessageEncoderSettings,
@@ -432,104 +393,6 @@ namespace MongoDB.Driver.Core.Operations
             if (Pipeline.Any(s => { var n = s.GetElement(0).Name; return n == "$out" || n == "$merge"; }))
             {
                 throw new ArgumentException("The pipeline for an AggregateOperation contains a $out or $merge operator. Use AggregateOutputToCollectionOperation instead.", "pipeline");
-            }
-        }
-
-        private class AggregateResult
-        {
-            public BsonTimestamp AtClusterTime;
-            public long? CursorId;
-            public CollectionNamespace CollectionNamespace;
-            public BsonDocument PostBatchResumeToken;
-            public TResult[] Results;
-        }
-
-        private class AggregateResultDeserializer : SerializerBase<AggregateResult>
-        {
-            private readonly IBsonSerializer<TResult> _resultSerializer;
-
-            public AggregateResultDeserializer(IBsonSerializer<TResult> resultSerializer)
-            {
-                _resultSerializer = resultSerializer;
-            }
-
-            public override AggregateResult Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
-            {
-                var reader = context.Reader;
-                AggregateResult result = null;
-                reader.ReadStartDocument();
-                while (reader.ReadBsonType() != 0)
-                {
-                    var elementName = reader.ReadName();
-                    if (elementName == "cursor")
-                    {
-                        var cursorDeserializer = new CursorDeserializer(_resultSerializer);
-                        result = cursorDeserializer.Deserialize(context);
-                    }
-                    else if (elementName == "result")
-                    {
-                        var arraySerializer = new ArraySerializer<TResult>(_resultSerializer);
-                        result = new AggregateResult();
-                        result.Results = arraySerializer.Deserialize(context);
-                    }
-                    else
-                    {
-                        reader.SkipValue();
-                    }
-                }
-                reader.ReadEndDocument();
-                return result;
-            }
-        }
-
-        private class CursorDeserializer : SerializerBase<AggregateResult>
-        {
-            private readonly IBsonSerializer<TResult> _resultSerializer;
-
-            public CursorDeserializer(IBsonSerializer<TResult> resultSerializer)
-            {
-                _resultSerializer = resultSerializer;
-            }
-
-            public override AggregateResult Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
-            {
-                var reader = context.Reader;
-                var result = new AggregateResult();
-                reader.ReadStartDocument();
-                while (reader.ReadBsonType() != 0)
-                {
-                    var elementName = reader.ReadName();
-                    switch (elementName)
-                    {
-                        case "atClusterTime":
-                            result.AtClusterTime = BsonTimestampSerializer.Instance.Deserialize(context);
-                            break;
-
-                        case "id":
-                            result.CursorId = new Int64Serializer().Deserialize(context);
-                            break;
-
-                        case "ns":
-                            var ns = reader.ReadString();
-                            result.CollectionNamespace = CollectionNamespace.FromFullName(ns);
-                            break;
-
-                        case "firstBatch":
-                            var arraySerializer = new ArraySerializer<TResult>(_resultSerializer);
-                            result.Results = arraySerializer.Deserialize(context);
-                            break;
-
-                        case "postBatchResumeToken":
-                            result.PostBatchResumeToken = BsonDocumentSerializer.Instance.Deserialize(context);
-                            break;
-
-                        default:
-                            reader.SkipValue();
-                            break;
-                    }
-                }
-                reader.ReadEndDocument();
-                return result;
             }
         }
     }

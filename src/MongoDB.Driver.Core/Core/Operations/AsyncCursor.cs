@@ -37,13 +37,6 @@ namespace MongoDB.Driver.Core.Operations
     /// <typeparam name="TDocument">The type of the documents.</typeparam>
     public class AsyncCursor<TDocument> : IAsyncCursor<TDocument>, ICursorBatchInfo
     {
-        #region static
-        // private static fields
-        private static IBsonSerializer<BsonDocument> __getMoreCommandResultSerializer = new PartiallyRawBsonDocumentSerializer(
-            "cursor", new PartiallyRawBsonDocumentSerializer(
-                "nextBatch", new RawBsonArraySerializer()));
-        #endregion
-
         // fields
         private readonly int? _batchSize;
         private readonly CollectionNamespace _collectionNamespace;
@@ -52,6 +45,7 @@ namespace MongoDB.Driver.Core.Operations
         private int _count;
         private IReadOnlyList<TDocument> _currentBatch;
         private long _cursorId;
+        private readonly IBsonSerializer<CursorBatch<TDocument>> _cursorBatchDeserializer;
         private bool _disposed;
         private IReadOnlyList<TDocument> _firstBatch;
         private readonly int? _limit;
@@ -213,7 +207,10 @@ namespace MongoDB.Driver.Core.Operations
             _postBatchResumeToken = postBatchResumeToken;
             _batchSize = Ensure.IsNullOrGreaterThanOrEqualToZero(batchSize, nameof(batchSize));
             _limit = Ensure.IsNullOrGreaterThanOrEqualToZero(limit, nameof(limit));
+
             _serializer = Ensure.IsNotNull(serializer, nameof(serializer));
+            _cursorBatchDeserializer = new CursorBatchDeserializer<TDocument>(_serializer);
+
             _messageEncoderSettings = messageEncoderSettings;
             _maxTime = maxTime;
 
@@ -305,20 +302,6 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        private CursorBatch<TDocument> CreateCursorBatch(BsonDocument result)
-        {
-            var cursorDocument = result["cursor"].AsBsonDocument;
-            var cursorId = cursorDocument["id"].ToInt64();
-            var batch = (RawBsonArray)cursorDocument["nextBatch"];
-            var postBatchResumeToken = (BsonDocument)cursorDocument.GetValue("postBatchResumeToken", null);
-
-            using (batch)
-            {
-                var documents = CursorBatchDeserializationHelper.DeserializeBatch(batch, _serializer, _messageEncoderSettings);
-                return new CursorBatch<TDocument>(cursorId, postBatchResumeToken, documents);
-            }
-        }
-
         private BsonDocument CreateGetMoreCommand()
         {
             var command = new BsonDocument
@@ -346,10 +329,10 @@ namespace MongoDB.Driver.Core.Operations
         private CursorBatch<TDocument> ExecuteGetMoreCommand(IChannelHandle channel, CancellationToken cancellationToken)
         {
             var command = CreateGetMoreCommand();
-            BsonDocument result;
+
             try
             {
-                result = channel.Command<BsonDocument>(
+                return channel.Command<CursorBatch<TDocument>>(
                     _channelSource.Session,
                     null, // readPreference
                     _collectionNamespace.DatabaseNamespace,
@@ -359,7 +342,7 @@ namespace MongoDB.Driver.Core.Operations
                     null, // additionalOptions
                     null, // postWriteAction
                     CommandResponseHandling.Return,
-                    __getMoreCommandResultSerializer,
+                    _cursorBatchDeserializer,
                     _messageEncoderSettings,
                     cancellationToken);
             }
@@ -367,17 +350,15 @@ namespace MongoDB.Driver.Core.Operations
             {
                 throw new MongoCursorNotFoundException(channel.ConnectionDescription.ConnectionId, _cursorId, command);
             }
-
-            return CreateCursorBatch(result);
         }
 
         private async Task<CursorBatch<TDocument>> ExecuteGetMoreCommandAsync(IChannelHandle channel, CancellationToken cancellationToken)
         {
             var command = CreateGetMoreCommand();
-            BsonDocument result;
+
             try
             {
-                result = await channel.CommandAsync<BsonDocument>(
+                return await channel.CommandAsync<CursorBatch<TDocument>>(
                     _channelSource.Session,
                     null, // readPreference
                     _collectionNamespace.DatabaseNamespace,
@@ -387,7 +368,7 @@ namespace MongoDB.Driver.Core.Operations
                     null, // additionalOptions
                     null, // postWriteAction
                     CommandResponseHandling.Return,
-                    __getMoreCommandResultSerializer,
+                    _cursorBatchDeserializer,
                     _messageEncoderSettings,
                     cancellationToken).ConfigureAwait(false);
             }
@@ -395,8 +376,6 @@ namespace MongoDB.Driver.Core.Operations
             {
                 throw new MongoCursorNotFoundException(channel.ConnectionDescription.ConnectionId, _cursorId, command);
             }
-
-            return CreateCursorBatch(result);
         }
 
         private void ExecuteKillCursorsCommand(IChannelHandle channel, CancellationToken cancellationToken)

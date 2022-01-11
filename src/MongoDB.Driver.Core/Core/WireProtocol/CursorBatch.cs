@@ -20,12 +20,14 @@ using MongoDB.Driver.Core.Misc;
 namespace MongoDB.Driver.Core.WireProtocol
 {
     /// <summary>
-    /// Represents one result batch (returned from either a Query or a GetMore message)
+    /// Represents one result batch (returned from either a Find, Aggregate or a GetMore message)
     /// </summary>
     /// <typeparam name="TDocument">The type of the document.</typeparam>
     public struct CursorBatch<TDocument>
     {
         // fields
+        private readonly BsonTimestamp _atClusterTime;
+        private readonly CollectionNamespace _collectionNamespace;
         private readonly long _cursorId;
         private readonly IReadOnlyList<TDocument> _documents;
         private readonly BsonDocument _postBatchResumeToken;
@@ -35,29 +37,41 @@ namespace MongoDB.Driver.Core.WireProtocol
         /// Initializes a new instance of the <see cref="CursorBatch{TDocument}"/> struct.
         /// </summary>
         /// <param name="cursorId">The cursor identifier.</param>
-        /// <param name="postBatchResumeToken">The post batch resume token.</param>
         /// <param name="documents">The documents.</param>
+        /// <param name="postBatchResumeToken">The post batch resume token.</param>
+        /// <param name="atClusterTime">The at cluster time.</param>
+        /// <param name="collectionNamespace">The colelction namespace.</param>
         public CursorBatch(
             long cursorId,
-            BsonDocument postBatchResumeToken,
-            IReadOnlyList<TDocument> documents)
+            IReadOnlyList<TDocument> documents,
+            BsonDocument postBatchResumeToken = null,
+            BsonTimestamp atClusterTime = null,
+            CollectionNamespace collectionNamespace = null)
         {
             _cursorId = cursorId;
-            _postBatchResumeToken = postBatchResumeToken;
+            _postBatchResumeToken = postBatchResumeToken; // can be null
             _documents = Ensure.IsNotNull(documents, nameof(documents));
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CursorBatch{TDocument}"/> struct.
-        /// </summary>
-        /// <param name="cursorId">The cursor identifier.</param>
-        /// <param name="documents">The documents.</param>
-        public CursorBatch(long cursorId, IReadOnlyList<TDocument> documents)
-            : this(cursorId, null, documents)
-        {
+            _atClusterTime = atClusterTime; // can be null
+            _collectionNamespace = collectionNamespace; // can be null
         }
 
         // properties
+        /// <summary>
+        /// Gets the atClusterTime.
+        /// </summary>
+        /// <value>
+        /// The atClusterTime.
+        /// </value>
+        public BsonTimestamp AtClusterTime => _atClusterTime;
+
+        /// <summary>
+        /// Gets the collection namespace.
+        /// </summary>
+        /// <value>
+        /// The collection namespace.
+        /// </value>
+        public CollectionNamespace CollectionNamespace => _collectionNamespace;
+
         /// <summary>
         /// Gets the cursor identifier.
         /// </summary>

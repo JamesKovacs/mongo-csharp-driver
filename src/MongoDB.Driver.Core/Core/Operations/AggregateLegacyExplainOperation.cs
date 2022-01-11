@@ -23,14 +23,13 @@ using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.WireProtocol.Messages.Encoders;
-using MongoDB.Shared;
 
 namespace MongoDB.Driver.Core.Operations
 {
     /// <summary>
-    /// Represents an aggregate explain operations.
+    /// Represents an aggregate explain operations that is used in Legacy driver.
     /// </summary>
-    public class AggregateExplainOperation : IReadOperation<BsonDocument>
+    public class AggregateLegacyExplainOperation : IReadOperation<BsonDocument>
     {
         // fields
         private bool? _allowDiskUse;
@@ -44,12 +43,12 @@ namespace MongoDB.Driver.Core.Operations
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="AggregateExplainOperation"/> class.
+        /// Initializes a new instance of the <see cref="AggregateLegacyExplainOperation"/> class.
         /// </summary>
         /// <param name="collectionNamespace">The collection namespace.</param>
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="messageEncoderSettings">The message encoder settings.</param>
-        public AggregateExplainOperation(CollectionNamespace collectionNamespace, IEnumerable<BsonDocument> pipeline, MessageEncoderSettings messageEncoderSettings)
+        public AggregateLegacyExplainOperation(CollectionNamespace collectionNamespace, IEnumerable<BsonDocument> pipeline, MessageEncoderSettings messageEncoderSettings)
         {
             _collectionNamespace = Ensure.IsNotNull(collectionNamespace, nameof(collectionNamespace));
             _pipeline = Ensure.IsNotNull(pipeline, nameof(pipeline)).ToList();

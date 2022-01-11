@@ -459,7 +459,7 @@ namespace MongoDB.Driver.Core.Operations
         {
             Ensure.IsNotNull(context, nameof(context));
 
-            var operation = CreateOperation();
+            var operation = CreateFindCommandOperation();
             return operation.Execute(context, cancellationToken);
         }
 
@@ -479,7 +479,7 @@ namespace MongoDB.Driver.Core.Operations
         {
             Ensure.IsNotNull(context, nameof(context));
 
-            var operation = CreateOperation();
+            var operation = CreateFindCommandOperation();
             return await operation.ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
         }
 
@@ -487,6 +487,7 @@ namespace MongoDB.Driver.Core.Operations
         internal FindCommandOperation<TDocument> CreateFindCommandOperation()
         {
             var comment = _comment;
+            ExplainVerbosity? explainVerbosity = null;
             var hint = _hint;
             var max = _max;
             var maxScan = _maxScan;
@@ -505,6 +506,11 @@ namespace MongoDB.Driver.Core.Operations
                     switch (element.Name)
                     {
                         case "$comment": comment = _comment ?? value.AsString; break;
+                        case "$explain": explainVerbosity =
+                                (Enum.TryParse<ExplainVerbosity>(value.ToString(), ignoreCase: true, out var verbosity)
+                                    ? verbosity
+                                    : Operations.ExplainVerbosity.AllPlansExecution); // default
+                            break;
                         case "$hint": hint = _hint ?? value; break;
                         case "$max": max = _max ?? value.AsBsonDocument; break;
                         case "$maxScan": maxScan = _maxScan ?? value.ToInt32(); break;
@@ -531,6 +537,7 @@ namespace MongoDB.Driver.Core.Operations
                 Collation = _collation,
                 Comment = comment,
                 CursorType = _cursorType,
+                ExplainVerbosity = explainVerbosity,
                 Filter = _filter,
                 Hint = hint,
                 FirstBatchSize = _firstBatchSize,
@@ -555,66 +562,6 @@ namespace MongoDB.Driver.Core.Operations
 #pragma warning restore
 
             return operation;
-        }
-
-        internal FindOpcodeOperation<TDocument> CreateFindOpcodeOperation()
-        {
-            if (!_readConcern.IsServerDefault)
-            {
-                throw new MongoClientException($"ReadConcern {_readConcern} is not supported by FindOpcodeOperation.");
-            }
-            if (_collation != null)
-            {
-                throw new NotSupportedException($"OP_QUERY does not support collations.");
-            }
-            if (_allowDiskUse.HasValue)
-            {
-                throw new NotSupportedException($"OP_QUERY does not support allowDiskUse.");
-            }
-
-#pragma warning disable 618
-            var operation = new FindOpcodeOperation<TDocument>(
-                _collectionNamespace,
-                _resultSerializer,
-                _messageEncoderSettings)
-            {
-                AllowPartialResults = _allowPartialResults,
-                BatchSize = _batchSize,
-                Comment = _comment,
-                CursorType = _cursorType,
-                Filter = _filter,
-                FirstBatchSize = _firstBatchSize,
-                Hint = _hint,
-                Limit = (_singleBatch ?? false) ? -Math.Abs(_limit.Value) : _limit,
-                Max = _max,
-                MaxScan = _maxScan,
-                MaxTime = _maxTime,
-                Min = _min,
-                Modifiers = _modifiers,
-                NoCursorTimeout = _noCursorTimeout,
-                OplogReplay = _oplogReplay,
-                Projection = _projection,
-                ShowRecordId = _showRecordId,
-                Skip = _skip,
-                Snapshot = _snapshot,
-                Sort = _sort
-            };
-
-            return operation;
-        }
-#pragma warning restore
-
-        private IExecutableInRetryableReadContext<IAsyncCursor<TDocument>> CreateOperation()
-        {
-            var hasExplainModifier = _modifiers != null && _modifiers.Contains("$explain");
-            if (!hasExplainModifier)
-            {
-                return CreateFindCommandOperation();
-            }
-            else
-            {
-                return CreateFindOpcodeOperation();
-            }
         }
     }
 }

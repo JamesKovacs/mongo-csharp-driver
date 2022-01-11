@@ -18,7 +18,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Events;
@@ -26,7 +25,6 @@ using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.Servers;
 using MongoDB.Driver.Core.WireProtocol;
 using MongoDB.Driver.Core.WireProtocol.Messages.Encoders;
-using MongoDB.Shared;
 
 namespace MongoDB.Driver.Core.Operations
 {
@@ -36,13 +34,6 @@ namespace MongoDB.Driver.Core.Operations
     /// <typeparam name="TDocument">The type of the document.</typeparam>
     public class FindCommandOperation<TDocument> : IReadOperation<IAsyncCursor<TDocument>>, IExecutableInRetryableReadContext<IAsyncCursor<TDocument>>
     {
-        #region static
-        // private static fields
-        private static IBsonSerializer<BsonDocument> __findCommandResultSerializer = new PartiallyRawBsonDocumentSerializer(
-            "cursor", new PartiallyRawBsonDocumentSerializer(
-                "firstBatch", new RawBsonArraySerializer()));
-        #endregion
-
         // fields
         private bool? _allowDiskUse;
         private bool? _allowPartialResults;
@@ -51,6 +42,7 @@ namespace MongoDB.Driver.Core.Operations
         private readonly CollectionNamespace _collectionNamespace;
         private string _comment;
         private CursorType _cursorType;
+        private ExplainVerbosity? _explainVerbosity;
         private BsonDocument _filter;
         private int? _firstBatchSize;
         private BsonValue _hint;
@@ -174,6 +166,18 @@ namespace MongoDB.Driver.Core.Operations
         {
             get { return _cursorType; }
             set { _cursorType = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the verbosity for explain.
+        /// </summary>
+        /// <value>
+        /// The type of the cursor.
+        /// </value>
+        public ExplainVerbosity? ExplainVerbosity
+        {
+            get => _explainVerbosity;
+            set => _explainVerbosity = value;
         }
 
         /// <summary>
@@ -476,39 +480,31 @@ namespace MongoDB.Driver.Core.Operations
             };
         }
 
-        private AsyncCursor<TDocument> CreateCursor(IChannelSourceHandle channelSource, IChannelHandle channel, BsonDocument commandResult)
+        private IAsyncCursor<TDocument> CreateCursor(IChannelSourceHandle channelSource, IChannelHandle channel, CursorBatch<TDocument> cursorBatch)
         {
-            var cursorDocument = commandResult["cursor"].AsBsonDocument;
-            var collectionNamespace = CollectionNamespace.FromFullName(cursorDocument["ns"].AsString);
-            var firstBatch = CreateFirstCursorBatch(cursorDocument);
-            var getMoreChannelSource = ChannelPinningHelper.CreateGetMoreChannelSource(channelSource, channel, firstBatch.CursorId);
-
-            if (cursorDocument.TryGetValue("atClusterTime", out var atClusterTime))
+            if (cursorBatch.CollectionNamespace == null) // $explain doesn't fill collectionNamespace and doesn't support getMore
             {
-                channelSource.Session.SetSnapshotTimeIfNeeded(atClusterTime.AsBsonTimestamp);
+                return new SingleBatchAsyncCursor<TDocument>(cursorBatch.Documents);
             }
-
-            return new AsyncCursor<TDocument>(
-                getMoreChannelSource,
-                collectionNamespace,
-                firstBatch.Documents,
-                firstBatch.CursorId,
-                _batchSize,
-                _limit < 0 ? Math.Abs(_limit.Value) : _limit,
-                _resultSerializer,
-                _messageEncoderSettings,
-                _cursorType == CursorType.TailableAwait ? _maxAwaitTime : null);
-        }
-
-        private CursorBatch<TDocument> CreateFirstCursorBatch(BsonDocument cursorDocument)
-        {
-            var cursorId = cursorDocument["id"].ToInt64();
-            var batch = (RawBsonArray)cursorDocument["firstBatch"];
-
-            using (batch)
+            else
             {
-                var documents = CursorBatchDeserializationHelper.DeserializeBatch(batch, _resultSerializer, _messageEncoderSettings);
-                return new CursorBatch<TDocument>(cursorId, documents);
+                var getMoreChannelSource = ChannelPinningHelper.CreateGetMoreChannelSource(channelSource, channel, cursorBatch.CursorId);
+
+                if (cursorBatch.AtClusterTime != null)
+                {
+                    channelSource.Session.SetSnapshotTimeIfNeeded(cursorBatch.AtClusterTime);
+                }
+
+                return new AsyncCursor<TDocument>(
+                    getMoreChannelSource,
+                    cursorBatch.CollectionNamespace,
+                    cursorBatch.Documents,
+                    cursorBatch.CursorId,
+                    _batchSize,
+                    _limit < 0 ? Math.Abs(_limit.Value) : _limit,
+                    _resultSerializer,
+                    _messageEncoderSettings,
+                    _cursorType == CursorType.TailableAwait ? _maxAwaitTime : null);
             }
         }
 
@@ -532,8 +528,8 @@ namespace MongoDB.Driver.Core.Operations
             using (EventContext.BeginFind(_batchSize, _limit))
             {
                 var operation = CreateOperation(context);
-                var commandResult = operation.Execute(context, cancellationToken);
-                return CreateCursor(context.ChannelSource, context.Channel, commandResult);
+                var result = operation.Execute(context, cancellationToken);
+                return CreateCursor(context.ChannelSource, context.Channel, result);
             }
         }
 
@@ -557,23 +553,45 @@ namespace MongoDB.Driver.Core.Operations
             using (EventContext.BeginFind(_batchSize, _limit))
             {
                 var operation = CreateOperation(context);
-                var commandResult = await operation.ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
-                return CreateCursor(context.ChannelSource, context.Channel, commandResult);
+                var result = await operation.ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
+                return CreateCursor(context.ChannelSource, context.Channel, result);
             }
         }
 
-        private ReadCommandOperation<BsonDocument> CreateOperation(RetryableReadContext context)
+        private IExecutableInRetryableReadContext<CursorBatch<TDocument>> CreateOperation(RetryableReadContext context)
         {
             var command = CreateCommand(context.Channel.ConnectionDescription, context.Binding.Session);
-            var operation = new ReadCommandOperation<BsonDocument>(
-                _collectionNamespace.DatabaseNamespace,
-                command,
-                __findCommandResultSerializer,
-                _messageEncoderSettings)
+
+            if (_explainVerbosity.HasValue)
             {
-                RetryRequested = _retryRequested // might be overridden by retryable read context
-            };
-            return operation;
+                var explainOperation = new ExplainOperation<TDocument>(
+                    _collectionNamespace.DatabaseNamespace,
+                    command,
+                    _resultSerializer,
+                    _messageEncoderSettings)
+                {
+                    RetryRequested = _retryRequested // might be overridden by retryable read context
+                };
+
+                if (_explainVerbosity.HasValue)
+                {
+                    explainOperation.Verbosity = _explainVerbosity.Value;
+                }
+
+                return explainOperation;
+            }
+            else
+            {
+                var cursorDeserializer = new CursorBatchDeserializer<TDocument>(_resultSerializer);
+                return new ReadCommandOperation<CursorBatch<TDocument>>(
+                    _collectionNamespace.DatabaseNamespace,
+                    command,
+                    cursorDeserializer,
+                    _messageEncoderSettings)
+                {
+                    RetryRequested = _retryRequested // might be overridden by retryable read context
+                };
+            }
         }
     }
 }

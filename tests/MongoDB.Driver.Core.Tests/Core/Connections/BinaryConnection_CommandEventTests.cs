@@ -151,6 +151,50 @@ namespace MongoDB.Driver.Core.Connections
             commandSucceededEvent.RequestId.Should().Be(commandStartedEvent.RequestId);
         }
 
+        [Fact]
+        public void Should_process_a_command_with_explain()
+        {
+            var expectedCommand = new BsonDocument
+            {
+                {
+                    "explain",
+                    new BsonDocument
+                    {
+                        { "find", MessageHelper.DefaultCollectionNamespace.CollectionName },
+                        { "filter", new BsonDocument("x", 1) },
+                    }
+                },
+            };
+            var expectedCommandResponse = BsonDocument.Parse("{ ok: 1 }");
+
+            var requestMessage = MessageHelper.BuildCommandRequest(
+                expectedCommand,
+                requestId: 10);
+            SendMessages(requestMessage);
+
+            var responseMessage = MessageHelper.BuildCommandResponse(
+                command: RawBsonDocumentHelper.FromBsonDocument(expectedCommandResponse),
+                responseTo: requestMessage.RequestId);
+            ReceiveMessages(responseMessage);
+
+            var commandStartedEvent = (CommandStartedEvent)_capturedEvents.Next();
+            var commandSucceededEvent = (CommandSucceededEvent)_capturedEvents.Next();
+
+            commandStartedEvent.CommandName.Should().Be(expectedCommand.GetElement(0).Name);
+            commandStartedEvent.Command.Should().Be(expectedCommand.Add("$db", MessageHelper.DefaultCollectionNamespace.DatabaseNamespace.DatabaseName));
+            commandStartedEvent.ConnectionId.Should().Be(_subject.ConnectionId);
+            commandStartedEvent.DatabaseNamespace.Should().Be(MessageHelper.DefaultDatabaseNamespace);
+            commandStartedEvent.OperationId.Should().Be(EventContext.OperationId);
+            commandStartedEvent.RequestId.Should().Be(requestMessage.RequestId);
+
+            commandSucceededEvent.CommandName.Should().Be(commandStartedEvent.CommandName);
+            commandSucceededEvent.ConnectionId.Should().Be(commandStartedEvent.ConnectionId);
+            commandSucceededEvent.Duration.Should().BeGreaterThan(TimeSpan.Zero);
+            commandSucceededEvent.OperationId.Should().Be(commandStartedEvent.OperationId);
+            commandSucceededEvent.Reply.Should().Be(expectedCommandResponse);
+            commandSucceededEvent.RequestId.Should().Be(commandStartedEvent.RequestId);
+        }
+
         [Theory]
         [MemberData(nameof(GetPotentiallyRedactedCommandTestCases))]
         public void Should_process_a_redacted_command(string commandJson, bool shouldBeRedacted)
@@ -493,6 +537,16 @@ namespace MongoDB.Driver.Core.Connections
         {
             MessageHelper.WriteResponsesToStream(_stream, messages);
             var encoderSelector = new ReplyMessageEncoderSelector<BsonDocument>(BsonDocumentSerializer.Instance);
+            foreach (var message in messages)
+            {
+                _subject.ReceiveMessageAsync(message.ResponseTo, encoderSelector, _messageEncoderSettings, CancellationToken.None).Wait();
+            }
+        }
+
+        private void ReceiveMessages(params CommandResponseMessage[] messages)
+        {
+            MessageHelper.WriteResponsesToStream(_stream, messages);
+            var encoderSelector = new CommandResponseMessageEncoderSelector();
             foreach (var message in messages)
             {
                 _subject.ReceiveMessageAsync(message.ResponseTo, encoderSelector, _messageEncoderSettings, CancellationToken.None).Wait();

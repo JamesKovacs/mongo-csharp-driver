@@ -14,11 +14,11 @@
 */
 
 using System;
-using System.Threading.Tasks;
+using System.Linq;
 using FluentAssertions;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Bson.TestHelpers.XunitExtensions;
-using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.TestHelpers.XunitExtensions;
 using Xunit;
 
@@ -26,7 +26,7 @@ namespace MongoDB.Driver.Core.Operations
 {
     public class ExplainOperationTests : OperationTestBase
     {
-        private BsonDocument _command;
+        private readonly BsonDocument _command;
 
         public ExplainOperationTests()
         {
@@ -39,36 +39,48 @@ namespace MongoDB.Driver.Core.Operations
         [Fact]
         public void Constructor_should_throw_when_collection_namespace_is_null()
         {
-            Action action = () => new ExplainOperation(null, _command, _messageEncoderSettings);
+            var ex = Record.Exception(() => new ExplainOperation<BsonDocument>(null, _command, BsonDocumentSerializer.Instance, _messageEncoderSettings));
 
-            action.ShouldThrow<ArgumentNullException>();
+            ex.Should().BeOfType<ArgumentNullException>();
         }
 
         [Fact]
         public void Constructor_should_throw_when_command_is_null()
         {
-            Action action = () => new ExplainOperation(_databaseNamespace, null, _messageEncoderSettings);
+            var ex = Record.Exception(() => new ExplainOperation<BsonDocument>(_databaseNamespace, null, BsonDocumentSerializer.Instance, _messageEncoderSettings));
 
-            action.ShouldThrow<ArgumentNullException>();
+            ex.Should().BeOfType<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void Constructor_should_throw_when_result_serializer_is_null()
+        {
+            var ex = Record.Exception(() => new ExplainOperation<BsonDocument>(_databaseNamespace, _command, null, _messageEncoderSettings));
+
+            ex.Should().BeOfType<ArgumentNullException>();
         }
 
         [Fact]
         public void Constructor_should_throw_when_message_encoder_settings_is_null()
         {
-            Action action = () => new ExplainOperation(_databaseNamespace, _command, null);
+            var ex = Record.Exception(() => new ExplainOperation<BsonDocument>(_databaseNamespace, _command, BsonDocumentSerializer.Instance, null));
 
-            action.ShouldThrow<ArgumentNullException>();
+            ex.Should().BeOfType<ArgumentNullException>();
         }
 
         [Fact]
         public void Constructor_should_initialize_subject()
         {
-            var subject = new ExplainOperation(_databaseNamespace, _command, _messageEncoderSettings);
+            var subject = new ExplainOperation<BsonDocument>(_databaseNamespace, _command, BsonDocumentSerializer.Instance, _messageEncoderSettings)
+            {
+                RetryRequested = true
+            };
 
             subject.DatabaseNamespace.Should().Be(_databaseNamespace);
             subject.Command.Should().Be(_command);
             subject.MessageEncoderSettings.Should().BeEquivalentTo(_messageEncoderSettings);
-            subject.Verbosity.Should().Be(ExplainVerbosity.QueryPlanner);
+            subject.RetryRequested.Should().Be(true);
+            subject.Verbosity.Should().Be(ExplainVerbosity.AllPlansExecution);
         }
 
         [Theory]
@@ -77,7 +89,7 @@ namespace MongoDB.Driver.Core.Operations
         [InlineData(ExplainVerbosity.QueryPlanner, "queryPlanner")]
         public void CreateCommand_should_return_expected_result(ExplainVerbosity verbosity, string verbosityString)
         {
-            var subject = new ExplainOperation(_databaseNamespace, _command, _messageEncoderSettings)
+            var subject = new ExplainOperation<BsonDocument>(_databaseNamespace, _command, BsonDocumentSerializer.Instance, _messageEncoderSettings)
             {
                 Verbosity = verbosity
             };
@@ -100,17 +112,44 @@ namespace MongoDB.Driver.Core.Operations
             bool async)
         {
             RequireServer.Check();
-            EnsureCollectionExists();
-            var subject = new ExplainOperation(_databaseNamespace, _command, _messageEncoderSettings);
+            DropCollection();
+            var subject = new ExplainOperation<BsonDocument>(_databaseNamespace, _command, BsonDocumentSerializer.Instance, _messageEncoderSettings);
 
-            var result = ExecuteOperation((IReadOperation<BsonDocument>)subject, async);
+            var result = ExecuteOperation(subject, async);
 
             result.Should().NotBeNull();
         }
 
+        [SkippableTheory]
+        [ParameterAttributeData]
+        public void Execute_should_decorate_response(
+            [Values(ExplainVerbosity.AllPlansExecution, ExplainVerbosity.ExecutionStats, ExplainVerbosity.QueryPlanner)] ExplainVerbosity explainVerbosity,
+            [Values(false, true)] bool async)
+        {
+            RequireServer.Check();
+            EnsureCollectionExists();
+            var subject = new ExplainOperation<BsonDocument>(_databaseNamespace, _command, BsonDocumentSerializer.Instance, _messageEncoderSettings)
+            {
+                Verbosity = explainVerbosity
+            };
+
+            var result = ExecuteOperation(subject, async);
+
+            result.AtClusterTime.Should().BeNull();
+            result.PostBatchResumeToken.Should().BeNull();
+            result.CollectionNamespace.Should().BeNull();
+            result.CursorId.Should().Be(0);
+            result.Documents.Should().HaveCount(1);
+            var explainDocument = result.Documents.First();
+            explainDocument.Elements
+                .Should()
+                .ContainSingle(e => e.Name == "serverInfo"); // this node presents in $explain response regardless server version
+        }
+
+        // private method
         private void EnsureCollectionExists()
         {
-            Insert(BsonDocument.Parse("{x: 1}"));
+            Insert(BsonDocument.Parse("{ x : 1 }"));
         }
     }
 }

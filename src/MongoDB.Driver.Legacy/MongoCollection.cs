@@ -246,7 +246,7 @@ namespace MongoDB.Driver
         private CommandResult AggregateExplain(IClientSessionHandle session, AggregateArgs args)
         {
             var messageEncoderSettings = GetMessageEncoderSettings();
-            var operation = new AggregateExplainOperation(_collectionNamespace, args.Pipeline, messageEncoderSettings)
+            var operation = new AggregateLegacyExplainOperation(_collectionNamespace, args.Pipeline, messageEncoderSettings)
             {
                 AllowDiskUse = args.AllowDiskUse,
                 Collation = args.Collation,

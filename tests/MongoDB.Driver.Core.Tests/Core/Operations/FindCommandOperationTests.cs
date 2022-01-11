@@ -14,18 +14,18 @@
 */
 
 using System;
+using System.Linq;
 using FluentAssertions;
 using MongoDB.Bson;
-using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Bson.TestHelpers;
 using MongoDB.Bson.TestHelpers.XunitExtensions;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Clusters;
-using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.Servers;
 using MongoDB.Driver.Core.TestHelpers;
 using MongoDB.Driver.Core.TestHelpers.XunitExtensions;
+using MongoDB.Driver.Core.WireProtocol;
 using Moq;
 using Xunit;
 
@@ -793,19 +793,9 @@ namespace MongoDB.Driver.Core.Operations
         public void CreateCursor_should_use_ns_field_instead_of_namespace_passed_in_constructor()
         {
             var subject = new FindCommandOperation<BsonDocument>(_collectionNamespace, BsonDocumentSerializer.Instance, _messageEncoderSettings);
-            var firstBatchSlice = new ByteArrayBuffer(new byte[] { 5, 0, 0, 0, 0 }, isReadOnly: true);
             var cursorCollectionNamespace = CollectionNamespace.FromFullName("cursors.lkajlkasdf-3980238d908sdf");
-            var cursorDocument = new BsonDocument
-            {
-                { "id", 0 },
-                { "firstBatch", new RawBsonArray(firstBatchSlice) },
-                { "ns", cursorCollectionNamespace.FullName }
-            };
-            var commandResult = new BsonDocument
-            {
-                { "ok", 1 },
-                { "cursor", cursorDocument }
-            };
+            var cursorBatch = new CursorBatch<BsonDocument>(cursorId: 0, postBatchResumeToken: null, documents: new[] { new BsonDocument() }, collectionNamespace: cursorCollectionNamespace, atClusterTime: null);
+
             var mockServer = new Mock<IServer>();
             var mockSession = new Mock<ICoreSessionHandle>();
             var mockSessionFork = new Mock<ICoreSessionHandle>();
@@ -814,7 +804,7 @@ namespace MongoDB.Driver.Core.Operations
             mockChannelSource.Setup(x => x.Server).Returns(mockServer.Object);
             mockChannelSource.Setup(x => x.Session).Returns(mockSession.Object);
 
-            var cursor = subject.CreateCursor(mockChannelSource.Object, Mock.Of<IChannelHandle>(), commandResult);
+            var cursor = subject.CreateCursor(mockChannelSource.Object, Mock.Of<IChannelHandle>(), cursorBatch);
 
             cursor._collectionNamespace().Should().Be(cursorCollectionNamespace);
         }
@@ -831,6 +821,42 @@ namespace MongoDB.Driver.Core.Operations
             var result = subject.CursorType;
 
             result.Should().Be(value);
+        }
+
+        [SkippableTheory]
+        [ParameterAttributeData]
+        public void Execute_should_create_explainOperation_when_explain_verbosity_is_set(
+            [Values(null, ExplainVerbosity.AllPlansExecution, ExplainVerbosity.ExecutionStats, ExplainVerbosity.QueryPlanner)] ExplainVerbosity? explainVerbosity,
+            [Values(false, true)] bool async)
+        {
+            RequireServer.Check();
+
+            EnsureDatabaseExists();
+
+            var guidString = Guid.NewGuid().ToString();
+            var document = new BsonDocument("value", guidString);
+            Insert(document);
+            var subject = new FindCommandOperation<BsonDocument>(_collectionNamespace, BsonDocumentSerializer.Instance, _messageEncoderSettings)
+            {
+                Filter = new BsonDocument("value", guidString),
+                ExplainVerbosity = explainVerbosity
+            };
+
+            var resultCursor = ExecuteOperation(subject, async);
+
+            resultCursor.MoveNext();
+            var resultDocument = resultCursor.Current.First();
+            if (explainVerbosity.HasValue)
+            {
+                resultDocument.Elements
+                    .Should()
+                    .ContainSingle(e => e.Name == "serverInfo"); // this node presents in $explain response regardless server version
+            }
+            else
+            {
+                resultDocument.Remove("_id");
+                resultDocument.Should().Be(document);
+            }
         }
 
         [SkippableTheory]
@@ -1338,13 +1364,13 @@ namespace MongoDB.Driver.Core.Operations
 
     public static class FindCommandOperationReflector
     {
-        public static AsyncCursor<BsonDocument> CreateCursor(
+        internal static AsyncCursor<BsonDocument> CreateCursor(
             this FindCommandOperation<BsonDocument> obj,
             IChannelSourceHandle channelSource,
             IChannelHandle channel,
-            BsonDocument commandResult)
+            CursorBatch<BsonDocument> cursorBatch)
         {
-            return (AsyncCursor<BsonDocument>)Reflector.Invoke(obj, nameof(CreateCursor), channelSource, channel, commandResult);
+            return (AsyncCursor<BsonDocument>)Reflector.Invoke(obj, nameof(CreateCursor), channelSource, channel, cursorBatch);
         }
     }
 }

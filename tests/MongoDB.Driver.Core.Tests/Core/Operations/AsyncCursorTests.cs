@@ -396,17 +396,7 @@ namespace MongoDB.Driver.Core.Operations
 
             mockChannelSource.SetupGet(m => m.Session).Returns(session);
             mockChannel.SetupGet(m => m.ConnectionDescription).Returns(connectionDescription);
-            var nextBatchBytes = new byte[] { 5, 0, 0, 0, 0 };
-            var nextBatchSlice = new ByteArrayBuffer(nextBatchBytes, isReadOnly: true);
-            var secondBatch = new BsonDocument
-            {
-                { "cursor", new BsonDocument
-                    {
-                        { "id", 0 },
-                        { "nextBatch", new RawBsonArray(nextBatchSlice) }
-                    }
-                }
-            };
+            var secondBatch = new CursorBatch<BsonDocument>(cursorId: 0, documents: new[] { new BsonDocument() });
 
             subject.MoveNext(cancellationToken); // skip empty first batch
             var sameSessionWasUsed = false;
@@ -424,7 +414,7 @@ namespace MongoDB.Driver.Core.Operations
                         null,
                         null,
                         CommandResponseHandling.Return,
-                        It.IsAny<IBsonSerializer<BsonDocument>>(),
+                        It.IsAny<IBsonSerializer<CursorBatch<BsonDocument>>>(),
                         It.IsAny<MessageEncoderSettings>(),
                         cancellationToken))
                     .Callback(() => sameSessionWasUsed = true)
@@ -446,7 +436,7 @@ namespace MongoDB.Driver.Core.Operations
                         null,
                         null,
                         CommandResponseHandling.Return,
-                        It.IsAny<IBsonSerializer<BsonDocument>>(),
+                        It.IsAny<IBsonSerializer<CursorBatch<BsonDocument>>>(),
                         It.IsAny<MessageEncoderSettings>(),
                         cancellationToken))
                     .Callback(() => sameSessionWasUsed = true)
