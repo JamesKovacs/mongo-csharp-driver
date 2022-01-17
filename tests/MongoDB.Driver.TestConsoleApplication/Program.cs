@@ -16,11 +16,8 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Net.Sockets;
 using System.Threading;
 using MongoDB.Bson;
-using MongoDB.Driver.Core.Configuration;
-using MongoDB.Driver.Core.Events.Diagnostics;
 
 namespace MongoDB.Driver.TestConsoleApplication
 {
@@ -37,13 +34,36 @@ namespace MongoDB.Driver.TestConsoleApplication
             }
             catch (Exception e)
             {
-                Console.WriteLine("Cannot open Redirect.txt for writing");
-                Console.WriteLine(e.Message);
+                DiagnosticLog("Cannot open log.txt for writing. Exception: " + e);
                 throw;
             }
 
             Console.SetOut(writer);
             return writer;
+        }
+
+        static void RunSsh(string command)
+        {
+            try
+            {
+                // process start info
+                System.Diagnostics.ProcessStartInfo processStartInfo = new System.Diagnostics.ProcessStartInfo("cmd", "/c " + "ssh ubuntu@ec2-3-21-232-207.us-east-2.compute.amazonaws.com " + command);
+                processStartInfo.RedirectStandardOutput = true;
+                processStartInfo.UseShellExecute = false;
+                processStartInfo.CreateNoWindow = true; // Don't show console
+
+                // create the process
+                using System.Diagnostics.Process process = new System.Diagnostics.Process();
+                process.StartInfo = processStartInfo;
+                process.Start();
+
+                string output = process.StandardOutput.ReadToEnd();
+                DiagnosticLog(output);
+            }
+            catch (Exception exception)
+            {
+                DiagnosticLog("ssh exception:" + exception + "\n");
+            }
         }
 
         static void Main(string[] args)
@@ -55,19 +75,19 @@ namespace MongoDB.Driver.TestConsoleApplication
             MongoInternalDefaults.RttTimeout = TimeSpan.FromSeconds(5);
             MongoInternalDefaults.RttReadTimeout = TimeSpan.FromSeconds(3);
 
-            void socketConfigurator(Socket socket)
-            {
-                const SocketOptionName TCP_USER_TIMEOUT = (SocketOptionName)18;
-                const uint timeoutMS = 5000;
-                var timeoutBytes = BitConverter.GetBytes(timeoutMS);
-                // TCP_USER_TIMEOUT = TCP_KEEPIDLE + TCP_KEEPINTVL * TCP_KEEPCNT
-                // See https://blog.cloudflare.com/when-tcp-sockets-refuse-to-die/ for more information.
-                //socket.SetRawSocketOption((int)SocketOptionLevel.Tcp, (int)TCP_USER_TIMEOUT, timeoutBytes);
-                //socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-                //socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 3);
-                //socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 1);
-                //socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 2);
-            }
+            //void socketConfigurator(Socket socket)
+            //{
+            //    const SocketOptionName TCP_USER_TIMEOUT = (SocketOptionName)18;
+            //    const uint timeoutMS = 5000;
+            //    var timeoutBytes = BitConverter.GetBytes(timeoutMS);
+            //    // TCP_USER_TIMEOUT = TCP_KEEPIDLE + TCP_KEEPINTVL * TCP_KEEPCNT
+            //    // See https://blog.cloudflare.com/when-tcp-sockets-refuse-to-die/ for more information.
+            //    //socket.SetRawSocketOption((int)SocketOptionLevel.Tcp, (int)TCP_USER_TIMEOUT, timeoutBytes);
+            //    //socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+            //    //socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 3);
+            //    //socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 1);
+            //    //socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 2);
+            //}
             settings.ClusterConfigurator = cb =>
             {
                 cb.Subscribe(new CustomEventSubscriber());
@@ -77,7 +97,7 @@ namespace MongoDB.Driver.TestConsoleApplication
             using var fileStream = new FileStream(@"c:\Logs\bosh.log", FileMode.OpenOrCreate, FileAccess.Write);
             using var writeStream = ConfigureConsoleOutputToFile(fileStream);
 
-            Console.WriteLine($"{DateTime.UtcNow}:Starting");
+            DiagnosticLog($"Starting");
 
             var client = new MongoClient(settings);
             var db = client.GetDatabase("dotnet_test");
@@ -87,21 +107,32 @@ namespace MongoDB.Driver.TestConsoleApplication
             int counter = 0;
 
             var stopwatch = new Stopwatch();
+            var wholeOperation = Stopwatch.StartNew();
 
             while (true)
             {
                 try
                 {
+                    if (wholeOperation.Elapsed.TotalSeconds > 3)
+                    {
+                        // break primary
+                        DiagnosticLog($"Breaking primary sending.");
+                        RunSsh("./blackhole-on.sh");
+                        DiagnosticLog($"Breaking primary has been finished.");
+                    }
+
                     var document = new BsonDocument { { "timestamp", DateTime.UtcNow }, { "counter", counter } };
 
                     stopwatch.Restart();
                     coll.InsertOne(document);
                     stopwatch.Stop();
-                    Console.WriteLine($"{DateTime.UtcNow:O}\tInsert counter {counter}");
+
+                    DiagnosticLog($"Insert counter {counter}");
+
                     counter++;
                     if (stopwatch.ElapsedMilliseconds > 1000)
                     {
-                        Console.WriteLine($"\n\n\n\n{DateTime.UtcNow:O}\t^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Recovered from loss of primary. Test terminated.\n\n\n\n");
+                        DiagnosticLog($"Recovered from loss of primary. Test terminated.");
                         break;
                     }
 
@@ -109,10 +140,14 @@ namespace MongoDB.Driver.TestConsoleApplication
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("\n\n############Failed to insert into collection\n\n");
-                    Console.WriteLine("Error :" + ex.Message);
+                    DiagnosticLog("Failed to insert into collection. Exception: " + ex);
                 }
             }
+        }
+
+        private static void DiagnosticLog(string message)
+        {
+            Console.WriteLine($"\n##{DateTime.UtcNow:O}. Diagnostic log: " + message + "\n");
         }
     }
 }

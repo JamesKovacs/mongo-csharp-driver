@@ -300,6 +300,8 @@ namespace MongoDB.Driver.Core.Servers
 
         private async Task HeartbeatAsync(CancellationToken cancellationToken)
         {
+            ConnectionId connectionId = null; // temp change
+
             CommandWireProtocol<BsonDocument> helloProtocol = null;
             bool processAnother = true;
             while (processAnother && !cancellationToken.IsCancellationRequested)
@@ -314,6 +316,7 @@ namespace MongoDB.Driver.Core.Servers
                     lock (_lock)
                     {
                         connection = _connection;
+                        connectionId = _connection?.ConnectionId; //temp change
                     }
                     if (connection == null)
                     {
@@ -326,6 +329,9 @@ namespace MongoDB.Driver.Core.Servers
                                 throw new OperationCanceledException("The ServerMonitor has been disposed.");
                             }
                             _connection = initializedConnection;
+
+                            connectionId = _connection.ConnectionId; //temp change
+
                             _handshakeBuildInfoResult = _connection.Description.BuildInfoResult;
                             heartbeatHelloResult = _connection.Description.HelloResult;
                         }
@@ -343,12 +349,15 @@ namespace MongoDB.Driver.Core.Servers
                         heartbeatHelloResult = await GetHelloResultAsync(connection, helloProtocol, cancellationToken).ConfigureAwait(false);
                     }
                 }
-                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
                 {
+                    _serverMonitorEventHandler?.Invoke(new DiagnosticEvent($"ServerMonitor call is cancelled. ConnectionId: {(connectionId?.ToString() ?? "<null>")}. Exception: {ex}"));
                     return;
                 }
                 catch (Exception ex)
                 {
+                    _serverMonitorEventHandler?.Invoke(new DiagnosticEvent($"ServerMonitor failed. ConnectionId: {connectionId?.ToString() ?? "<null>"}. Exception: {ex}"));
+
                     IConnection toDispose = null;
 
                     lock (_lock)
@@ -415,6 +424,8 @@ namespace MongoDB.Driver.Core.Servers
                         topologyVersion = TopologyVersion.FromMongoCommandException(heartbeatCommandException);
                     }
                     newDescription = newDescription.With(heartbeatException: heartbeatException, topologyVersion: topologyVersion);
+
+                    _serverMonitorEventHandler?.Invoke(new DiagnosticEvent($"ServerId: {_serverId}. Heartbeat exception before SetDescription. Exception: {heartbeatException}"));
                 }
 
                 newDescription = newDescription.With(reasonChanged: "Heartbeat", lastHeartbeatTimestamp: DateTime.UtcNow);

@@ -7,7 +7,7 @@ namespace MongoDB.Driver.TestConsoleApplication
     {
         private readonly IEventSubscriber _subscriber;
 
-        public CustomEventSubscriber()
+        public CustomEventSubscriber()  
         {
             _subscriber = new ReflectionEventSubscriber(this);
         }
@@ -20,31 +20,31 @@ namespace MongoDB.Driver.TestConsoleApplication
         #region CMAP events
         public void Handle(ConnectionPoolAddedConnectionEvent e)
         {
-            Log(e.GetType().Name, $"{e.ServerId} connection added to pool at {e.Timestamp} took {e.Duration}.");
+            Log(e.GetType().Name, $"{e.ConnectionId}:OperationId:{e.OperationId} connection added to pool at {e.Timestamp} took {e.Duration}.");
         }
         public void Handle(ConnectionPoolAddingConnectionEvent e)
         {
-            Log(e.GetType().Name, $"{e.ServerId} connection adding to pool at {e.Timestamp}.");
+            Log(e.GetType().Name, $"{e.ServerId}:OperationId:{e.OperationId} connection adding to pool at {e.Timestamp}.");
         }
         public void Handle(ConnectionPoolCheckedInConnectionEvent e)
         {
-            Log(e.GetType().Name, $"{e.ServerId} checked in connection to pool at {e.Timestamp} took {e.Duration}.");
+            Log(e.GetType().Name, $"{e.ConnectionId}:OperationId:{e.OperationId} checked in connection to pool at {e.Timestamp} took {e.Duration}.");
         }
         public void Handle(ConnectionPoolCheckedOutConnectionEvent e)
         {
-            Log(e.GetType().Name, $"{e.ServerId} checked out connection from pool at {e.Timestamp} took {e.Duration}.");
+            Log(e.GetType().Name, $"{e.ConnectionId}:OperationId:{e.OperationId} checked out connection from pool at {e.Timestamp} took {e.Duration}.");
         }
         public void Handle(ConnectionPoolCheckingInConnectionEvent e)
         {
-            Log(e.GetType().Name, $"{e.ServerId} checking in connection to pool at {e.Timestamp}.");
+            Log(e.GetType().Name, $"{e.ConnectionId}:OperationId:{e.OperationId} checking in connection to pool at {e.Timestamp}.");
         }
         public void Handle(ConnectionPoolCheckingOutConnectionEvent e)
         {
-            Log(e.GetType().Name, $"{e.ServerId} checking out connection from pool at {e.Timestamp}.");
+            Log(e.GetType().Name, $"{e.ServerId}:OperationId:{e.OperationId} checking out connection from pool at {e.Timestamp}.");
         }
         public void Handle(ConnectionPoolCheckingOutConnectionFailedEvent e)
         {
-            Log(e.GetType().Name, $"{e.ServerId} failed to check out connection for operation {e.OperationId} at {e.Timestamp}: {e.Reason}");
+            Log(e.GetType().Name, $"{e.ServerId}:OperationId:{e.OperationId} failed to check out connection for operation {e.OperationId} at {e.Timestamp}: {e.Reason}. Exception: {e.Exception}");
         }
         public void Handle(ConnectionPoolClearedEvent e)
         {
@@ -72,26 +72,26 @@ namespace MongoDB.Driver.TestConsoleApplication
         }
         public void Handle(ConnectionPoolRemovedConnectionEvent e)
         {
-            Log(e.GetType().Name, $"{e.ServerId} connection removed from pool at {e.Timestamp} took {e.Duration}.");
+            Log(e.GetType().Name, $"{e.ConnectionId}:OperationId:{e.OperationId} connection removed from pool at {e.Timestamp} took {e.Duration}.");
         }
         public void Handle(ConnectionPoolRemovingConnectionEvent e)
         {
-            Log(e.GetType().Name, $"{e.ServerId} connection removing from pool at {e.Timestamp}.");
+            Log(e.GetType().Name, $"{e.ConnectionId}:OperationId:{e.OperationId} connection removing from pool at {e.Timestamp}.");
         }
         #endregion CMAP events
 
         #region Command events
         public void Handle(CommandStartedEvent e)
         {
-            Log(e.GetType().Name, $"{e.ConnectionId}/{e.OperationId} started {e.CommandName} on {e.DatabaseNamespace} at {e.Timestamp}.");
+            Log(e.GetType().Name, $"{e.ConnectionId}:OperationId:{e.OperationId} started {e.CommandName} on {e.DatabaseNamespace} at {e.Timestamp}.");
         }
         public void Handle(CommandSucceededEvent e)
         {
-            Log(e.GetType().Name, $"{e.ConnectionId}/{e.OperationId} {e.CommandName} succeeded at {e.Timestamp} took {e.Duration}.");
+            Log(e.GetType().Name, $"{e.ConnectionId}:OperationId:{e.OperationId} {e.CommandName} succeeded at {e.Timestamp} took {e.Duration}.");
         }
         public void Handle(CommandFailedEvent e)
         {
-            Log(e.GetType().Name, $"{e.ConnectionId}/{e.OperationId} {e.CommandName} failed at {e.Timestamp} took {e.Duration} ex: {e.Failure}.");
+            Log(e.GetType().Name, $"{e.ConnectionId}:OperationId:{e.OperationId} {e.CommandName} failed at {e.Timestamp} took {e.Duration} ex: {e.Failure}.");
         }
         #endregion Command events
 
@@ -150,7 +150,7 @@ namespace MongoDB.Driver.TestConsoleApplication
         }
         public void Handle(ServerHeartbeatFailedEvent e)
         {
-            Log(e.GetType().Name, $"{e.ServerId}/{e.ConnectionId} failed heartbeat at {e.Timestamp}.");
+            Log(e.GetType().Name, $"{e.ServerId}/{e.ConnectionId} failed heartbeat at {e.Timestamp}. Exception: {e.Exception}.");
         }
         public void Handle(ServerHeartbeatStartedEvent e)
         {
@@ -171,13 +171,13 @@ namespace MongoDB.Driver.TestConsoleApplication
 
         public void Handle(DiagnosticEvent e)
         {
-            Log(e.GetType().Name, $"##{e.Message}.");
+            Log("Diagnostic Event", $"##{e.Message}. Timestamp: {e.Timestamp}.", prePostLineFormatting: "\n\n");
         }
         #endregion SDAM events
 
-        private void Log(string eventName, string eventDetails)
+        private void Log(string eventName, string eventDetails, string prePostLineFormatting = "\n")
         {
-            Console.WriteLine($"{DateTime.UtcNow:O}\t{eventName}\t{eventDetails}");
+            Console.WriteLine($"{prePostLineFormatting}{DateTime.UtcNow:O}\t{eventName}\t{eventDetails}{prePostLineFormatting}");
         }
     }
 }
