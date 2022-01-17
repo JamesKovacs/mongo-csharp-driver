@@ -48,7 +48,7 @@ namespace MongoDB.Driver.TestConsoleApplication
 
         static void Main(string[] args)
         {
-            const string MONGODB_URI = "mongodb://james:QgW4Ncupi-F-4P3s@ec2-3-140-238-187.us-east-2.compute.amazonaws.com,ec2-3-144-169-184.us-east-2.compute.amazonaws.com,ec2-18-216-4-122.us-east-2.compute.amazonaws.com/test?replicaSet=rs0&authSource=admin";
+            const string MONGODB_URI = "mongodb://admin:Sup3rS3kr3t@ec2-3-21-232-207.us-east-2.compute.amazonaws.com,ec2-3-138-142-135.us-east-2.compute.amazonaws.com,ec2-18-216-182-45.us-east-2.compute.amazonaws.com/?replicaSet=rs0&authSource=admin";
             var url = new MongoUrl(MONGODB_URI);
             var settings = MongoClientSettings.FromUrl(url);
 
