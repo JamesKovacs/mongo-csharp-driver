@@ -198,6 +198,15 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
+        public virtual IAggregateFluent<BsonDocument> SetWindowFields<TPartitionBy, TWindowFields>(
+            AggregateExpressionDefinition<TResult, TPartitionBy> partitionBy,
+            SortDefinition<TResult> sort,
+            AggregateExpressionDefinition<TResult, TWindowFields> output)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
         public abstract IAggregateFluent<TResult> Skip(int skip);
 
         /// <inheritdoc />

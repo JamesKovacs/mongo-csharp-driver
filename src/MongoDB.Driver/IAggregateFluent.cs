@@ -321,6 +321,20 @@ namespace MongoDB.Driver
         IAggregateFluent<TNewResult> ReplaceWith<TNewResult>(AggregateExpressionDefinition<TResult, TNewResult> newRoot);
 
         /// <summary>
+        /// Appends a $setWindowFields to the pipeline.
+        /// </summary>
+        /// <typeparam name="TPartitionBy">The type of the value to partition by.</typeparam>
+        /// <typeparam name="TWindowFields">The type of the added window fields.</typeparam>
+        /// <param name="partitionBy">The partitionBy definition.</param>
+        /// <param name="sortBy">The sortBy definition.</param>
+        /// <param name="output">The window fields definition.</param>
+        /// <returns></returns>
+        IAggregateFluent<BsonDocument> SetWindowFields<TPartitionBy, TWindowFields>(
+            AggregateExpressionDefinition<TResult, TPartitionBy> partitionBy,
+            SortDefinition<TResult> sortBy,
+            AggregateExpressionDefinition<TResult, TWindowFields> output);
+
+        /// <summary>
         /// Appends a skip stage to the pipeline.
         /// </summary>
         /// <param name="skip">The number of documents to skip.</param>
