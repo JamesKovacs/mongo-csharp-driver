@@ -757,23 +757,20 @@ namespace MongoDB.Driver.Core.ConnectionPools
 
             public void Prune(CancellationToken cancellationToken)
             {
-                (PooledConnection Connection, bool IsInUse)[] expiredConnections;
+                PooledConnection[] expiredConnections;
                 lock (_lock)
                 {
                     expiredConnections = _connections
                         .Where(c => c.IsExpired)
-                        .Select(c => (Connection: c, IsInUse: false))
                         .Concat(
                             _connectionsInUse
                             .Where(c=>c.IsExpired)
-                            .Select(c => (Connection: c, IsInUse: true))
                         ).ToArray();
                 }
 
-                foreach (var connectionInfo in expiredConnections)
+                foreach (var connection in expiredConnections)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    var connection = connectionInfo.Connection;
 
                     lock (_lock)
                     {
@@ -787,14 +784,10 @@ namespace MongoDB.Driver.Core.ConnectionPools
                         RemoveConnection(connection);
                         _connections.Remove(connection);
 
-                        if (connectionInfo.IsInUse)
+                        var inUse = _connectionsInUse.Remove(connection);
+                        if (inUse && _connectionPoolDiagnosticEventHandler != null)
                         {
-                            if (_connectionPoolDiagnosticEventHandler != null)
-                            {
-                                _connectionPoolDiagnosticEventHandler.Invoke(
-                                    new DiagnosticEvent($"Removing connection in use is triggered. ConnectionId: {connection.ConnectionId}"));
-                            }
-                            _connectionsInUse.Remove(connection);
+                            _connectionPoolDiagnosticEventHandler.Invoke(new DiagnosticEvent($"Removing connection in use is triggered. ConnectionId: {connection.ConnectionId}"));
                         }
 
                         SignalOrReset();
@@ -834,7 +827,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 lock (_lock)
                 {
                     _connections.Add(connection);
-                    _connectionsInUse.RemoveAll(c => c.ConnectionId == connection.ConnectionId);
+                    _connectionsInUse.Remove(connection);
                     SignalOrReset();
                 }
             }
