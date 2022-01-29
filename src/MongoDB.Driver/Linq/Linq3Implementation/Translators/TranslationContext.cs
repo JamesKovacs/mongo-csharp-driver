@@ -18,6 +18,7 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions;
 using MongoDB.Driver.Linq.Linq3Implementation.Misc;
+using MongoDB.Driver.Linq.Linq3Implementation.Serializers;
 using MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers;
 
 namespace MongoDB.Driver.Linq.Linq3Implementation.Translators
@@ -29,6 +30,10 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators
         {
             var symbolTable = new SymbolTable();
             var nameGenerator = new NameGenerator();
+            if (serializer is ISetWindowFieldsPartitionSerializer partitionSerializer)
+            {
+                serializer = partitionSerializer.InputSerializer;
+            }
             var knownSerializersRegistry = KnownSerializerFinder.FindKnownSerializers(expression, (IBsonDocumentSerializer)serializer);
             return new TranslationContext(symbolTable, nameGenerator, knownSerializersRegistry);
         }

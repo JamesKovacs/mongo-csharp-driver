@@ -35,7 +35,7 @@ namespace MongoDB.Driver.Tests.Jira
                 .Aggregate()
                 .SetWindowFields(
                     partitionBy: x => x.State,
-                    sortBy: x => x.OrderDate,
+                    sortBy: Builders<CakeSales>.Sort.Ascending(x => x.OrderDate),
                     output: p => new { CumulativeQuantityForState = p.Sum(x => x.Quantity, WindowBoundaries.Documents(WindowBoundary.Unbounded, WindowBoundary.Current)) });
 
             var stages = Linq3TestHelpers.Translate(collection, aggregate);
@@ -75,7 +75,7 @@ namespace MongoDB.Driver.Tests.Jira
                 .Aggregate()
                 .SetWindowFields(
                     partitionBy: x => x.OrderDate.Year,
-                    sortBy: x => x.OrderDate,
+                    sortBy: Builders<CakeSales>.Sort.Ascending(x => x.OrderDate),
                     output: p => new { CumulativeQuantityForYear = p.Sum(x => x.Quantity, WindowBoundaries.Documents(WindowBoundary.Unbounded, WindowBoundary.Current)) });
 
             var stages = Linq3TestHelpers.Translate(collection, aggregate);
@@ -115,7 +115,7 @@ namespace MongoDB.Driver.Tests.Jira
                 .Aggregate()
                 .SetWindowFields(
                     partitionBy: x => x.OrderDate.Year,
-                    sortBy: x => x.OrderDate,
+                    sortBy: Builders<CakeSales>.Sort.Ascending(x => x.OrderDate),
                     output: p => new { CumulativeQuantityForYear = p.Average(x => x.Quantity, WindowBoundaries.Documents(-1, 0)) });
 
             var stages = Linq3TestHelpers.Translate(collection, aggregate);
@@ -155,7 +155,7 @@ namespace MongoDB.Driver.Tests.Jira
                 .Aggregate()
                 .SetWindowFields(
                     partitionBy: x => x.OrderDate.Year,
-                    sortBy: x => x.OrderDate,
+                    sortBy: Builders<CakeSales>.Sort.Ascending(x => x.OrderDate),
                     output: p => new
                     {
                         CumulativeQuantityForYear = p.Sum(x => x.Quantity, WindowBoundaries.Documents(WindowBoundary.Unbounded, WindowBoundary.Current)),
@@ -206,7 +206,7 @@ namespace MongoDB.Driver.Tests.Jira
                 .Aggregate()
                 .SetWindowFields(
                     partitionBy: x => x.State,
-                    sortBy: x => x.Price,
+                    sortBy: Builders<CakeSales>.Sort.Ascending(x => x.Price),
                     output: p => new { QuantityFromSimilarOrders = p.Sum(x => x.Quantity, WindowBoundaries.Range(-10, 10)) });
 
             var stages = Linq3TestHelpers.Translate(collection, aggregate);
@@ -246,7 +246,7 @@ namespace MongoDB.Driver.Tests.Jira
                 .Aggregate()
                 .SetWindowFields(
                     partitionBy: x => x.State,
-                    sortBy: x => x.OrderDate,
+                    sortBy: Builders<CakeSales>.Sort.Ascending(x => x.OrderDate),
                     output: p => new { RecentOrders = p.Push(x => x.OrderDate, WindowBoundaries.Range(WindowBoundary.Unbounded, WindowBoundary.Months(10))) });
 
             var stages = Linq3TestHelpers.Translate(collection, aggregate);
@@ -292,7 +292,7 @@ namespace MongoDB.Driver.Tests.Jira
                 .Aggregate()
                 .SetWindowFields(
                     partitionBy: x => x.State,
-                    sortBy: x => x.OrderDate,
+                    sortBy: Builders<CakeSales>.Sort.Ascending(x => x.OrderDate),
                     output: p => new { RecentOrders = p.Push(x => x.OrderDate, WindowBoundaries.Range(WindowBoundary.Unbounded, WindowBoundary.Months(-10))) });
 
             var stages = Linq3TestHelpers.Translate(collection, aggregate);

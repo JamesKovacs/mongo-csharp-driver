@@ -13,12 +13,16 @@
 * limitations under the License.
 */
 
+using System;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Misc;
+using MongoDB.Driver.Linq.Linq3Implementation.Misc;
 
 namespace MongoDB.Driver
 {
 #pragma warning disable CS1591
-    public static class WindowBoundary
+    public abstract class WindowBoundary
     {
         #region static
         private static readonly KeywordWindowBoundary __current = new KeywordWindowBoundary("current");
@@ -49,10 +53,13 @@ namespace MongoDB.Driver
         }
 
         public string Keyword => _keyword;
+
+        public override string ToString() => $"\"{_keyword}\"";
     }
 
-    public abstract class DocumentsWindowBoundary
+    public abstract class DocumentsWindowBoundary : WindowBoundary
     {
+        public abstract BsonValue Render();
     }
 
     public sealed class KeywordDocumentsWindowBoundary : DocumentsWindowBoundary
@@ -65,6 +72,9 @@ namespace MongoDB.Driver
         }
 
         public string Keyword => _keyword;
+
+        public override BsonValue Render() => _keyword;
+        public override string ToString() => $"\"{_keyword}\"";
     }
 
     public sealed class PositionDocumentsWindowBoundary : DocumentsWindowBoundary
@@ -77,11 +87,15 @@ namespace MongoDB.Driver
         }
 
         public int Position => _position;
+
+        public override BsonValue Render() => _position;
+        public override string ToString() => _position.ToString();
     }
 
 
-    public abstract class RangeWindowBoundary
+    public abstract class RangeWindowBoundary : WindowBoundary
     {
+        public abstract BsonValue Render(IBsonSerializer serializer);
     }
 
     public sealed class KeywordRangeWindowBoundary : RangeWindowBoundary
@@ -94,6 +108,9 @@ namespace MongoDB.Driver
         }
 
         public string Keyword => _keyword;
+
+        public override BsonValue Render(IBsonSerializer serializer) => _keyword;
+        public override string ToString() => $"\"{_keyword}\"";
     }
 
     public sealed class ValueRangeWindowBoundary<TValue> : RangeWindowBoundary
@@ -106,6 +123,9 @@ namespace MongoDB.Driver
         }
 
         public TValue Value => _value;
+
+        public override BsonValue Render(IBsonSerializer serializer) => SerializationHelper.SerializeValue(serializer, _value);
+        public override string ToString() => _value.ToString();
     }
 
     public sealed class TimeRangeWindowBoundary : RangeWindowBoundary
@@ -121,6 +141,9 @@ namespace MongoDB.Driver
 
         public string Unit => _unit;
         public int Value => _value;
+
+        public override BsonValue Render(IBsonSerializer serializer) => _value;
+        public override string ToString() => $"{_value} ({_unit})";
     }
 #pragma warning restore
 }

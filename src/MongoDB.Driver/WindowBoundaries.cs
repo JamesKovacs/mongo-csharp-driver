@@ -13,6 +13,8 @@
 * limitations under the License.
 */
 
+using System;
+using MongoDB.Bson;
 using MongoDB.Driver.Core.Misc;
 
 namespace MongoDB.Driver
@@ -76,21 +78,48 @@ namespace MongoDB.Driver
 
         public DocumentsWindowBoundary LowerBoundary => _lowerBoundary;
         public DocumentsWindowBoundary UpperBoundary => _upperBoundary;
+
+        public override string ToString() => $"documents : [{_lowerBoundary}, {_upperBoundary}]";
     }
 
     public sealed class RangeWindowBoundaries : WindowBoundaries
     {
         private readonly RangeWindowBoundary _lowerBoundary;
         private readonly RangeWindowBoundary _upperBoundary;
+        private readonly string _unit;
 
         public RangeWindowBoundaries(RangeWindowBoundary lowerBoundary, RangeWindowBoundary upperBoundary)
         {
             _lowerBoundary = Ensure.IsNotNull(lowerBoundary, nameof(lowerBoundary));
             _upperBoundary = Ensure.IsNotNull(upperBoundary, nameof(upperBoundary));
+
+            if (_lowerBoundary is TimeRangeWindowBoundary timeLowerBoundary &&
+                _upperBoundary is TimeRangeWindowBoundary timeUpperBoundary)
+            {
+                if (timeLowerBoundary.Unit != timeUpperBoundary.Unit)
+                {
+                    throw new ArgumentException("Lower and upper time-based boundaries must use the same units.");
+                }
+
+                _unit = timeLowerBoundary.Unit;
+            }
         }
 
         public RangeWindowBoundary LowerBoundary => _lowerBoundary;
         public RangeWindowBoundary UpperBoundary => _upperBoundary;
+
+        public override string ToString()
+        {
+            var unit = (_lowerBoundary as TimeRangeWindowBoundary)?.Unit ?? (_upperBoundary as TimeRangeWindowBoundary)?.Unit;
+            if (unit != null)
+            {
+                return $"range : [{_lowerBoundary}, {_upperBoundary}], unit : \"{unit}\"";
+            }
+            else
+            {
+                return $"range : [{_lowerBoundary}, {_upperBoundary}]";
+            }
+        }
     }
 #pragma warning restore
 }
