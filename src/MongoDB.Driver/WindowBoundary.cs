@@ -95,7 +95,7 @@ namespace MongoDB.Driver
 
     public abstract class RangeWindowBoundary : WindowBoundary
     {
-        public abstract BsonValue Render(IBsonSerializer serializer);
+        public abstract BsonValue Render();
     }
 
     public sealed class KeywordRangeWindowBoundary : RangeWindowBoundary
@@ -109,7 +109,7 @@ namespace MongoDB.Driver
 
         public string Keyword => _keyword;
 
-        public override BsonValue Render(IBsonSerializer serializer) => _keyword;
+        public override BsonValue Render() => _keyword;
         public override string ToString() => $"\"{_keyword}\"";
     }
 
@@ -124,7 +124,12 @@ namespace MongoDB.Driver
 
         public TValue Value => _value;
 
-        public override BsonValue Render(IBsonSerializer serializer) => SerializationHelper.SerializeValue(serializer, _value);
+        public override BsonValue Render()
+        {
+            var serializer = BsonSerializer.LookupSerializer<TValue>(); // TODO: find the correct serializer
+            return SerializationHelper.SerializeValue(serializer, _value);
+        }
+
         public override string ToString() => _value.ToString();
     }
 
@@ -142,7 +147,7 @@ namespace MongoDB.Driver
         public string Unit => _unit;
         public int Value => _value;
 
-        public override BsonValue Render(IBsonSerializer serializer) => _value;
+        public override BsonValue Render() => _value;
         public override string ToString() => $"{_value} ({_unit})";
     }
 #pragma warning restore

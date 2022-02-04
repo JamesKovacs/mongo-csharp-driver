@@ -22,6 +22,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
         Average,
         Max,
         Min,
+        Push,
         Sum
     }
 
@@ -34,6 +35,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
                 AstSetWindowFieldsOperator.Average => "$avg",
                 AstSetWindowFieldsOperator.Max => "$max",
                 AstSetWindowFieldsOperator.Min => "$min",
+                AstSetWindowFieldsOperator.Push => "$push",
                 AstSetWindowFieldsOperator.Sum => "$sum",
                 _ => throw new InvalidOperationException($"Unexpected SetWindowFields operator: {@operator}.")
             };

@@ -62,6 +62,21 @@ namespace MongoDB.Driver
         {
             return new RangeWindowBoundaries(new KeywordRangeWindowBoundary(lowerBoundary.Keyword), new KeywordRangeWindowBoundary(upperBoundary.Keyword));
         }
+
+        public static RangeWindowBoundaries Range(TimeRangeWindowBoundary lowerBoundary, TimeRangeWindowBoundary upperBoundary)
+        {
+            return new RangeWindowBoundaries(lowerBoundary, upperBoundary);
+        }
+
+        public static RangeWindowBoundaries Range(KeywordWindowBoundary lowerBoundary, TimeRangeWindowBoundary upperBoundary)
+        {
+            return new RangeWindowBoundaries(new KeywordRangeWindowBoundary(lowerBoundary.Keyword), upperBoundary);
+        }
+
+        public static RangeWindowBoundaries Range(TimeRangeWindowBoundary lowerBoundary, KeywordWindowBoundary upperBoundary)
+        {
+            return new RangeWindowBoundaries(lowerBoundary, new KeywordRangeWindowBoundary(upperBoundary.Keyword));
+        }
         #endregion
     }
 

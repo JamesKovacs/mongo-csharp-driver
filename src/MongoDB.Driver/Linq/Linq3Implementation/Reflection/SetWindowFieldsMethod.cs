@@ -24,6 +24,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         private static readonly MethodInfo __average;
         private static readonly MethodInfo __max;
         private static readonly MethodInfo __min;
+        private static readonly MethodInfo __push;
         private static readonly MethodInfo __sum;
 
         // static constructor
@@ -32,6 +33,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
             __average = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, WindowBoundaries boundaries) => partition.Average(selector, boundaries));
             __max = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, WindowBoundaries boundaries) => partition.Max(selector, boundaries));
             __min = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, WindowBoundaries boundaries) => partition.Min(selector, boundaries));
+            __push = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, WindowBoundaries boundaries) => partition.Push(selector, boundaries));
             __sum = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, WindowBoundaries boundaries) => partition.Sum(selector, boundaries));
         }
 
@@ -39,6 +41,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         public static MethodInfo Average => __average;
         public static MethodInfo Max => __max;
         public static MethodInfo Min => __min;
+        public static MethodInfo Push => __push;
         public static MethodInfo Sum => __sum;
     }
 }

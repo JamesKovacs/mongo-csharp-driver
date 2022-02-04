@@ -62,8 +62,12 @@ namespace MongoDB.Driver.Tests.Jira
 
             var results = aggregate.ToList();
             results.Count.Should().Be(6);
-            results.Select(s => s["_id"].AsInt32).Should().Equal(4, 0, 2, 5, 3, 1);
-            results.Select(s => s["CumulativeQuantityForState"].AsInt32).Should().Equal(162, 282, 427, 134, 238, 378);
+            results[0].Should().Be("{ _id : 4, Type : 'strawberry', OrderDate : ISODate('2019-05-18T16:09:01Z'), State : 'CA', Price : 41.00, Quantity : 162, CumulativeQuantityForState : 162 }");
+            results[1].Should().Be("{ _id : 0, Type : 'chocolate', OrderDate : ISODate('2020-05-18T14:10:30Z'), State : 'CA', Price : 13.00, Quantity : 120, CumulativeQuantityForState : 282 }");
+            results[2].Should().Be("{ _id : 2, Type : 'vanilla', OrderDate : ISODate('2021-01-11T06:31:15Z'), State : 'CA', Price : 12.00, Quantity : 145, CumulativeQuantityForState : 427 }");
+            results[3].Should().Be("{ _id : 5, Type : 'strawberry', OrderDate : ISODate('2019-01-08T06:12:03Z'), State : 'WA', Price : 43.00, Quantity : 134, CumulativeQuantityForState : 134 }");
+            results[4].Should().Be("{ _id : 3, Type : 'vanilla', OrderDate : ISODate('2020-02-08T13:13:23Z'), State : 'WA', Price : 13.00, Quantity : 104, CumulativeQuantityForState : 238 }");
+            results[5].Should().Be("{ _id : 1, Type : 'chocolate', OrderDate : ISODate('2021-03-20T11:30:05Z'), State : 'WA', Price : 14.00, Quantity : 140, CumulativeQuantityForState : 378 }");
         }
 
         [Fact]
@@ -102,8 +106,12 @@ namespace MongoDB.Driver.Tests.Jira
 
             var results = aggregate.ToList();
             results.Count.Should().Be(6);
-            results.Select(s => s["_id"].AsInt32).Should().Equal(5, 4, 3, 0, 2, 1);
-            results.Select(s => s["CumulativeQuantityForYear"].AsInt32).Should().Equal(134, 296, 104, 224, 145, 285);
+            results[0].Should().Be("{ _id : 5, Type : 'strawberry', OrderDate : ISODate('2019-01-08T06:12:03Z'), State : 'WA', Price : 43.00, Quantity : 134, CumulativeQuantityForYear : 134 }");
+            results[1].Should().Be("{ _id : 4, Type : 'strawberry', OrderDate : ISODate('2019-05-18T16:09:01Z'), State : 'CA', Price : 41.00, Quantity : 162, CumulativeQuantityForYear : 296 }");
+            results[2].Should().Be("{ _id : 3, Type : 'vanilla', OrderDate : ISODate('2020-02-08T13:13:23Z'), State : 'WA', Price : 13.00, Quantity : 104, CumulativeQuantityForYear : 104 }");
+            results[3].Should().Be("{ _id : 0, Type : 'chocolate', OrderDate : ISODate('2020-05-18T14:10:30Z'), State : 'CA', Price : 13.00, Quantity : 120, CumulativeQuantityForYear : 224 }");
+            results[4].Should().Be("{ _id : 2, Type : 'vanilla', OrderDate : ISODate('2021-01-11T06:31:15Z'), State : 'CA', Price : 12.00, Quantity : 145, CumulativeQuantityForYear : 145 }");
+            results[5].Should().Be("{ _id : 1, Type : 'chocolate', OrderDate : ISODate('2021-03-20T11:30:05Z'), State : 'WA', Price : 14.00, Quantity : 140, CumulativeQuantityForYear : 285 }");
         }
 
         [Fact]
@@ -142,8 +150,12 @@ namespace MongoDB.Driver.Tests.Jira
 
             var results = aggregate.ToList();
             results.Count.Should().Be(6);
-            results.Select(s => s["_id"].AsInt32).Should().Equal(5, 4, 3, 0, 2, 1);
-            results.Select(s => s["AverageQuantity"].AsDouble).Should().Equal(134, 148, 104, 112, 145, 142.5);
+            results[0].Should().Be("{ _id : 5, Type : 'strawberry', OrderDate : ISODate('2019-01-08T06:12:03Z'), State : 'WA', Price : 43.00, Quantity : 134, AverageQuantity : 134.0 }");
+            results[1].Should().Be("{ _id : 4, Type : 'strawberry', OrderDate : ISODate('2019-05-18T16:09:01Z'), State : 'CA', Price : 41.00, Quantity : 162, AverageQuantity : 148.0 }");
+            results[2].Should().Be("{ _id : 3, Type : 'vanilla', OrderDate : ISODate('2020-02-08T13:13:23Z'), State : 'WA', Price : 13.00, Quantity : 104, AverageQuantity : 104.0 }");
+            results[3].Should().Be("{ _id : 0, Type : 'chocolate', OrderDate : ISODate('2020-05-18T14:10:30Z'), State : 'CA', Price : 13.00, Quantity : 120, AverageQuantity : 112.0 }");
+            results[4].Should().Be("{ _id : 2, Type : 'vanilla', OrderDate : ISODate('2021-01-11T06:31:15Z'), State : 'CA', Price : 12.00, Quantity : 145, AverageQuantity : 145.0 }");
+            results[5].Should().Be("{ _id : 1, Type : 'chocolate', OrderDate : ISODate('2021-03-20T11:30:05Z'), State : 'WA', Price : 14.00, Quantity : 140, AverageQuantity : 142.5 }");
         }
 
         [Fact]
@@ -192,9 +204,12 @@ namespace MongoDB.Driver.Tests.Jira
 
             var results = aggregate.ToList();
             results.Count.Should().Be(6);
-            results.Select(s => s["_id"].AsInt32).Should().Equal(5, 4, 3, 0, 2, 1);
-            results.Select(s => s["CumulativeQuantityForYear"].AsInt32).Should().Equal(134, 296, 104, 224, 145, 285);
-            results.Select(s => s["MaximumQuantityForYear"].AsInt32).Should().Equal(162, 162, 120, 120, 145, 145);
+            results[0].Should().Be("{ _id : 5, Type : 'strawberry', OrderDate : ISODate('2019-01-08T06:12:03Z'), State : 'WA', Price : 43.00, Quantity : 134, CumulativeQuantityForYear : 134, MaximumQuantityForYear : 162 }");
+            results[1].Should().Be("{ _id : 4, Type : 'strawberry', OrderDate : ISODate('2019-05-18T16:09:01Z'), State : 'CA', Price : 41.00, Quantity : 162, CumulativeQuantityForYear : 296, MaximumQuantityForYear : 162 }");
+            results[2].Should().Be("{ _id : 3, Type : 'vanilla', OrderDate : ISODate('2020-02-08T13:13:23Z'), State : 'WA', Price : 13.00, Quantity : 104, CumulativeQuantityForYear : 104, MaximumQuantityForYear : 120 }");
+            results[3].Should().Be("{ _id : 0, Type : 'chocolate', OrderDate : ISODate('2020-05-18T14:10:30Z'), State : 'CA', Price : 13.00, Quantity : 120, CumulativeQuantityForYear : 224, MaximumQuantityForYear : 120 }");
+            results[4].Should().Be("{ _id : 2, Type : 'vanilla', OrderDate : ISODate('2021-01-11T06:31:15Z'), State : 'CA', Price : 12.00, Quantity : 145, CumulativeQuantityForYear : 145, MaximumQuantityForYear : 145 }");
+            results[5].Should().Be("{ _id : 1, Type : 'chocolate', OrderDate : ISODate('2021-03-20T11:30:05Z'), State : 'WA', Price : 14.00, Quantity : 140, CumulativeQuantityForYear : 285, MaximumQuantityForYear : 145 }");
         }
 
         [Fact]
@@ -233,8 +248,12 @@ namespace MongoDB.Driver.Tests.Jira
 
             var results = aggregate.ToList();
             results.Count.Should().Be(6);
-            results.Select(s => s["_id"].AsInt32).Should().Equal(2, 0, 4, 3, 1, 5);
-            results.Select(s => s["QuantityFromSimilarOrders"].AsInt32).Should().Equal(265, 265, 162, 244, 244, 134);
+            results[0].Should().Be("{ _id : 2, Type : 'vanilla', OrderDate : ISODate('2021-01-11T06:31:15Z'), State : 'CA', Price : 12.00, Quantity : 145, QuantityFromSimilarOrders : 265 }");
+            results[1].Should().Be("{ _id : 0, Type : 'chocolate', OrderDate : ISODate('2020-05-18T14:10:30Z'), State : 'CA', Price : 13.00, Quantity : 120, QuantityFromSimilarOrders : 265 }");
+            results[2].Should().Be("{ _id : 4, Type : 'strawberry', OrderDate : ISODate('2019-05-18T16:09:01Z'), State : 'CA', Price : 41.00, Quantity : 162, QuantityFromSimilarOrders : 162 }");
+            results[3].Should().Be("{ _id : 3, Type : 'vanilla', OrderDate : ISODate('2020-02-08T13:13:23Z'), State : 'WA', Price : 13.00, Quantity : 104, QuantityFromSimilarOrders : 244 }");
+            results[4].Should().Be("{ _id : 1, Type : 'chocolate', OrderDate : ISODate('2021-03-20T11:30:05Z'), State : 'WA', Price : 14.00, Quantity : 140, QuantityFromSimilarOrders : 244 }");
+            results[5].Should().Be("{ _id : 5, Type : 'strawberry', OrderDate : ISODate('2019-01-08T06:12:03Z'), State : 'WA', Price : 43.00, Quantity : 134, QuantityFromSimilarOrders : 134 }");
         }
 
         [Fact]
@@ -274,13 +293,12 @@ namespace MongoDB.Driver.Tests.Jira
 
             var results = aggregate.ToList();
             results.Count.Should().Be(6);
-            results.Select(s => s["_id"].AsInt32).Should().Equal(4, 0, 2, 5, 3, 1);
-            results[0]["RecentOrders"].AsBsonArray.Should().Equals(new[] { "2019-05-18T16:09:01Z" }.Select(s => DateTime.Parse(s)));
-            results[1]["RecentOrders"].AsBsonArray.Should().Equals(new[] { "2019-05-18T16:09:01Z", "2020-05-18T14:10:30Z", "2021-01-11T06:31:15Z" }.Select(s => DateTime.Parse(s)));
-            results[2]["RecentOrders"].AsBsonArray.Should().Equals(new[] { "2019-05-18T16:09:01Z", "2020-05-18T14:10:30Z", "2021-01-11T06:31:15Z" }.Select(s => DateTime.Parse(s)));
-            results[3]["RecentOrders"].AsBsonArray.Should().Equals(new[] { "2019-01-08T06:12:03Z" }.Select(s => DateTime.Parse(s)));
-            results[4]["RecentOrders"].AsBsonArray.Should().Equals(new[] { "2019-01-08T06:12:03Z", "2020-02-08T13:13:23Z" }.Select(s => DateTime.Parse(s)));
-            results[5]["RecentOrders"].AsBsonArray.Should().Equals(new[] { "2019-01-08T06:12:03Z", "2020-02-08T13:13:23Z", "2021-03-20T11:30:05Z" }.Select(s => DateTime.Parse(s)));
+            results[0].Should().Be("{ _id : 4, Type : 'strawberry', OrderDate : ISODate('2019-05-18T16:09:01Z'), State : 'CA', Price : 41.00, Quantity : 162, RecentOrders : [ISODate('2019-05-18T16:09:01Z')] }");
+            results[1].Should().Be("{ _id : 0, Type : 'chocolate', OrderDate : ISODate('2020-05-18T14:10:30Z'), State : 'CA', Price : 13.00, Quantity : 120, RecentOrders : [ISODate('2019-05-18T16:09:01Z'), ISODate('2020-05-18T14:10:30Z'), ISODate('2021-01-11T06:31:15Z')] }");
+            results[2].Should().Be("{ _id : 2, Type : 'vanilla', OrderDate : ISODate('2021-01-11T06:31:15Z'), State : 'CA', Price : 12.00, Quantity : 145, RecentOrders : [ISODate('2019-05-18T16:09:01Z'), ISODate('2020-05-18T14:10:30Z'), ISODate('2021-01-11T06:31:15Z')] }");
+            results[3].Should().Be("{ _id : 5, Type : 'strawberry', OrderDate : ISODate('2019-01-08T06:12:03Z'), State : 'WA', Price : 43.00, Quantity : 134, RecentOrders : [ISODate('2019-01-08T06:12:03Z')] }");
+            results[4].Should().Be("{ _id : 3, Type : 'vanilla', OrderDate : ISODate('2020-02-08T13:13:23Z'), State : 'WA', Price : 13.00, Quantity : 104, RecentOrders : [ISODate('2019-01-08T06:12:03Z'), ISODate('2020-02-08T13:13:23Z')] }");
+            results[5].Should().Be("{ _id : 1, Type : 'chocolate', OrderDate : ISODate('2021-03-20T11:30:05Z'), State : 'WA', Price : 14.00, Quantity : 140, RecentOrders : [ISODate('2019-01-08T06:12:03Z'), ISODate('2020-02-08T13:13:23Z'), ISODate('2021-03-20T11:30:05Z')] }");
         }
 
         [Fact]
@@ -320,13 +338,12 @@ namespace MongoDB.Driver.Tests.Jira
 
             var results = aggregate.ToList();
             results.Count.Should().Be(6);
-            results.Select(s => s["_id"].AsInt32).Should().Equal(4, 0, 2, 5, 3, 1);
-            results[0]["RecentOrders"].AsBsonArray.Values.Should().BeEmpty();
-            results[1]["RecentOrders"].AsBsonArray.Values.Should().Equal(new[] { "2020-05-18T14:10:30Z" }.Select(s => DateTime.Parse(s)));
-            results[2]["RecentOrders"].AsBsonArray.Values.Should().Equal(new[] { "2019-05-18T16:09:01Z" }.Select(s => DateTime.Parse(s)));
-            results[3]["RecentOrders"].AsBsonArray.Values.Should().BeEmpty();
-            results[4]["RecentOrders"].AsBsonArray.Values.Should().Equal(new[] { "2019-01-08T06:12:03Z" }.Select(s => DateTime.Parse(s)));
-            results[5]["RecentOrders"].AsBsonArray.Values.Should().Equal(new[] { "2019-01-08T06:12:03Z", "2020-02-08T13:13:23Z" }.Select(s => DateTime.Parse(s)));
+            results[0].Should().Be("{ _id : 4, Type : 'strawberry', OrderDate : ISODate('2019-05-18T16:09:01Z'), State : 'CA', Price : 41.00, Quantity : 162, RecentOrders : [ ] }");
+            results[1].Should().Be("{ _id : 0, Type : 'chocolate', OrderDate : ISODate('2020-05-18T14:10:30Z'), State : 'CA', Price : 13.00, Quantity : 120, RecentOrders : [ISODate('2019-05-18T16:09:01Z')] }");
+            results[2].Should().Be("{ _id : 2, Type : 'vanilla', OrderDate : ISODate('2021-01-11T06:31:15Z'), State : 'CA', Price : 12.00, Quantity : 145, RecentOrders : [ISODate('2019-05-18T16:09:01Z')] }");
+            results[3].Should().Be("{ _id : 5, Type : 'strawberry', OrderDate : ISODate('2019-01-08T06:12:03Z'), State : 'WA', Price : 43.00, Quantity : 134, RecentOrders : [ ] }");
+            results[4].Should().Be("{ _id : 3, Type : 'vanilla', OrderDate : ISODate('2020-02-08T13:13:23Z'), State : 'WA', Price : 13.00, Quantity : 104, RecentOrders : [ISODate('2019-01-08T06:12:03Z')] }");
+            results[5].Should().Be("{ _id : 1, Type : 'chocolate', OrderDate : ISODate('2021-03-20T11:30:05Z'), State : 'WA', Price : 14.00, Quantity : 140, RecentOrders : [ISODate('2019-01-08T06:12:03Z'), ISODate('2020-02-08T13:13:23Z')] }");
         }
 
         private IMongoCollection<CakeSales> Setup()

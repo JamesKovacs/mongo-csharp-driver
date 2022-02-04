@@ -47,6 +47,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 case "IsSubsetOf": return IsSubsetOfMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "Parse": return ParseMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "Pow": return PowMethodToAggregationExpressionTranslator.Translate(context, expression);
+                case "Push": return PushMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "Range": return RangeMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "Reverse": return ReverseMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "Select": return SelectMethodToAggregationExpressionTranslator.Translate(context, expression);

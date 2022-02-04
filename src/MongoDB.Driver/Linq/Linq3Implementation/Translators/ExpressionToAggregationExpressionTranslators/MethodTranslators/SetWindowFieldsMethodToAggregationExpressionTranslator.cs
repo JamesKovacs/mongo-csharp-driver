@@ -33,6 +33,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             SetWindowFieldsMethod.Average,
             SetWindowFieldsMethod.Max,
             SetWindowFieldsMethod.Min,
+            SetWindowFieldsMethod.Push,
             SetWindowFieldsMethod.Sum
         };
 
@@ -76,6 +77,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 "Average" => AstSetWindowFieldsOperator.Average,
                 "Max" => AstSetWindowFieldsOperator.Max,
                 "Min" => AstSetWindowFieldsOperator.Min,
+                "Push" => AstSetWindowFieldsOperator.Push,
                 "Sum" => AstSetWindowFieldsOperator.Sum,
                 _ => throw new ArgumentException($"Unsupported method: {method.Name}.")
             };
@@ -92,11 +94,10 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
 
             if (window is RangeWindowBoundaries rangeWindow)
             {
-                //var lowerBoundary = rangeWindow.LowerBoundary;
-                //var upperBoundary = rangeWindow.UpperBoundary;
-                //var unit = (lowerBoundary as TimeRangeWindowBoundary)?.Unit ?? (upperBoundary as TimeRangeWindowBoundary)?.Unit;
-                //return new AstSetWindowFieldsWindow("range", lowerBoundary.Render(), upperBoundary.Render(), unit);
-                throw new NotImplementedException();
+                var lowerBoundary = rangeWindow.LowerBoundary;
+                var upperBoundary = rangeWindow.UpperBoundary;
+                var unit = (lowerBoundary as TimeRangeWindowBoundary)?.Unit ?? (upperBoundary as TimeRangeWindowBoundary)?.Unit;
+                return new AstSetWindowFieldsWindow("range", lowerBoundary.Render(), upperBoundary.Render(), unit);
             }
 
             throw new ArgumentException($"Invalid window type: {window.GetType().FullName}.");
