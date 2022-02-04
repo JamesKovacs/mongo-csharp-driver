@@ -116,7 +116,7 @@ namespace MongoDB.Driver.Tests.Jira
                 .SetWindowFields(
                     partitionBy: x => x.OrderDate.Year,
                     sortBy: Builders<CakeSales>.Sort.Ascending(x => x.OrderDate),
-                    output: p => new { CumulativeQuantityForYear = p.Average(x => x.Quantity, WindowBoundaries.Documents(-1, 0)) });
+                    output: p => new { AverageQuantity = p.Average(x => x.Quantity, WindowBoundaries.Documents(-1, 0)) });
 
             var stages = Linq3TestHelpers.Translate(collection, aggregate);
             var expectedStages = new[]
@@ -177,7 +177,7 @@ namespace MongoDB.Driver.Tests.Jira
                                     documents : ['unbounded', 'current']
                                 }
                             },
-                            MaxQuantityForYear : {
+                            MaximumQuantityForYear : {
                                 $max : '$Quantity',
                                 window : {
                                     documents : ['unbounded', 'unbounded']
@@ -194,7 +194,7 @@ namespace MongoDB.Driver.Tests.Jira
             results.Count.Should().Be(6);
             results.Select(s => s["_id"].AsInt32).Should().Equal(5, 4, 3, 0, 2, 1);
             results.Select(s => s["CumulativeQuantityForYear"].AsInt32).Should().Equal(134, 296, 104, 224, 145, 285);
-            results.Select(s => s["MaxQuantityForYear"].AsInt32).Should().Equal(162, 162, 120, 120, 145, 145);
+            results.Select(s => s["MaximumQuantityForYear"].AsInt32).Should().Equal(162, 162, 120, 120, 145, 145);
         }
 
         [Fact]

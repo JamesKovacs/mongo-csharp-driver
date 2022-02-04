@@ -19,6 +19,9 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
 {
     internal enum AstSetWindowFieldsOperator
     {
+        Average,
+        Max,
+        Min,
         Sum
     }
 
@@ -28,8 +31,11 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
         {
             return @operator switch
             {
+                AstSetWindowFieldsOperator.Average => "$avg",
+                AstSetWindowFieldsOperator.Max => "$max",
+                AstSetWindowFieldsOperator.Min => "$min",
                 AstSetWindowFieldsOperator.Sum => "$sum",
-                _ => throw new InvalidOperationException($"Unexpected n-ary operator: {@operator}.")
+                _ => throw new InvalidOperationException($"Unexpected SetWindowFields operator: {@operator}.")
             };
         }
     }

@@ -30,6 +30,9 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
     {
         private static readonly MethodInfo[] __setWindowFieldsMethods =
         {
+            SetWindowFieldsMethod.Average,
+            SetWindowFieldsMethod.Max,
+            SetWindowFieldsMethod.Min,
             SetWindowFieldsMethod.Sum
         };
 
@@ -70,6 +73,9 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
         {
             return method.Name switch
             {
+                "Average" => AstSetWindowFieldsOperator.Average,
+                "Max" => AstSetWindowFieldsOperator.Max,
+                "Min" => AstSetWindowFieldsOperator.Min,
                 "Sum" => AstSetWindowFieldsOperator.Sum,
                 _ => throw new ArgumentException($"Unsupported method: {method.Name}.")
             };

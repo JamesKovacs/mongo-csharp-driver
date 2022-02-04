@@ -21,15 +21,24 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
     internal static class SetWindowFieldsMethod
     {
         // private static fields
+        private static readonly MethodInfo __average;
+        private static readonly MethodInfo __max;
+        private static readonly MethodInfo __min;
         private static readonly MethodInfo __sum;
 
         // static constructor
         static SetWindowFieldsMethod()
         {
+            __average = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, WindowBoundaries boundaries) => partition.Average(selector, boundaries));
+            __max = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, WindowBoundaries boundaries) => partition.Max(selector, boundaries));
+            __min = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, WindowBoundaries boundaries) => partition.Min(selector, boundaries));
             __sum = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, WindowBoundaries boundaries) => partition.Sum(selector, boundaries));
         }
 
         // public properties
+        public static MethodInfo Average => __average;
+        public static MethodInfo Max => __max;
+        public static MethodInfo Min => __min;
         public static MethodInfo Sum => __sum;
     }
 }
