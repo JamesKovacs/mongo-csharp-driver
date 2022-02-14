@@ -204,12 +204,12 @@ namespace MongoDB.Driver.Tests.Jira
 
             var results = aggregate.ToList();
             results.Count.Should().Be(6);
-            results[0].Should().Be("{ _id : 5, Type : 'strawberry', OrderDate : ISODate('2019-01-08T06:12:03Z'), State : 'WA', Price : 43.00, Quantity : 134, CumulativeQuantityForYear : 134, MaximumQuantityForYear : 162 }");
-            results[1].Should().Be("{ _id : 4, Type : 'strawberry', OrderDate : ISODate('2019-05-18T16:09:01Z'), State : 'CA', Price : 41.00, Quantity : 162, CumulativeQuantityForYear : 296, MaximumQuantityForYear : 162 }");
-            results[2].Should().Be("{ _id : 3, Type : 'vanilla', OrderDate : ISODate('2020-02-08T13:13:23Z'), State : 'WA', Price : 13.00, Quantity : 104, CumulativeQuantityForYear : 104, MaximumQuantityForYear : 120 }");
-            results[3].Should().Be("{ _id : 0, Type : 'chocolate', OrderDate : ISODate('2020-05-18T14:10:30Z'), State : 'CA', Price : 13.00, Quantity : 120, CumulativeQuantityForYear : 224, MaximumQuantityForYear : 120 }");
-            results[4].Should().Be("{ _id : 2, Type : 'vanilla', OrderDate : ISODate('2021-01-11T06:31:15Z'), State : 'CA', Price : 12.00, Quantity : 145, CumulativeQuantityForYear : 145, MaximumQuantityForYear : 145 }");
-            results[5].Should().Be("{ _id : 1, Type : 'chocolate', OrderDate : ISODate('2021-03-20T11:30:05Z'), State : 'WA', Price : 14.00, Quantity : 140, CumulativeQuantityForYear : 285, MaximumQuantityForYear : 145 }");
+            results[0].Should().BeEquivalentTo("{ _id : 5, Type : 'strawberry', OrderDate : ISODate('2019-01-08T06:12:03Z'), State : 'WA', Price : 43.00, Quantity : 134, CumulativeQuantityForYear : 134, MaximumQuantityForYear : 162 }");
+            results[1].Should().BeEquivalentTo("{ _id : 4, Type : 'strawberry', OrderDate : ISODate('2019-05-18T16:09:01Z'), State : 'CA', Price : 41.00, Quantity : 162, CumulativeQuantityForYear : 296, MaximumQuantityForYear : 162 }");
+            results[2].Should().BeEquivalentTo("{ _id : 3, Type : 'vanilla', OrderDate : ISODate('2020-02-08T13:13:23Z'), State : 'WA', Price : 13.00, Quantity : 104, CumulativeQuantityForYear : 104, MaximumQuantityForYear : 120 }");
+            results[3].Should().BeEquivalentTo("{ _id : 0, Type : 'chocolate', OrderDate : ISODate('2020-05-18T14:10:30Z'), State : 'CA', Price : 13.00, Quantity : 120, CumulativeQuantityForYear : 224, MaximumQuantityForYear : 120 }");
+            results[4].Should().BeEquivalentTo("{ _id : 2, Type : 'vanilla', OrderDate : ISODate('2021-01-11T06:31:15Z'), State : 'CA', Price : 12.00, Quantity : 145, CumulativeQuantityForYear : 145, MaximumQuantityForYear : 145 }");
+            results[5].Should().BeEquivalentTo("{ _id : 1, Type : 'chocolate', OrderDate : ISODate('2021-03-20T11:30:05Z'), State : 'WA', Price : 14.00, Quantity : 140, CumulativeQuantityForYear : 285, MaximumQuantityForYear : 145 }");
         }
 
         [Fact]
@@ -222,7 +222,7 @@ namespace MongoDB.Driver.Tests.Jira
                 .SetWindowFields(
                     partitionBy: x => x.State,
                     sortBy: Builders<CakeSales>.Sort.Ascending(x => x.Price),
-                    output: p => new { QuantityFromSimilarOrders = p.Sum(x => x.Quantity, WindowBoundaries.Range(-10, 10)) });
+                    output: p => new { QuantityFromSimilarOrders = p.Sum(x => x.Quantity, WindowBoundaries.Range(-10.0, 10.0)) });
 
             var stages = Linq3TestHelpers.Translate(collection, aggregate);
             var expectedStages = new[]
@@ -236,7 +236,7 @@ namespace MongoDB.Driver.Tests.Jira
                             QuantityFromSimilarOrders : {
                                 $sum : '$Quantity',
                                 window : {
-                                    range : [-10, 10]
+                                    range : [-10.0, 10.0]
                                 }
                             }
                         }

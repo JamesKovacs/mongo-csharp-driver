@@ -14,6 +14,7 @@
 */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
@@ -43,8 +44,13 @@ namespace MongoDB.Driver.Linq.Linq2Implementation
             Expression<Func<TSource, TResult>> expression,
             IBsonSerializer<TSource> sourceSerializer,
             IBsonSerializerRegistry serializerRegistry,
-            ExpressionTranslationOptions translationOptions)
+            ExpressionTranslationOptions translationOptions,
+            IReadOnlyDictionary<string, object> contextData = null)
         {
+            if (contextData != null)
+            {
+                throw new InvalidOperationException("The LINQ2 provider does not support context data.");
+            }
             return AggregateExpressionTranslator.Translate(expression, sourceSerializer, serializerRegistry, translationOptions);
         }
 

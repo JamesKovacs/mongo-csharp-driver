@@ -95,7 +95,7 @@ namespace MongoDB.Driver
 
     public abstract class RangeWindowBoundary : WindowBoundary
     {
-        public abstract BsonValue Render();
+        public abstract BsonValue Render(IBsonSerializer valueSerializer);
     }
 
     public sealed class KeywordRangeWindowBoundary : RangeWindowBoundary
@@ -109,11 +109,16 @@ namespace MongoDB.Driver
 
         public string Keyword => _keyword;
 
-        public override BsonValue Render() => _keyword;
+        public override BsonValue Render(IBsonSerializer valueSerializer) => _keyword;
         public override string ToString() => $"\"{_keyword}\"";
     }
 
-    public sealed class ValueRangeWindowBoundary<TValue> : RangeWindowBoundary
+    public abstract class ValueRangeWindowBoundary : RangeWindowBoundary
+    {
+        public abstract Type ValueType { get; }
+    }
+
+    public sealed class ValueRangeWindowBoundary<TValue> : ValueRangeWindowBoundary
     {
         private readonly TValue _value;
 
@@ -123,11 +128,15 @@ namespace MongoDB.Driver
         }
 
         public TValue Value => _value;
+        public override Type ValueType => typeof(TValue);
 
-        public override BsonValue Render()
+        public override BsonValue Render(IBsonSerializer valueSerializer)
         {
-            var serializer = BsonSerializer.LookupSerializer<TValue>(); // TODO: find the correct serializer
-            return SerializationHelper.SerializeValue(serializer, _value);
+            if (valueSerializer == null)
+            {
+                throw new ArgumentNullException("A value serializer is required to serialize range values.", nameof(valueSerializer));
+            }
+            return SerializationHelper.SerializeValue(valueSerializer, _value);
         }
 
         public override string ToString() => _value.ToString();
@@ -147,7 +156,7 @@ namespace MongoDB.Driver
         public string Unit => _unit;
         public int Value => _value;
 
-        public override BsonValue Render() => _value;
+        public override BsonValue Render(IBsonSerializer valueSerializer) => _value;
         public override string ToString() => $"{_value} ({_unit})";
     }
 #pragma warning restore

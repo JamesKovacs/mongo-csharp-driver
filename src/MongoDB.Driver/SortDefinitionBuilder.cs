@@ -225,6 +225,9 @@ namespace MongoDB.Driver
             _direction = direction;
         }
 
+        public SortDirection Direction => _direction;
+        public FieldDefinition<TDocument> Field => _field;
+
         public override BsonDocument Render(IBsonSerializer<TDocument> documentSerializer, IBsonSerializerRegistry serializerRegistry, LinqProvider linqProvider)
         {
             var renderedField = _field.Render(documentSerializer, serializerRegistry, linqProvider);

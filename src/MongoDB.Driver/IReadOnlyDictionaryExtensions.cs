@@ -20,6 +20,22 @@ namespace MongoDB.Driver
 {
     internal static class IReadOnlyDictionaryExtensions
     {
+        public static IReadOnlyDictionary<TKey, TValue> Add<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key, TValue value)
+        {
+            var clone = new Dictionary<TKey, TValue>(dictionary.Count + 1);
+            foreach (var kv in dictionary)
+            {
+                clone.Add(kv.Key, kv.Value);
+            }
+            clone.Add(key, value);
+            return clone;
+        }
+
+        public static TValue GetValueOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key, TValue @default)
+        {
+            return (dictionary != null && dictionary.TryGetValue(key, out var value)) ? value : @default;
+        }
+
         public static bool IsEquivalentTo<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> x, IReadOnlyDictionary<TKey, TValue> y, Func<TValue, TValue, bool> equals)
         {
             if (object.ReferenceEquals(x, y))

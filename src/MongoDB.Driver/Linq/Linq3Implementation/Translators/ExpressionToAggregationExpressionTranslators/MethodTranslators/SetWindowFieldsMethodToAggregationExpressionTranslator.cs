@@ -14,10 +14,10 @@
 */
 
 using System;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions;
 using MongoDB.Driver.Linq.Linq3Implementation.ExtensionMethods;
 using MongoDB.Driver.Linq.Linq3Implementation.Misc;
@@ -57,11 +57,13 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
 
                 var windowExpression = arguments[2];
                 var window = windowExpression.GetConstantValue<WindowBoundaries>(expression);
+                var sortBy = context.Data.GetValueOrDefault("SortBy", null);
+                var serializerRegistry = (BsonSerializerRegistry)context.Data.GetValueOrDefault("SerializerRegistry", null);
 
                 var ast = AstExpression.SetWindowFieldsWindowExpression(
                     ToOperator(method),
                     new AstExpression[] { selectorTranslation.Ast },
-                    ToAstWindow(window));
+                    ToAstWindow(window, sortBy, inputSerializer, serializerRegistry));
                 var serializer = BsonSerializer.LookupSerializer(method.ReturnType);
 
                 return new AggregationExpression(expression, ast, serializer);
@@ -83,7 +85,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             };
         }
 
-        private static AstSetWindowFieldsWindow ToAstWindow(WindowBoundaries window)
+        private static AstSetWindowFieldsWindow ToAstWindow(WindowBoundaries window, object sortBy, IBsonSerializer inputSerializer, BsonSerializerRegistry serializerRegistry)
         {
             if (window is DocumentsWindowBoundaries documentsWindow)
             {
@@ -97,10 +99,53 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 var lowerBoundary = rangeWindow.LowerBoundary;
                 var upperBoundary = rangeWindow.UpperBoundary;
                 var unit = (lowerBoundary as TimeRangeWindowBoundary)?.Unit ?? (upperBoundary as TimeRangeWindowBoundary)?.Unit;
-                return new AstSetWindowFieldsWindow("range", lowerBoundary.Render(), upperBoundary.Render(), unit);
+
+                IBsonSerializer sortBySerializer = null;
+                var lowerValueBoundary = lowerBoundary as ValueRangeWindowBoundary;
+                var upperValueBoundary = upperBoundary as ValueRangeWindowBoundary;
+                if (lowerValueBoundary != null || upperBoundary != null)
+                {
+                    sortBySerializer = GetSortBySerializer(sortBy, inputSerializer, serializerRegistry);
+                    if ((lowerValueBoundary != null && lowerValueBoundary.ValueType != sortBySerializer.ValueType) ||
+                        (upperValueBoundary != null && upperValueBoundary.ValueType != sortBySerializer.ValueType))
+                    {
+                        throw new InvalidOperationException("SetWindowFields range window value must be of same type as sortBy field.");
+                    }
+                }
+
+                return new AstSetWindowFieldsWindow("range", lowerBoundary.Render(sortBySerializer), upperBoundary.Render(sortBySerializer), unit);
             }
 
             throw new ArgumentException($"Invalid window type: {window.GetType().FullName}.");
+        }
+
+        private static IBsonSerializer GetSortBySerializer(object sortBy, IBsonSerializer inputSerializer, BsonSerializerRegistry serializerRegistry)
+        {
+            var sortByType = sortBy.GetType();
+            var documentType = sortByType.GetGenericArguments().Single();
+            var methodInfoDefinition = typeof(SetWindowFieldsMethodMethodToAggregationExpressionTranslator).GetMethod(
+                nameof(GetSortBySerializerGeneric),
+                BindingFlags.NonPublic | BindingFlags.Static);
+            var methodInfo = methodInfoDefinition.MakeGenericMethod(documentType);
+            return (IBsonSerializer)methodInfo.Invoke(null, new object[] { sortBy, inputSerializer, serializerRegistry });
+        }
+
+        private static IBsonSerializer GetSortBySerializerGeneric<TDocument>(SortDefinition<TDocument> sortBy, IBsonSerializer<TDocument> documentSerializer, BsonSerializerRegistry serializerRegistry)
+        {
+            var directionalSortBy = sortBy as DirectionalSortDefinition<TDocument>;
+            if (directionalSortBy == null)
+            {
+                throw new InvalidOperationException("SetWindowFields SortBy with range window must be on a single field.");
+            }
+            if (directionalSortBy.Direction != SortDirection.Ascending)
+            {
+                throw new InvalidOperationException("SetWindowFields SortBy with range window must be ascending.");
+            }
+
+            var field = directionalSortBy.Field;
+            var renderedField = field.Render(documentSerializer, serializerRegistry);
+
+            return renderedField.FieldSerializer;
         }
     }
 }

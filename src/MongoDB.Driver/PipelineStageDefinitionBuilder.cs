@@ -1380,10 +1380,16 @@ namespace MongoDB.Driver
             Ensure.IsNotNull(partitionBy, nameof(partitionBy));
             Ensure.IsNotNull(sortBy, nameof(sortBy));
             Ensure.IsNotNull(output, nameof(output));
+
+            var contextData = new Dictionary<string, object>
+            {
+                { "SortBy", sortBy }
+            };
+
             return SetWindowFields(
                 new ExpressionAggregateExpressionDefinition<TInput, TPartitionBy>(partitionBy, translationOptions),
                 sortBy,
-                new ExpressionAggregateExpressionDefinition<ISetWindowFieldsPartition<TInput>, TWindowFields>(output, translationOptions));
+                new ExpressionAggregateExpressionDefinition<ISetWindowFieldsPartition<TInput>, TWindowFields>(output, translationOptions, contextData));
         }
 
         /// <summary>
