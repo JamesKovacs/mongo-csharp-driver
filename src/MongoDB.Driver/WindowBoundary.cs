@@ -14,8 +14,11 @@
 */
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Linq.Linq3Implementation.Misc;
 
@@ -92,7 +95,6 @@ namespace MongoDB.Driver
         public override string ToString() => _position.ToString();
     }
 
-
     public abstract class RangeWindowBoundary : WindowBoundary
     {
         public abstract BsonValue Render(IBsonSerializer valueSerializer);
@@ -158,6 +160,76 @@ namespace MongoDB.Driver
 
         public override BsonValue Render(IBsonSerializer valueSerializer) => _value;
         public override string ToString() => $"{_value} ({_unit})";
+    }
+
+    internal static class ValueRangeWindowBoundaryConvertingValueSerializerFactory
+    {
+        private static readonly IReadOnlyDictionary<Type, Type[]> __allowedConversions = new Dictionary<Type, Type[]>
+        {
+            // sortByType => list of allowed valueTypes
+            { typeof(byte), new[] { typeof(sbyte)} },
+            { typeof(sbyte), new[] { typeof(byte)} },
+            { typeof(short), new[] { typeof(byte), typeof(sbyte), typeof(ushort) } },
+            { typeof(ushort), new[] { typeof(byte), typeof(sbyte), typeof(short) } },
+            { typeof(int), new[] { typeof(byte), typeof(sbyte), typeof(short), typeof(ushort), typeof(uint) } },
+            { typeof(uint), new[] { typeof(byte), typeof(sbyte), typeof(short), typeof(ushort), typeof(int) } },
+            { typeof(long), new[] { typeof(byte), typeof(sbyte), typeof(short), typeof(ushort), typeof(int), typeof(uint), typeof(ulong) } },
+            { typeof(ulong), new[] { typeof(byte), typeof(sbyte), typeof(short), typeof(ushort), typeof(int), typeof(uint), typeof(long) } },
+            { typeof(float), new[] { typeof(byte), typeof(sbyte), typeof(short), typeof(ushort), typeof(uint) } },
+            { typeof(double), new[] { typeof(byte), typeof(sbyte), typeof(short), typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(float) } },
+            { typeof(decimal), new[] { typeof(byte), typeof(sbyte), typeof(short), typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(float), typeof(double) } }
+        };
+
+        public static IBsonSerializer Create(ValueRangeWindowBoundary boundary, IBsonSerializer sortBySerializer)
+        {
+            var valueType = boundary.ValueType;
+            var sortByType = sortBySerializer.ValueType;
+
+            if (valueType == sortByType)
+            {
+                return sortBySerializer;
+            }
+
+            if (IsAllowedConversion(valueType, sortByType))
+            {
+                var serializerTypeDescription = typeof(ValueRangeWindowBoundaryConvertingValueSerializer<,>);
+                var serializerType = serializerTypeDescription.MakeGenericType(valueType, sortByType);
+                var constructorInfo = serializerType.GetConstructors().Single();
+                return (IBsonSerializer)constructorInfo.Invoke(new object[] { sortBySerializer });
+            }
+
+            throw new InvalidOperationException("SetWindowFields range window value must be of the same type as the sortBy field (or convertible to that type).");
+        }
+
+        private static bool IsAllowedConversion(Type valueType, Type sortByType)
+        {
+            if (__allowedConversions.TryGetValue(sortByType, out var allowedValueTypes))
+            {
+                return allowedValueTypes.Contains(valueType);
+            }
+
+            return false;
+        }
+    }
+
+    internal class ValueRangeWindowBoundaryConvertingValueSerializer<TValue, TSortBy> : SerializerBase<TValue>
+    {
+        private readonly IBsonSerializer<TSortBy> _sortBySerializer;
+
+        public ValueRangeWindowBoundaryConvertingValueSerializer(IBsonSerializer<TSortBy> sortBySerializer)
+        {
+            _sortBySerializer = sortBySerializer;
+        }
+
+        public override void Serialize(BsonSerializationContext context, BsonSerializationArgs args, TValue value)
+        {
+            _sortBySerializer.Serialize(context, args, Coerce(value));
+        }
+
+        private static TSortBy Coerce(TValue value)
+        {
+            return (TSortBy)Convert.ChangeType(value, typeof(TSortBy));
+        }
     }
 #pragma warning restore
 }

@@ -222,7 +222,7 @@ namespace MongoDB.Driver.Tests.Jira
                 .SetWindowFields(
                     partitionBy: x => x.State,
                     sortBy: Builders<CakeSales>.Sort.Ascending(x => x.Price),
-                    output: p => new { QuantityFromSimilarOrders = p.Sum(x => x.Quantity, WindowBoundaries.Range(-10.0, 10.0)) });
+                    output: p => new { QuantityFromSimilarOrders = p.Sum(x => x.Quantity, WindowBoundaries.Range(-10, 10)) });
 
             var stages = Linq3TestHelpers.Translate(collection, aggregate);
             var expectedStages = new[]

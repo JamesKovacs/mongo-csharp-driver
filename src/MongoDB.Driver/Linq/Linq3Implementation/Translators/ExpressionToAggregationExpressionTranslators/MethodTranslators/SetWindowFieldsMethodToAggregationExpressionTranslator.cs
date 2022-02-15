@@ -100,20 +100,31 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 var upperBoundary = rangeWindow.UpperBoundary;
                 var unit = (lowerBoundary as TimeRangeWindowBoundary)?.Unit ?? (upperBoundary as TimeRangeWindowBoundary)?.Unit;
 
-                IBsonSerializer sortBySerializer = null;
                 var lowerValueBoundary = lowerBoundary as ValueRangeWindowBoundary;
                 var upperValueBoundary = upperBoundary as ValueRangeWindowBoundary;
+                IBsonSerializer lowerBoundaryValueSerializer = null;
+                IBsonSerializer upperBoundaryValueSerializer = null;
                 if (lowerValueBoundary != null || upperBoundary != null)
                 {
-                    sortBySerializer = GetSortBySerializer(sortBy, inputSerializer, serializerRegistry);
-                    if ((lowerValueBoundary != null && lowerValueBoundary.ValueType != sortBySerializer.ValueType) ||
-                        (upperValueBoundary != null && upperValueBoundary.ValueType != sortBySerializer.ValueType))
+                    var sortBySerializer = GetSortBySerializer(sortBy, inputSerializer, serializerRegistry);
+                    if (lowerValueBoundary != null)
                     {
-                        throw new InvalidOperationException("SetWindowFields range window value must be of same type as sortBy field.");
+                        lowerBoundaryValueSerializer = ValueRangeWindowBoundaryConvertingValueSerializerFactory.Create(lowerValueBoundary, sortBySerializer);
+                    }
+                    if (upperValueBoundary != null)
+                    {
+                        if (lowerBoundaryValueSerializer != null && lowerBoundaryValueSerializer.ValueType == upperValueBoundary.ValueType)
+                        {
+                            upperBoundaryValueSerializer = lowerBoundaryValueSerializer;
+                        }
+                        else
+                        {
+                            upperBoundaryValueSerializer = ValueRangeWindowBoundaryConvertingValueSerializerFactory.Create(upperValueBoundary, sortBySerializer);
+                        }
                     }
                 }
 
-                return new AstSetWindowFieldsWindow("range", lowerBoundary.Render(sortBySerializer), upperBoundary.Render(sortBySerializer), unit);
+                return new AstSetWindowFieldsWindow("range", lowerBoundary.Render(lowerBoundaryValueSerializer), upperBoundary.Render(upperBoundaryValueSerializer), unit);
             }
 
             throw new ArgumentException($"Invalid window type: {window.GetType().FullName}.");
