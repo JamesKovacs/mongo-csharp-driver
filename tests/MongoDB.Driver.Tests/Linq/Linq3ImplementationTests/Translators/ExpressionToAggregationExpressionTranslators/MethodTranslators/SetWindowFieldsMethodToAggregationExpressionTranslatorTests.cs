@@ -21,6 +21,19 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
     public class SetWindowFieldsMethodToAggregationExpressionTranslatorTests : Linq3IntegrationTest
     {
         [Fact]
+        public void Translate_should_return_expected_result_for_AddToSet()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.AddToSet(x => x.Int32Field, null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $addToSet : '$Int32Field' } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
         public void Translate_should_return_expected_result_for_Average_with_Decimal()
         {
             var collection = GetCollection<C>();

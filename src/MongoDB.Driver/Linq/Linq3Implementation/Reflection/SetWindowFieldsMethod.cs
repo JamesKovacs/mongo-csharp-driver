@@ -21,6 +21,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
     internal static class SetWindowFieldsMethod
     {
         // private static fields
+        private static readonly MethodInfo __addToSet;
         private static readonly MethodInfo __averageWithDecimal;
         private static readonly MethodInfo __averageWithDouble;
         private static readonly MethodInfo __averageWithInt32;
@@ -48,6 +49,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         // static constructor
         static SetWindowFieldsMethod()
         {
+            __addToSet = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, WindowBoundaries boundaries) => partition.AddToSet(selector, boundaries));
             __averageWithDecimal = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, decimal> selector, WindowBoundaries boundaries) => partition.Average(selector, boundaries));
             __averageWithDouble = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, double> selector, WindowBoundaries boundaries) => partition.Average(selector, boundaries));
             __averageWithInt32 = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, int> selector, WindowBoundaries boundaries) => partition.Average(selector, boundaries));
@@ -74,6 +76,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         }
 
         // public properties
+        public static MethodInfo AddToSet => __addToSet;
         public static MethodInfo AverageWithDecimal => __averageWithDecimal;
         public static MethodInfo AverageWithDouble => __averageWithDouble;
         public static MethodInfo AverageWithInt32 => __averageWithInt32;

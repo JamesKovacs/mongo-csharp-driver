@@ -26,6 +26,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             {
                 case "Abs": return AbsMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "Add": return AddMethodToAggregationExpressionTranslator.Translate(context, expression);
+                case "AddToSet": return AddToSetMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "Aggregate": return AggregateMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "All": return AllMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "Any": return AnyMethodToAggregationExpressionTranslator.Translate(context, expression);

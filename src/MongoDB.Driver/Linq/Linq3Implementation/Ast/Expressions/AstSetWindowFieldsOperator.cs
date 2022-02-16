@@ -19,6 +19,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
 {
     internal enum AstSetWindowFieldsOperator
     {
+        AddToSet,
         Average,
         Max,
         Min,
@@ -32,6 +33,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
         {
             return @operator switch
             {
+                AstSetWindowFieldsOperator.AddToSet => "$addToSet",
                 AstSetWindowFieldsOperator.Average => "$avg",
                 AstSetWindowFieldsOperator.Max => "$max",
                 AstSetWindowFieldsOperator.Min => "$min",

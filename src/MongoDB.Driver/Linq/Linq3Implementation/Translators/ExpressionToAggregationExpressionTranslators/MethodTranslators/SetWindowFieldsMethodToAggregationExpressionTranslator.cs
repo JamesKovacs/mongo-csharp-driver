@@ -30,6 +30,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
     {
         private static readonly MethodInfo[] __setWindowFieldsMethods =
         {
+            SetWindowFieldsMethod.AddToSet,
             SetWindowFieldsMethod.AverageWithDecimal,
             SetWindowFieldsMethod.AverageWithDouble,
             SetWindowFieldsMethod.AverageWithInt32,
@@ -54,6 +55,11 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             SetWindowFieldsMethod.SumWithNullableSingle,
             SetWindowFieldsMethod.SumWithSingle
         };
+
+        public static bool CanTranslate(MethodCallExpression expression)
+        {
+            return CanTranslate(expression.Method);
+        }
 
         public static bool CanTranslate(MethodInfo method)
         {
@@ -99,6 +105,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
         {
             return method.Name switch
             {
+                "AddToSet" => AstSetWindowFieldsOperator.AddToSet,
                 "Average" => AstSetWindowFieldsOperator.Average,
                 "Max" => AstSetWindowFieldsOperator.Max,
                 "Min" => AstSetWindowFieldsOperator.Min,
