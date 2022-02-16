@@ -108,7 +108,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 return new AggregationExpression(expression, ast, serializer);
             }
 
-            if (method.Is(SetWindowFieldsMethod.Average))
+            if (SetWindowFieldsMethodMethodToAggregationExpressionTranslator.CanTranslate(method))
             {
                 return SetWindowFieldsMethodMethodToAggregationExpressionTranslator.Translate(context, expression);
             }

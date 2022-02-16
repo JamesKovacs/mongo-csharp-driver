@@ -84,12 +84,128 @@ namespace MongoDB.Driver.Linq
         /// Returns the sum of numeric values. $sum ignores non-numeric values.
         /// </summary>
         /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
-        /// <typeparam name="TValue">The type of the selected values.</typeparam>
         /// <param name="partition">The partition.</param>
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="boundaries">The window boundaries.</param>
         /// <returns>The sum of the values.</returns>
-        public static TValue Sum<TInput, TValue>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, TValue> selector, WindowBoundaries boundaries = null)
+        public static decimal Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the sum of numeric values. $sum ignores non-numeric values.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The sum of the values.</returns>
+        public static decimal? Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal?> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the sum of numeric values. $sum ignores non-numeric values.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The sum of the values.</returns>
+        public static double Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the sum of numeric values. $sum ignores non-numeric values.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The sum of the values.</returns>
+        public static double? Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double?> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the sum of numeric values. $sum ignores non-numeric values.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The sum of the values.</returns>
+        public static float Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the sum of numeric values. $sum ignores non-numeric values.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The sum of the values.</returns>
+        public static float? Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float?> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the sum of numeric values. $sum ignores non-numeric values.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The sum of the values.</returns>
+        public static long Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the sum of numeric values. $sum ignores non-numeric values.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The sum of the values.</returns>
+        public static long? Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int?> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the sum of numeric values. $sum ignores non-numeric values.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The sum of the values.</returns>
+        public static long Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the sum of numeric values. $sum ignores non-numeric values.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The sum of the values.</returns>
+        public static long? Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long?> selector, WindowBoundaries boundaries = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }

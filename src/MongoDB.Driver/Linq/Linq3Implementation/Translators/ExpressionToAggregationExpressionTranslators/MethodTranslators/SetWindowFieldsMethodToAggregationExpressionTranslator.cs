@@ -34,8 +34,22 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             SetWindowFieldsMethod.Max,
             SetWindowFieldsMethod.Min,
             SetWindowFieldsMethod.Push,
-            SetWindowFieldsMethod.Sum
+            SetWindowFieldsMethod.SumWithDecimal,
+            SetWindowFieldsMethod.SumWithDouble,
+            SetWindowFieldsMethod.SumWithInt32,
+            SetWindowFieldsMethod.SumWithInt64,
+            SetWindowFieldsMethod.SumWithNullableDecimal,
+            SetWindowFieldsMethod.SumWithNullableDouble,
+            SetWindowFieldsMethod.SumWithNullableInt32,
+            SetWindowFieldsMethod.SumWithNullableInt64,
+            SetWindowFieldsMethod.SumWithNullableSingle,
+            SetWindowFieldsMethod.SumWithSingle
         };
+
+        public static bool CanTranslate(MethodInfo method)
+        {
+            return method.IsOneOf(__setWindowFieldsMethods);
+        }
 
         public static AggregationExpression Translate(TranslationContext context, MethodCallExpression expression)
         {
@@ -87,6 +101,11 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
 
         private static AstSetWindowFieldsWindow ToAstWindow(WindowBoundaries window, object sortBy, IBsonSerializer inputSerializer, BsonSerializerRegistry serializerRegistry)
         {
+            if (window == null)
+            {
+                return null;
+            }
+
             if (window is DocumentsWindowBoundaries documentsWindow)
             {
                 var lowerBoundary = documentsWindow.LowerBoundary;

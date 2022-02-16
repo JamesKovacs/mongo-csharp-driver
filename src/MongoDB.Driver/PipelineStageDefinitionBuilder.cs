@@ -1258,7 +1258,26 @@ namespace MongoDB.Driver
             AggregateExpressionDefinition<ISetWindowFieldsPartition<TInput>, TWindowFields> output)
         {
             Ensure.IsNotNull(output, nameof(output));
-            throw new NotImplementedException();
+
+            const string operatorName = "$setWindowFields";
+            var stage = new DelegatedPipelineStageDefinition<TInput, BsonDocument>(
+                operatorName,
+                (inputSerializer, sr, linqProvider) =>
+                {
+                    var partitionSerializer = new ISetWindowFieldsPartitionSerializer<TInput>(inputSerializer);
+                    var document = new BsonDocument
+                    {
+                        { "$setWindowFields", new BsonDocument
+                            {
+                                { "output", output.Render(partitionSerializer, sr, linqProvider) }
+                            }
+                        }
+                    };
+                    var outputSerializer = sr.GetSerializer<BsonDocument>();
+                    return new RenderedPipelineStageDefinition<BsonDocument>(operatorName, document, outputSerializer);
+                });
+
+            return stage;
         }
 
         /// <summary>
@@ -1276,7 +1295,27 @@ namespace MongoDB.Driver
         {
             Ensure.IsNotNull(partitionBy, nameof(partitionBy));
             Ensure.IsNotNull(output, nameof(output));
-            throw new NotImplementedException();
+
+            const string operatorName = "$setWindowFields";
+            var stage = new DelegatedPipelineStageDefinition<TInput, BsonDocument>(
+                operatorName,
+                (inputSerializer, sr, linqProvider) =>
+                {
+                    var partitionSerializer = new ISetWindowFieldsPartitionSerializer<TInput>(inputSerializer);
+                    var document = new BsonDocument
+                    {
+                        { "$setWindowFields", new BsonDocument
+                            {
+                                { "partitionBy", partitionBy.Render(inputSerializer, sr, linqProvider) },
+                                { "output", output.Render(partitionSerializer, sr, linqProvider) }
+                            }
+                        }
+                    };
+                    var outputSerializer = sr.GetSerializer<BsonDocument>();
+                    return new RenderedPipelineStageDefinition<BsonDocument>(operatorName, document, outputSerializer);
+                });
+
+            return stage;
         }
 
         /// <summary>

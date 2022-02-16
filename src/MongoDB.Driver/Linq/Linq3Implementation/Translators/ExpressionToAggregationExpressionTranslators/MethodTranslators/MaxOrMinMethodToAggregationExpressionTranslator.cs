@@ -60,7 +60,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 return new AggregationExpression(expression, ast, serializer);
             }
 
-            if (method.IsOneOf(SetWindowFieldsMethod.Max, SetWindowFieldsMethod.Min))
+            if (SetWindowFieldsMethodMethodToAggregationExpressionTranslator.CanTranslate(method))
             {
                 return SetWindowFieldsMethodMethodToAggregationExpressionTranslator.Translate(context, expression);
             }
