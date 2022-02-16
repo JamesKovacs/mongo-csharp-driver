@@ -21,7 +21,16 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
     internal static class SetWindowFieldsMethod
     {
         // private static fields
-        private static readonly MethodInfo __average;
+        private static readonly MethodInfo __averageWithDecimal;
+        private static readonly MethodInfo __averageWithDouble;
+        private static readonly MethodInfo __averageWithInt32;
+        private static readonly MethodInfo __averageWithInt64;
+        private static readonly MethodInfo __averageWithNullableDecimal;
+        private static readonly MethodInfo __averageWithNullableDouble;
+        private static readonly MethodInfo __averageWithNullableInt32;
+        private static readonly MethodInfo __averageWithNullableInt64;
+        private static readonly MethodInfo __averageWithNullableSingle;
+        private static readonly MethodInfo __averageWithSingle;
         private static readonly MethodInfo __max;
         private static readonly MethodInfo __min;
         private static readonly MethodInfo __push;
@@ -39,7 +48,16 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         // static constructor
         static SetWindowFieldsMethod()
         {
-            __average = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, WindowBoundaries boundaries) => partition.Average(selector, boundaries));
+            __averageWithDecimal = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, decimal> selector, WindowBoundaries boundaries) => partition.Average(selector, boundaries));
+            __averageWithDouble = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, double> selector, WindowBoundaries boundaries) => partition.Average(selector, boundaries));
+            __averageWithInt32 = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, int> selector, WindowBoundaries boundaries) => partition.Average(selector, boundaries));
+            __averageWithInt64 = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, long> selector, WindowBoundaries boundaries) => partition.Average(selector, boundaries));
+            __averageWithNullableDecimal = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, decimal?> selector, WindowBoundaries boundaries) => partition.Average(selector, boundaries));
+            __averageWithNullableDouble = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, double?> selector, WindowBoundaries boundaries) => partition.Average(selector, boundaries));
+            __averageWithNullableInt32 = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, int?> selector, WindowBoundaries boundaries) => partition.Average(selector, boundaries));
+            __averageWithNullableInt64 = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, long?> selector, WindowBoundaries boundaries) => partition.Average(selector, boundaries));
+            __averageWithNullableSingle = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, float?> selector, WindowBoundaries boundaries) => partition.Average(selector, boundaries));
+            __averageWithSingle = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, float> selector, WindowBoundaries boundaries) => partition.Average(selector, boundaries));
             __max = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, WindowBoundaries boundaries) => partition.Max(selector, boundaries));
             __min = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, WindowBoundaries boundaries) => partition.Min(selector, boundaries));
             __push = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, WindowBoundaries boundaries) => partition.Push(selector, boundaries));
@@ -56,7 +74,16 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         }
 
         // public properties
-        public static MethodInfo Average => __average;
+        public static MethodInfo AverageWithDecimal => __averageWithDecimal;
+        public static MethodInfo AverageWithDouble => __averageWithDouble;
+        public static MethodInfo AverageWithInt32 => __averageWithInt32;
+        public static MethodInfo AverageWithInt64 => __averageWithInt64;
+        public static MethodInfo AverageWithNullableDecimal => __averageWithNullableDecimal;
+        public static MethodInfo AverageWithNullableDouble => __averageWithNullableDouble;
+        public static MethodInfo AverageWithNullableInt32 => __averageWithNullableInt32;
+        public static MethodInfo AverageWithNullableInt64 => __averageWithNullableInt64;
+        public static MethodInfo AverageWithNullableSingle => __averageWithNullableSingle;
+        public static MethodInfo AverageWithSingle => __averageWithSingle;
         public static MethodInfo Max => __max;
         public static MethodInfo Min => __min;
         public static MethodInfo Push => __push;

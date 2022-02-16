@@ -30,7 +30,16 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
     {
         private static readonly MethodInfo[] __setWindowFieldsMethods =
         {
-            SetWindowFieldsMethod.Average,
+            SetWindowFieldsMethod.AverageWithDecimal,
+            SetWindowFieldsMethod.AverageWithDouble,
+            SetWindowFieldsMethod.AverageWithInt32,
+            SetWindowFieldsMethod.AverageWithInt64,
+            SetWindowFieldsMethod.AverageWithNullableDecimal,
+            SetWindowFieldsMethod.AverageWithNullableDouble,
+            SetWindowFieldsMethod.AverageWithNullableInt32,
+            SetWindowFieldsMethod.AverageWithNullableInt64,
+            SetWindowFieldsMethod.AverageWithNullableSingle,
+            SetWindowFieldsMethod.AverageWithSingle,
             SetWindowFieldsMethod.Max,
             SetWindowFieldsMethod.Min,
             SetWindowFieldsMethod.Push,
