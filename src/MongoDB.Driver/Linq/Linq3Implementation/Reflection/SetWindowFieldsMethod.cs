@@ -32,6 +32,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         private static readonly MethodInfo __averageWithNullableInt64;
         private static readonly MethodInfo __averageWithNullableSingle;
         private static readonly MethodInfo __averageWithSingle;
+        private static readonly MethodInfo __count;
         private static readonly MethodInfo __max;
         private static readonly MethodInfo __min;
         private static readonly MethodInfo __push;
@@ -60,6 +61,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
             __averageWithNullableInt64 = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, long?> selector, WindowBoundaries boundaries) => partition.Average(selector, boundaries));
             __averageWithNullableSingle = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, float?> selector, WindowBoundaries boundaries) => partition.Average(selector, boundaries));
             __averageWithSingle = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, float> selector, WindowBoundaries boundaries) => partition.Average(selector, boundaries));
+            __count = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, WindowBoundaries boundaries) => partition.Count(boundaries));
             __max = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, WindowBoundaries boundaries) => partition.Max(selector, boundaries));
             __min = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, WindowBoundaries boundaries) => partition.Min(selector, boundaries));
             __push = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, WindowBoundaries boundaries) => partition.Push(selector, boundaries));
@@ -87,6 +89,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         public static MethodInfo AverageWithNullableInt64 => __averageWithNullableInt64;
         public static MethodInfo AverageWithNullableSingle => __averageWithNullableSingle;
         public static MethodInfo AverageWithSingle => __averageWithSingle;
+        public static MethodInfo Count => __count;
         public static MethodInfo Max => __max;
         public static MethodInfo Min => __min;
         public static MethodInfo Push => __push;

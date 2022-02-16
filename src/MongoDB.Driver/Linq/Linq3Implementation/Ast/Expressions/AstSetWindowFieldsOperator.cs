@@ -21,6 +21,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
     {
         AddToSet,
         Average,
+        Count,
         Max,
         Min,
         Push,
@@ -35,6 +36,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
             {
                 AstSetWindowFieldsOperator.AddToSet => "$addToSet",
                 AstSetWindowFieldsOperator.Average => "$avg",
+                AstSetWindowFieldsOperator.Count => "$count",
                 AstSetWindowFieldsOperator.Max => "$max",
                 AstSetWindowFieldsOperator.Min => "$min",
                 AstSetWindowFieldsOperator.Push => "$push",

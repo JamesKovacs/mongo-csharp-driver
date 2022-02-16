@@ -164,6 +164,19 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
         }
 
         [Fact]
+        public void Translate_should_return_expected_result_for_Count()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Count(null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $count : { } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
         public void Translate_should_return_expected_result_for_Sum_with_Decimal()
         {
             var collection = GetCollection<C>();

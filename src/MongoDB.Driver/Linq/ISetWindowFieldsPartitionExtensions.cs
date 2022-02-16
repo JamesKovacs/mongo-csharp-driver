@@ -169,6 +169,18 @@ namespace MongoDB.Driver.Linq
         }
 
         /// <summary>
+        /// Returns the number of documents in the window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The maximum of the selected values.</returns>
+        public static long Count<TInput>(this ISetWindowFieldsPartition<TInput> partition, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
         /// Returns the maximum value.
         /// </summary>
         /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>

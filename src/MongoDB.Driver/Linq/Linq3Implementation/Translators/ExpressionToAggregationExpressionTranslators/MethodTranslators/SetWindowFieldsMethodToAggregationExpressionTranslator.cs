@@ -14,9 +14,11 @@
 */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions;
 using MongoDB.Driver.Linq.Linq3Implementation.ExtensionMethods;
@@ -41,6 +43,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             SetWindowFieldsMethod.AverageWithNullableInt64,
             SetWindowFieldsMethod.AverageWithNullableSingle,
             SetWindowFieldsMethod.AverageWithSingle,
+            SetWindowFieldsMethod.Count,
             SetWindowFieldsMethod.Max,
             SetWindowFieldsMethod.Min,
             SetWindowFieldsMethod.Push,
@@ -78,20 +81,29 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 var partitionSerializer = (ISetWindowFieldsPartitionSerializer)partitionTranslation.Serializer;
                 var inputSerializer = partitionSerializer.InputSerializer;
 
-                var selectorLambda = (LambdaExpression)arguments[1];
-                var selectorParameter = selectorLambda.Parameters[0];
-                var selectorSymbol = context.CreateSymbol(selectorParameter, inputSerializer, isCurrent: true);
-                var selectorContext = context.WithSymbol(selectorSymbol);
-                var selectorTranslation = ExpressionToAggregationExpressionTranslator.Translate(selectorContext, selectorLambda.Body);
+                var operatorArgs = new List<AstExpression>();
+                if (arguments.Count >= 3)
+                {
+                    var selectorLambda = (LambdaExpression)arguments[1];
+                    var selectorParameter = selectorLambda.Parameters[0];
+                    var selectorSymbol = context.CreateSymbol(selectorParameter, inputSerializer, isCurrent: true);
+                    var selectorContext = context.WithSymbol(selectorSymbol);
+                    var selectorTranslation = ExpressionToAggregationExpressionTranslator.Translate(selectorContext, selectorLambda.Body);
+                    operatorArgs.Add(selectorTranslation.Ast);
+                }
+                else
+                {
+                    operatorArgs.Add(AstExpression.Constant(new BsonDocument()));
+                }
 
-                var windowExpression = arguments[2];
+                var windowExpression = arguments.Last();
                 var window = windowExpression.GetConstantValue<WindowBoundaries>(expression);
                 var sortBy = context.Data.GetValueOrDefault("SortBy", null);
                 var serializerRegistry = (BsonSerializerRegistry)context.Data.GetValueOrDefault("SerializerRegistry", null);
 
                 var ast = AstExpression.SetWindowFieldsWindowExpression(
                     ToOperator(method),
-                    new AstExpression[] { selectorTranslation.Ast },
+                    operatorArgs,
                     ToAstWindow(window, sortBy, inputSerializer, serializerRegistry));
                 var serializer = BsonSerializer.LookupSerializer(method.ReturnType);
 
@@ -107,6 +119,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             {
                 "AddToSet" => AstSetWindowFieldsOperator.AddToSet,
                 "Average" => AstSetWindowFieldsOperator.Average,
+                "Count" => AstSetWindowFieldsOperator.Count,
                 "Max" => AstSetWindowFieldsOperator.Max,
                 "Min" => AstSetWindowFieldsOperator.Min,
                 "Push" => AstSetWindowFieldsOperator.Push,
