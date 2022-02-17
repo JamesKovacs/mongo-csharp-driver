@@ -44,6 +44,16 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             SetWindowFieldsMethod.AverageWithNullableSingle,
             SetWindowFieldsMethod.AverageWithSingle,
             SetWindowFieldsMethod.Count,
+            SetWindowFieldsMethod.CovariancePopWithDecimals,
+            SetWindowFieldsMethod.CovariancePopWithDoubles,
+            SetWindowFieldsMethod.CovariancePopWithInt32s,
+            SetWindowFieldsMethod.CovariancePopWithInt64s,
+            SetWindowFieldsMethod.CovariancePopWithNullableDecimals,
+            SetWindowFieldsMethod.CovariancePopWithNullableDoubles,
+            SetWindowFieldsMethod.CovariancePopWithNullableInt32s,
+            SetWindowFieldsMethod.CovariancePopWithNullableInt64s,
+            SetWindowFieldsMethod.CovariancePopWithNullableSingles,
+            SetWindowFieldsMethod.CovariancePopWithSingles,
             SetWindowFieldsMethod.Max,
             SetWindowFieldsMethod.Min,
             SetWindowFieldsMethod.Push,
@@ -84,12 +94,15 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 var operatorArgs = new List<AstExpression>();
                 if (arguments.Count >= 3)
                 {
-                    var selectorLambda = (LambdaExpression)arguments[1];
-                    var selectorParameter = selectorLambda.Parameters[0];
-                    var selectorSymbol = context.CreateSymbol(selectorParameter, inputSerializer, isCurrent: true);
-                    var selectorContext = context.WithSymbol(selectorSymbol);
-                    var selectorTranslation = ExpressionToAggregationExpressionTranslator.Translate(selectorContext, selectorLambda.Body);
-                    operatorArgs.Add(selectorTranslation.Ast);
+                    for (var n = 1; n <= arguments.Count - 2; n++)
+                    {
+                        var selectorLambda = (LambdaExpression)arguments[n];
+                        var selectorParameter = selectorLambda.Parameters[0];
+                        var selectorSymbol = context.CreateSymbol(selectorParameter, inputSerializer, isCurrent: true);
+                        var selectorContext = context.WithSymbol(selectorSymbol);
+                        var selectorTranslation = ExpressionToAggregationExpressionTranslator.Translate(selectorContext, selectorLambda.Body);
+                        operatorArgs.Add(selectorTranslation.Ast);
+                    }
                 }
                 else
                 {
@@ -120,6 +133,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 "AddToSet" => AstSetWindowFieldsOperator.AddToSet,
                 "Average" => AstSetWindowFieldsOperator.Average,
                 "Count" => AstSetWindowFieldsOperator.Count,
+                "CovariancePop" => AstSetWindowFieldsOperator.CovariancePop,
                 "Max" => AstSetWindowFieldsOperator.Max,
                 "Min" => AstSetWindowFieldsOperator.Min,
                 "Push" => AstSetWindowFieldsOperator.Push,

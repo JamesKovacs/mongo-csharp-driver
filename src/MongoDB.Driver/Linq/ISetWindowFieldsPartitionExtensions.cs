@@ -181,6 +181,146 @@ namespace MongoDB.Driver.Linq
         }
 
         /// <summary>
+        /// Returns the population covariance of two numeric expressions that are evaluated using documents in the partition window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector1">The selector that defines the first expression.</param>
+        /// <param name="selector2">The selector that defines the second expression.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The maximum of the selected values.</returns>
+        public static decimal CovariancePop<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector1, Func<TInput, decimal> selector2, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the population covariance of two numeric expressions that are evaluated using documents in the partition window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector1">The selector that defines the first expression.</param>
+        /// <param name="selector2">The selector that defines the second expression.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The maximum of the selected values.</returns>
+        public static decimal? CovariancePop<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal?> selector1, Func<TInput, decimal?> selector2, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the population covariance of two numeric expressions that are evaluated using documents in the partition window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector1">The selector that defines the first expression.</param>
+        /// <param name="selector2">The selector that defines the second expression.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The maximum of the selected values.</returns>
+        public static double CovariancePop<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector1, Func<TInput, double> selector2, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the population covariance of two numeric expressions that are evaluated using documents in the partition window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector1">The selector that defines the first expression.</param>
+        /// <param name="selector2">The selector that defines the second expression.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The maximum of the selected values.</returns>
+        public static double? CovariancePop<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double?> selector1, Func<TInput, double?> selector2, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the population covariance of two numeric expressions that are evaluated using documents in the partition window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector1">The selector that defines the first expression.</param>
+        /// <param name="selector2">The selector that defines the second expression.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The maximum of the selected values.</returns>
+        public static double CovariancePop<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector1, Func<TInput, int> selector2, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the population covariance of two numeric expressions that are evaluated using documents in the partition window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector1">The selector that defines the first expression.</param>
+        /// <param name="selector2">The selector that defines the second expression.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The maximum of the selected values.</returns>
+        public static double? CovariancePop<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int?> selector1, Func<TInput, int?> selector2, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the population covariance of two numeric expressions that are evaluated using documents in the partition window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector1">The selector that defines the first expression.</param>
+        /// <param name="selector2">The selector that defines the second expression.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The maximum of the selected values.</returns>
+        public static double CovariancePop<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector1, Func<TInput, long> selector2, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the population covariance of two numeric expressions that are evaluated using documents in the partition window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector1">The selector that defines the first expression.</param>
+        /// <param name="selector2">The selector that defines the second expression.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The maximum of the selected values.</returns>
+        public static double? CovariancePop<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long?> selector1, Func<TInput, long?> selector2, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the population covariance of two numeric expressions that are evaluated using documents in the partition window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector1">The selector that defines the first expression.</param>
+        /// <param name="selector2">The selector that defines the second expression.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The maximum of the selected values.</returns>
+        public static float CovariancePop<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector1, Func<TInput, float> selector2, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the population covariance of two numeric expressions that are evaluated using documents in the partition window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector1">The selector that defines the first expression.</param>
+        /// <param name="selector2">The selector that defines the second expression.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The maximum of the selected values.</returns>
+        public static float? CovariancePop<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float?> selector1, Func<TInput, float?> selector2, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
         /// Returns the maximum value.
         /// </summary>
         /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
