@@ -63,6 +63,11 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         private static readonly MethodInfo __derivativeWithInt64AndUnit;
         private static readonly MethodInfo __derivativeWithSingle;
         private static readonly MethodInfo __derivativeWithSingleAndUnit;
+        private static readonly MethodInfo __exponentialMovingAverageWithDecimal;
+        private static readonly MethodInfo __exponentialMovingAverageWithDouble;
+        private static readonly MethodInfo __exponentialMovingAverageWithInt32;
+        private static readonly MethodInfo __exponentialMovingAverageWithInt64;
+        private static readonly MethodInfo __exponentialMovingAverageWithSingle;
         private static readonly MethodInfo __max;
         private static readonly MethodInfo __min;
         private static readonly MethodInfo __push;
@@ -122,6 +127,11 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
             __derivativeWithInt64AndUnit = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, long> selector, DerivativeTimeUnit unit, WindowBoundaries boundaries) => partition.Derivative(selector, unit, boundaries));
             __derivativeWithSingle = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, float> selector, WindowBoundaries boundaries) => partition.Derivative(selector, boundaries));
             __derivativeWithSingleAndUnit = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, float> selector, DerivativeTimeUnit unit, WindowBoundaries boundaries) => partition.Derivative(selector, unit, boundaries));;
+            __exponentialMovingAverageWithDecimal = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, decimal> selector, ExponentialMovingAverageWeighting weighting, WindowBoundaries boundaries) => partition.ExponentialMovingAverage(selector, weighting, boundaries));
+            __exponentialMovingAverageWithDouble = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, double> selector, ExponentialMovingAverageWeighting weighting, WindowBoundaries boundaries) => partition.ExponentialMovingAverage(selector, weighting, boundaries));
+            __exponentialMovingAverageWithInt32 = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, int> selector, ExponentialMovingAverageWeighting weighting, WindowBoundaries boundaries) => partition.ExponentialMovingAverage(selector, weighting, boundaries));
+            __exponentialMovingAverageWithInt64 = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, long> selector, ExponentialMovingAverageWeighting weighting, WindowBoundaries boundaries) => partition.ExponentialMovingAverage(selector, weighting, boundaries));
+            __exponentialMovingAverageWithSingle = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, float> selector, ExponentialMovingAverageWeighting weighting, WindowBoundaries boundaries) => partition.ExponentialMovingAverage(selector, weighting, boundaries));
             __max = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, WindowBoundaries boundaries) => partition.Max(selector, boundaries));
             __min = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, WindowBoundaries boundaries) => partition.Min(selector, boundaries));
             __push = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, WindowBoundaries boundaries) => partition.Push(selector, boundaries));
@@ -180,6 +190,11 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         public static MethodInfo DerivativeWithInt64AndUnit => __derivativeWithInt64AndUnit;
         public static MethodInfo DerivativeWithSingle => __derivativeWithSingle;
         public static MethodInfo DerivativeWithSingleAndUnit => __derivativeWithSingleAndUnit;
+        public static MethodInfo ExponentialMovingAverageWithDecimal => __exponentialMovingAverageWithDecimal;
+        public static MethodInfo ExponentialMovingAverageWithDouble => __exponentialMovingAverageWithDouble;
+        public static MethodInfo ExponentialMovingAverageWithInt32 => __exponentialMovingAverageWithInt32;
+        public static MethodInfo ExponentialMovingAverageWithInt64 => __exponentialMovingAverageWithInt64;
+        public static MethodInfo ExponentialMovingAverageWithSingle => __exponentialMovingAverageWithSingle;
         public static MethodInfo Max => __max;
         public static MethodInfo Min => __min;
         public static MethodInfo Push => __push;

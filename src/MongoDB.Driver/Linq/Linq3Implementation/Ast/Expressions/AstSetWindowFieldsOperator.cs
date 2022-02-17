@@ -25,6 +25,9 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
         CovariancePop,
         CovarianceSamp,
         Derivative,
+        ExpMovingAvgPlaceholder, // temporary placeholder until we know what weighting is used
+        ExpMovingAvgWithAlphaWeighting,
+        ExpMovingAvgWithPositionalWeighting,
         Max,
         Min,
         Push,
@@ -43,6 +46,8 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
                 AstSetWindowFieldsOperator.CovariancePop => "$covariancePop",
                 AstSetWindowFieldsOperator.CovarianceSamp => "$covarianceSamp",
                 AstSetWindowFieldsOperator.Derivative => "$derivative",
+                AstSetWindowFieldsOperator.ExpMovingAvgWithAlphaWeighting => "$expMovingAvg",
+                AstSetWindowFieldsOperator.ExpMovingAvgWithPositionalWeighting => "$expMovingAvg",
                 AstSetWindowFieldsOperator.Max => "$max",
                 AstSetWindowFieldsOperator.Min => "$min",
                 AstSetWindowFieldsOperator.Push => "$push",

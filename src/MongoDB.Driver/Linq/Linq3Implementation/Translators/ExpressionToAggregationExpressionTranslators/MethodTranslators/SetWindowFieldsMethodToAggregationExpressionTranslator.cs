@@ -74,6 +74,11 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             SetWindowFieldsMethod.DerivativeWithInt64AndUnit,
             SetWindowFieldsMethod.DerivativeWithSingle,
             SetWindowFieldsMethod.DerivativeWithSingleAndUnit,
+            SetWindowFieldsMethod.ExponentialMovingAverageWithDecimal,
+            SetWindowFieldsMethod.ExponentialMovingAverageWithDouble,
+            SetWindowFieldsMethod.ExponentialMovingAverageWithInt32,
+            SetWindowFieldsMethod.ExponentialMovingAverageWithInt64,
+            SetWindowFieldsMethod.ExponentialMovingAverageWithSingle,
             SetWindowFieldsMethod.Max,
             SetWindowFieldsMethod.Min,
             SetWindowFieldsMethod.Push,
@@ -111,6 +116,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 var partitionSerializer = (ISetWindowFieldsPartitionSerializer)partitionTranslation.Serializer;
                 var inputSerializer = partitionSerializer.InputSerializer;
 
+                var @operator = ToOperator(method);
                 var operatorArgs = new List<AstExpression>();
                 if (arguments.Count >= 3)
                 {
@@ -131,10 +137,25 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                         if (argument is ConstantExpression constantExpression)
                         {
                             var value = constantExpression.GetConstantValue<object>(expression);
+
                             if (value is DerivativeTimeUnit unit)
                             {
                                 var renderedUnit = unit.Render();
                                 operatorArgs.Add(renderedUnit);
+                                continue;
+                            }
+
+                            if (value is ExponentialMovingAverageAlphaWeighting alphaWeighting)
+                            {
+                                @operator = AstSetWindowFieldsOperator.ExpMovingAvgWithAlphaWeighting;
+                                operatorArgs.Add(alphaWeighting.Alpha);
+                                continue;
+                            }
+
+                            if (value is ExponentialMovingAveragePositionalWeighting positionalWeighting)
+                            {
+                                @operator = AstSetWindowFieldsOperator.ExpMovingAvgWithPositionalWeighting;
+                                operatorArgs.Add(positionalWeighting.N);
                                 continue;
                             }
                         }
@@ -153,7 +174,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 var serializerRegistry = (BsonSerializerRegistry)context.Data.GetValueOrDefault("SerializerRegistry", null);
 
                 var ast = AstExpression.SetWindowFieldsWindowExpression(
-                    ToOperator(method),
+                    @operator,
                     operatorArgs,
                     ToAstWindow(window, sortBy, inputSerializer, serializerRegistry));
                 var serializer = BsonSerializer.LookupSerializer(method.ReturnType);
@@ -174,6 +195,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 "CovariancePop" => AstSetWindowFieldsOperator.CovariancePop,
                 "CovarianceSamp" => AstSetWindowFieldsOperator.CovarianceSamp,
                 "Derivative" => AstSetWindowFieldsOperator.Derivative,
+                "ExponentialMovingAverage" => AstSetWindowFieldsOperator.ExpMovingAvgPlaceholder, // will be replaced when weighting argument is processed
                 "Max" => AstSetWindowFieldsOperator.Max,
                 "Min" => AstSetWindowFieldsOperator.Min,
                 "Push" => AstSetWindowFieldsOperator.Push,

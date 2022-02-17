@@ -567,6 +567,136 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
         }
 
         [Fact]
+        public void Translate_should_return_expected_result_for_ExponentialMovingAverage_with_Decimal_and_alpha()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.ExponentialMovingAverage(x => x.DecimalField, ExponentialMovingAverageWeighting.Alpha(0.5), null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $expMovingAvg : { input : '$DecimalField', alpha : 0.5 } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_ExponentialMovingAverage_with_Decimal_and_n()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.ExponentialMovingAverage(x => x.DecimalField, ExponentialMovingAverageWeighting.N(2), null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $expMovingAvg : { input : '$DecimalField', n : 2 } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_ExponentialMovingAverage_with_Double_and_alpha()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.ExponentialMovingAverage(x => x.DoubleField, ExponentialMovingAverageWeighting.Alpha(0.5), null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $expMovingAvg : { input : '$DoubleField', alpha : 0.5 } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_ExponentialMovingAverage_with_Double_and_n()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.ExponentialMovingAverage(x => x.DoubleField, ExponentialMovingAverageWeighting.N(2), null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $expMovingAvg : { input : '$DoubleField', n : 2 } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_ExponentialMovingAverage_with_Int32_and_alpha()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.ExponentialMovingAverage(x => x.Int32Field, ExponentialMovingAverageWeighting.Alpha(0.5), null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $expMovingAvg : { input : '$Int32Field', alpha : 0.5 } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_ExponentialMovingAverage_with_Int32_and_n()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.ExponentialMovingAverage(x => x.Int32Field, ExponentialMovingAverageWeighting.N(2), null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $expMovingAvg : { input : '$Int32Field', n : 2 } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_ExponentialMovingAverage_with_Int64_and_alpha()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.ExponentialMovingAverage(x => x.Int64Field, ExponentialMovingAverageWeighting.Alpha(0.5), null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $expMovingAvg : { input : '$Int64Field', alpha : 0.5 } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_ExponentialMovingAverage_with_Int64_and_n()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.ExponentialMovingAverage(x => x.Int64Field, ExponentialMovingAverageWeighting.N(2), null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $expMovingAvg : { input : '$Int64Field', n : 2 } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_ExponentialMovingAverage_with_Single_and_alpha()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.ExponentialMovingAverage(x => x.SingleField, ExponentialMovingAverageWeighting.Alpha(0.5), null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $expMovingAvg : { input : '$SingleField', alpha : 0.5 } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_ExponentialMovingAverage_with_Single_and_n()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.ExponentialMovingAverage(x => x.SingleField, ExponentialMovingAverageWeighting.N(2), null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $expMovingAvg : { input : '$SingleField', n : 2 } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
         public void Translate_should_return_expected_result_for_Sum_with_Decimal()
         {
             var collection = GetCollection<C>();

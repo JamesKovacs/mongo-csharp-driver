@@ -597,6 +597,76 @@ namespace MongoDB.Driver.Linq
         }
 
         /// <summary>
+        /// Returns the exponential moving average value of the numeric values. Ignores non-numeric values.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="weighting">How to weigh the values when computing the exponential moving average.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The exponential moving average of the selected values.</returns>
+        public static decimal ExponentialMovingAverage<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, ExponentialMovingAverageWeighting weighting, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the exponential moving average value of the numeric values. Ignores non-numeric values.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="weighting">How to weigh the values when computing the exponential moving average.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The exponential moving average of the selected values.</returns>
+        public static double ExponentialMovingAverage<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, ExponentialMovingAverageWeighting weighting, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the exponential moving average value of the numeric values. Ignores non-numeric values.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="weighting">How to weigh the values when computing the exponential moving average.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The exponential moving average of the selected values.</returns>
+        public static double ExponentialMovingAverage<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, ExponentialMovingAverageWeighting weighting, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the exponential moving average value of the numeric values. Ignores non-numeric values.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="weighting">How to weigh the values when computing the exponential moving average.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The exponential moving average of the selected values.</returns>
+        public static double ExponentialMovingAverage<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, ExponentialMovingAverageWeighting weighting, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the exponential moving average value of the numeric values. Ignores non-numeric values.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="weighting">How to weigh the values when computing the exponential moving average.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The exponential moving average of the selected values.</returns>
+        public static float ExponentialMovingAverage<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, ExponentialMovingAverageWeighting weighting, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
         /// Returns the maximum value.
         /// </summary>
         /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>

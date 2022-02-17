@@ -49,6 +49,8 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
         {
             var renderedArgs =
                 _operator == AstSetWindowFieldsOperator.Derivative ? RenderDerivativeArgs() :
+                _operator == AstSetWindowFieldsOperator.ExpMovingAvgWithAlphaWeighting ? RenderExpMovingAvgArgsWithAlphaWeighting() :
+                _operator == AstSetWindowFieldsOperator.ExpMovingAvgWithPositionalWeighting ? RenderExpMovingAvgArgsWithPositionalWeighting() :
                 _args.Count == 1 ? _args[0].Render() :
                 new BsonArray(_args.Select(a => a.Render()));
 
@@ -78,6 +80,30 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
             {
                 { "input", input },
                 { "unit", unit, unit != null }
+            };
+        }
+
+        private BsonDocument RenderExpMovingAvgArgsWithAlphaWeighting()
+        {
+            var input = _args[0].Render();
+            var alpha = _args[1].Render();
+
+            return new BsonDocument
+            {
+                { "input", input },
+                { "alpha", alpha }
+            };
+        }
+
+        private BsonDocument RenderExpMovingAvgArgsWithPositionalWeighting()
+        {
+            var input = _args[0].Render();
+            var n = _args[1].Render();
+
+            return new BsonDocument
+            {
+                { "input", input },
+                { "n", n }
             };
         }
     }
