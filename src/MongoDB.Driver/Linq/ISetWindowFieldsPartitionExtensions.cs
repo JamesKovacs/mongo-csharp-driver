@@ -844,6 +844,136 @@ namespace MongoDB.Driver.Linq
         }
 
         /// <summary>
+        /// Calculates the population standard deviation of the input values.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The population standard deviation of the selected values.</returns>
+        public static decimal StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Calculates the population standard deviation of the input values.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The population standard deviation of the selected values.</returns>
+        public static decimal? StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal?> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Calculates the population standard deviation of the input values.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The population standard deviation of the selected values.</returns>
+        public static double StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Calculates the population standard deviation of the input values.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The population standard deviation of the selected values.</returns>
+        public static double? StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double?> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Calculates the population standard deviation of the input values.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The population standard deviation of the selected values.</returns>
+        public static double StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Calculates the population standard deviation of the input values.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The population standard deviation of the selected values.</returns>
+        public static double? StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int?> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Calculates the population standard deviation of the input values.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The population standard deviation of the selected values.</returns>
+        public static double StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Calculates the population standard deviation of the input values.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The population standard deviation of the selected values.</returns>
+        public static double? StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long?> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Calculates the population standard deviation of the input values.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The population standard deviation of the selected values.</returns>
+        public static float StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Calculates the population standard deviation of the input values.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The population standard deviation of the selected values.</returns>
+        public static float? StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float?> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
         /// Returns the sum of numeric values. $sum ignores non-numeric values.
         /// </summary>
         /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
