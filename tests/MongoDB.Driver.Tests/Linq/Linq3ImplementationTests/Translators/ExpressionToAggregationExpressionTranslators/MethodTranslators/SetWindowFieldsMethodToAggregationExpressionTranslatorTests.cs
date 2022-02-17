@@ -437,6 +437,136 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
         }
 
         [Fact]
+        public void Translate_should_return_expected_result_for_Derivative_with_Decimal()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Derivative(x => x.DecimalField, null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $derivative : { input : '$DecimalField' } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_Derivative_with_Decimal_and_unit()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Derivative(x => x.DecimalField, DerivativeTimeUnit.Day, null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $derivative : { input : '$DecimalField', unit : 'day' } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_Derivative_with_Double()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Derivative(x => x.DoubleField, null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $derivative : { input : '$DoubleField' } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_Derivative_with_Double_and_unit()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Derivative(x => x.DoubleField, DerivativeTimeUnit.Day, null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $derivative : { input : '$DoubleField', unit : 'day' } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_Derivative_with_Int32()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Derivative(x => x.Int32Field, null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $derivative : { input : '$Int32Field' } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_Derivative_with_Int32_and_unit()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Derivative(x => x.Int32Field, DerivativeTimeUnit.Day, null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $derivative : { input : '$Int32Field', unit : 'day' } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_Derivative_with_Int64()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Derivative(x => x.Int64Field, null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $derivative : { input : '$Int64Field' } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_Derivative_with_Int64_and_unit()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Derivative(x => x.Int64Field, DerivativeTimeUnit.Day, null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $derivative : { input : '$Int64Field', unit : 'day' } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_Derivative_with_Single()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Derivative(x => x.SingleField, null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $derivative : { input : '$SingleField' } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_Derivative_with_Single_and_unit()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Derivative(x => x.SingleField, DerivativeTimeUnit.Day, null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $derivative : { input : '$SingleField', unit : 'day' } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
         public void Translate_should_return_expected_result_for_Sum_with_Decimal()
         {
             var collection = GetCollection<C>();

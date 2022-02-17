@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using MongoDB.Bson;
 
 namespace MongoDB.Driver.Linq
 {
@@ -456,6 +457,141 @@ namespace MongoDB.Driver.Linq
         /// <param name="boundaries">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
         public static float? CovarianceSamp<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float?> selector1, Func<TInput, float?> selector2, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the average rate of change within the specified window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The average rate of change within the specified window.</returns>
+        public static decimal Derivative<TInput> (this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the average rate of change within the specified window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="unit">The unit for time based derivatives.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The average rate of change within the specified window.</returns>
+        public static decimal Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, DerivativeTimeUnit unit, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the average rate of change within the specified window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The average rate of change within the specified window.</returns>
+        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the average rate of change within the specified window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="unit">The unit for time based derivatives.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The average rate of change within the specified window.</returns>
+        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, DerivativeTimeUnit unit, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the average rate of change within the specified window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The average rate of change within the specified window.</returns>
+        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the average rate of change within the specified window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="unit">The unit for time based derivatives.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The average rate of change within the specified window.</returns>
+        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, DerivativeTimeUnit unit, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the average rate of change within the specified window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The average rate of change within the specified window.</returns>
+        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the average rate of change within the specified window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="unit">The unit for time based derivatives.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The average rate of change within the specified window.</returns>
+        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, DerivativeTimeUnit unit, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the average rate of change within the specified window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The average rate of change within the specified window.</returns>
+        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the average rate of change within the specified window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="unit">The unit for time based derivatives.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The average rate of change within the specified window.</returns>
+        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, DerivativeTimeUnit unit, WindowBoundaries boundaries = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }

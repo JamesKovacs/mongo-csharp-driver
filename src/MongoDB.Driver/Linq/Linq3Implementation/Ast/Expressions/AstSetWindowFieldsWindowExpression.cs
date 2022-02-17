@@ -47,7 +47,11 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
 
         public override BsonValue Render()
         {
-            var renderedArgs = _args.Count == 1 ? _args[0].Render() : new BsonArray(_args.Select(a => a.Render()));
+            var renderedArgs =
+                _operator == AstSetWindowFieldsOperator.Derivative ? RenderDerivativeArgs() :
+                _args.Count == 1 ? _args[0].Render() :
+                new BsonArray(_args.Select(a => a.Render()));
+
             return new BsonDocument
             {
                 { _operator.Render(), renderedArgs },
@@ -63,6 +67,18 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
             }
 
             return new AstSetWindowFieldsWindowExpression(_operator, args, _window);
+        }
+
+        private BsonDocument RenderDerivativeArgs()
+        {
+            var input = _args[0].Render();
+            var unit = _args.Count > 1 ? _args[1].Render() : null;
+
+            return new BsonDocument
+            {
+                { "input", input },
+                { "unit", unit, unit != null }
+            };
         }
     }
 }
