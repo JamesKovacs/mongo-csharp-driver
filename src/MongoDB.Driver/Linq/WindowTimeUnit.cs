@@ -20,9 +20,9 @@ using MongoDB.Bson;
 namespace MongoDB.Driver.Linq
 {
     /// <summary>
-    /// The time unit to use in the SetWindowFields Derivative method.
+    /// The time unit to use in DateTime SetWindowFields windows.
     /// </summary>
-    public enum DerivativeTimeUnit
+    public enum WindowTimeUnit
     {
         /// <summary>
         /// Weeks.
@@ -55,19 +55,19 @@ namespace MongoDB.Driver.Linq
         Millisecond
     }
 
-    internal static class DerivativeTimeUnitExtensions
+    internal static class WindowTimeUnitExtensions
     {
-        public static BsonValue Render(this DerivativeTimeUnit unit)
+        public static BsonValue Render(this WindowTimeUnit unit)
         {
             return unit switch
             {
-                DerivativeTimeUnit.Week => "week",
-                DerivativeTimeUnit.Day => "day",
-                DerivativeTimeUnit.Hour => "hour",
-                DerivativeTimeUnit.Minute => "minute",
-                DerivativeTimeUnit.Second => "second",
-                DerivativeTimeUnit.Millisecond => "millisecond",
-                _ => throw new ArgumentException($"Invalid DerivativeTimeUnit : {unit}.", nameof(unit))
+                WindowTimeUnit.Week => "week",
+                WindowTimeUnit.Day => "day",
+                WindowTimeUnit.Hour => "hour",
+                WindowTimeUnit.Minute => "minute",
+                WindowTimeUnit.Second => "second",
+                WindowTimeUnit.Millisecond => "millisecond",
+                _ => throw new ArgumentException($"Invalid WindowTimeUnit : {unit}.", nameof(unit))
             };
         }
     }

@@ -79,6 +79,16 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             SetWindowFieldsMethod.ExponentialMovingAverageWithInt32,
             SetWindowFieldsMethod.ExponentialMovingAverageWithInt64,
             SetWindowFieldsMethod.ExponentialMovingAverageWithSingle,
+            SetWindowFieldsMethod.IntegralWithDecimal,
+            SetWindowFieldsMethod.IntegralWithDecimalAndUnit,
+            SetWindowFieldsMethod.IntegralWithDouble,
+            SetWindowFieldsMethod.IntegralWithDoubleAndUnit,
+            SetWindowFieldsMethod.IntegralWithInt32,
+            SetWindowFieldsMethod.IntegralWithInt32AndUnit,
+            SetWindowFieldsMethod.IntegralWithInt64,
+            SetWindowFieldsMethod.IntegralWithInt64AndUnit,
+            SetWindowFieldsMethod.IntegralWithSingle,
+            SetWindowFieldsMethod.IntegralWithSingleAndUnit,
             SetWindowFieldsMethod.Max,
             SetWindowFieldsMethod.Min,
             SetWindowFieldsMethod.Push,
@@ -138,7 +148,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                         {
                             var value = constantExpression.GetConstantValue<object>(expression);
 
-                            if (value is DerivativeTimeUnit unit)
+                            if (value is WindowTimeUnit unit)
                             {
                                 var renderedUnit = unit.Render();
                                 operatorArgs.Add(renderedUnit);
@@ -196,6 +206,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 "CovarianceSamp" => AstSetWindowFieldsOperator.CovarianceSamp,
                 "Derivative" => AstSetWindowFieldsOperator.Derivative,
                 "ExponentialMovingAverage" => AstSetWindowFieldsOperator.ExpMovingAvgPlaceholder, // will be replaced when weighting argument is processed
+                "Integral" => AstSetWindowFieldsOperator.Integral,
                 "Max" => AstSetWindowFieldsOperator.Max,
                 "Min" => AstSetWindowFieldsOperator.Min,
                 "Push" => AstSetWindowFieldsOperator.Push,

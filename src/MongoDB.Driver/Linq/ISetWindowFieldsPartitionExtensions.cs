@@ -483,7 +483,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="unit">The unit for time based derivatives.</param>
         /// <param name="boundaries">The window boundaries.</param>
         /// <returns>The average rate of change within the specified window.</returns>
-        public static decimal Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, DerivativeTimeUnit unit, WindowBoundaries boundaries = null)
+        public static decimal Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, WindowTimeUnit unit, WindowBoundaries boundaries = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -510,7 +510,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="unit">The unit for time based derivatives.</param>
         /// <param name="boundaries">The window boundaries.</param>
         /// <returns>The average rate of change within the specified window.</returns>
-        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, DerivativeTimeUnit unit, WindowBoundaries boundaries = null)
+        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, WindowTimeUnit unit, WindowBoundaries boundaries = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -537,7 +537,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="unit">The unit for time based derivatives.</param>
         /// <param name="boundaries">The window boundaries.</param>
         /// <returns>The average rate of change within the specified window.</returns>
-        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, DerivativeTimeUnit unit, WindowBoundaries boundaries = null)
+        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, WindowTimeUnit unit, WindowBoundaries boundaries = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -564,7 +564,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="unit">The unit for time based derivatives.</param>
         /// <param name="boundaries">The window boundaries.</param>
         /// <returns>The average rate of change within the specified window.</returns>
-        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, DerivativeTimeUnit unit, WindowBoundaries boundaries = null)
+        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, WindowTimeUnit unit, WindowBoundaries boundaries = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -591,7 +591,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="unit">The unit for time based derivatives.</param>
         /// <param name="boundaries">The window boundaries.</param>
         /// <returns>The average rate of change within the specified window.</returns>
-        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, DerivativeTimeUnit unit, WindowBoundaries boundaries = null)
+        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, WindowTimeUnit unit, WindowBoundaries boundaries = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -662,6 +662,141 @@ namespace MongoDB.Driver.Linq
         /// <param name="boundaries">The window boundaries.</param>
         /// <returns>The exponential moving average of the selected values.</returns>
         public static float ExponentialMovingAverage<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, ExponentialMovingAverageWeighting weighting, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the approximation of the area under a curve.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The approximation of the area under a curve.</returns>
+        public static decimal Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the approximation of the area under a curve.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="unit">The unit for time based integrals.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The approximation of the area under a curve.</returns>
+        public static decimal Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, WindowTimeUnit unit, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the approximation of the area under a curve.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The approximation of the area under a curve.</returns>
+        public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the approximation of the area under a curve.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="unit">The unit for time based integrals.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The approximation of the area under a curve.</returns>
+        public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, WindowTimeUnit unit, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the approximation of the area under a curve.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The approximation of the area under a curve.</returns>
+        public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the approximation of the area under a curve.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="unit">The unit for time based integrals.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The approximation of the area under a curve.</returns>
+        public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, WindowTimeUnit unit, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the approximation of the area under a curve.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The approximation of the area under a curve.</returns>
+        public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the approximation of the area under a curve.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="unit">The unit for time based integrals.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The approximation of the area under a curve.</returns>
+        public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, WindowTimeUnit unit, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the approximation of the area under a curve.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The approximation of the area under a curve.</returns>
+        public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, WindowBoundaries boundaries = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the approximation of the area under a curve.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="unit">The unit for time based integrals.</param>
+        /// <param name="boundaries">The window boundaries.</param>
+        /// <returns>The approximation of the area under a curve.</returns>
+        public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, WindowTimeUnit unit, WindowBoundaries boundaries = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }

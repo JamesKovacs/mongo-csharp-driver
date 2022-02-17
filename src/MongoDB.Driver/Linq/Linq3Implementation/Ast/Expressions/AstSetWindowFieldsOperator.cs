@@ -28,6 +28,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
         ExpMovingAvgPlaceholder, // temporary placeholder until we know what weighting is used
         ExpMovingAvgWithAlphaWeighting,
         ExpMovingAvgWithPositionalWeighting,
+        Integral,
         Max,
         Min,
         Push,
@@ -48,6 +49,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
                 AstSetWindowFieldsOperator.Derivative => "$derivative",
                 AstSetWindowFieldsOperator.ExpMovingAvgWithAlphaWeighting => "$expMovingAvg",
                 AstSetWindowFieldsOperator.ExpMovingAvgWithPositionalWeighting => "$expMovingAvg",
+                AstSetWindowFieldsOperator.Integral => "$integral",
                 AstSetWindowFieldsOperator.Max => "$max",
                 AstSetWindowFieldsOperator.Min => "$min",
                 AstSetWindowFieldsOperator.Push => "$push",

@@ -455,7 +455,7 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
             var collection = GetCollection<C>();
 
             var aggregate = collection.Aggregate()
-                .SetWindowFields(output: p => new { Result = p.Derivative(x => x.DecimalField, DerivativeTimeUnit.Day, null) });
+                .SetWindowFields(output: p => new { Result = p.Derivative(x => x.DecimalField, WindowTimeUnit.Day, null) });
 
             var stages = Translate(collection, aggregate);
             var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $derivative : { input : '$DecimalField', unit : 'day' } } } } }" };
@@ -481,7 +481,7 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
             var collection = GetCollection<C>();
 
             var aggregate = collection.Aggregate()
-                .SetWindowFields(output: p => new { Result = p.Derivative(x => x.DoubleField, DerivativeTimeUnit.Day, null) });
+                .SetWindowFields(output: p => new { Result = p.Derivative(x => x.DoubleField, WindowTimeUnit.Day, null) });
 
             var stages = Translate(collection, aggregate);
             var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $derivative : { input : '$DoubleField', unit : 'day' } } } } }" };
@@ -507,7 +507,7 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
             var collection = GetCollection<C>();
 
             var aggregate = collection.Aggregate()
-                .SetWindowFields(output: p => new { Result = p.Derivative(x => x.Int32Field, DerivativeTimeUnit.Day, null) });
+                .SetWindowFields(output: p => new { Result = p.Derivative(x => x.Int32Field, WindowTimeUnit.Day, null) });
 
             var stages = Translate(collection, aggregate);
             var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $derivative : { input : '$Int32Field', unit : 'day' } } } } }" };
@@ -533,7 +533,7 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
             var collection = GetCollection<C>();
 
             var aggregate = collection.Aggregate()
-                .SetWindowFields(output: p => new { Result = p.Derivative(x => x.Int64Field, DerivativeTimeUnit.Day, null) });
+                .SetWindowFields(output: p => new { Result = p.Derivative(x => x.Int64Field, WindowTimeUnit.Day, null) });
 
             var stages = Translate(collection, aggregate);
             var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $derivative : { input : '$Int64Field', unit : 'day' } } } } }" };
@@ -559,7 +559,7 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
             var collection = GetCollection<C>();
 
             var aggregate = collection.Aggregate()
-                .SetWindowFields(output: p => new { Result = p.Derivative(x => x.SingleField, DerivativeTimeUnit.Day, null) });
+                .SetWindowFields(output: p => new { Result = p.Derivative(x => x.SingleField, WindowTimeUnit.Day, null) });
 
             var stages = Translate(collection, aggregate);
             var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $derivative : { input : '$SingleField', unit : 'day' } } } } }" };
@@ -693,6 +693,136 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
 
             var stages = Translate(collection, aggregate);
             var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $expMovingAvg : { input : '$SingleField', n : 2 } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_Integral_with_Decimal()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Integral(x => x.DecimalField, null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $integral : { input : '$DecimalField' } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_Integral_with_Decimal_and_unit()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Integral(x => x.DecimalField, WindowTimeUnit.Day, null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $integral : { input : '$DecimalField', unit : 'day' } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_Integral_with_Double()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Integral(x => x.DoubleField, null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $integral : { input : '$DoubleField' } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_Integral_with_Double_and_unit()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Integral(x => x.DoubleField, WindowTimeUnit.Day, null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $integral : { input : '$DoubleField', unit : 'day' } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_Integral_with_Int32()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Integral(x => x.Int32Field, null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $integral : { input : '$Int32Field' } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_Integral_with_Int32_and_unit()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Integral(x => x.Int32Field, WindowTimeUnit.Day, null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $integral : { input : '$Int32Field', unit : 'day' } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_Integral_with_Int64()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Integral(x => x.Int64Field, null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $integral : { input : '$Int64Field' } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_Integral_with_Int64_and_unit()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Integral(x => x.Int64Field, WindowTimeUnit.Day, null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $integral : { input : '$Int64Field', unit : 'day' } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_Integral_with_Single()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Integral(x => x.SingleField, null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $integral : { input : '$SingleField' } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_Integral_with_Single_and_unit()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Integral(x => x.SingleField, WindowTimeUnit.Day, null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $integral : { input : '$SingleField', unit : 'day' } } } } }" };
             AssertStages(stages, expectedStages);
         }
 
