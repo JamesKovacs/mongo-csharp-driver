@@ -307,12 +307,12 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
         }
 
         [Fact]
-        public void Translate_should_return_expected_result_for_CovarianceSamp_with_Decimal()
+        public void Translate_should_return_expected_result_for_CovarianceSample_with_Decimal()
         {
             var collection = GetCollection<C>();
 
             var aggregate = collection.Aggregate()
-                .SetWindowFields(output: p => new { Result = p.CovarianceSamp(x => x.DecimalField1, x => x.DecimalField2, null) });
+                .SetWindowFields(output: p => new { Result = p.CovarianceSample(x => x.DecimalField1, x => x.DecimalField2, null) });
 
             var stages = Translate(collection, aggregate);
             var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $covarianceSamp : ['$DecimalField1', '$DecimalField2'] } } } }" };
@@ -320,12 +320,12 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
         }
 
         [Fact]
-        public void Translate_should_return_expected_result_for_CovarianceSamp_with_Double()
+        public void Translate_should_return_expected_result_for_CovarianceSample_with_Double()
         {
             var collection = GetCollection<C>();
 
             var aggregate = collection.Aggregate()
-                .SetWindowFields(output: p => new { Result = p.CovarianceSamp(x => x.DoubleField1, x => x.DoubleField2, null) });
+                .SetWindowFields(output: p => new { Result = p.CovarianceSample(x => x.DoubleField1, x => x.DoubleField2, null) });
 
             var stages = Translate(collection, aggregate);
             var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $covarianceSamp : ['$DoubleField1', '$DoubleField2'] } } } }" };
@@ -333,12 +333,12 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
         }
 
         [Fact]
-        public void Translate_should_return_expected_result_for_CovarianceSamp_with_Int32()
+        public void Translate_should_return_expected_result_for_CovarianceSample_with_Int32()
         {
             var collection = GetCollection<C>();
 
             var aggregate = collection.Aggregate()
-                .SetWindowFields(output: p => new { Result = p.CovarianceSamp(x => x.Int32Field1, x => x.Int32Field2, null) });
+                .SetWindowFields(output: p => new { Result = p.CovarianceSample(x => x.Int32Field1, x => x.Int32Field2, null) });
 
             var stages = Translate(collection, aggregate);
             var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $covarianceSamp : ['$Int32Field1', '$Int32Field2'] } } } }" };
@@ -346,12 +346,12 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
         }
 
         [Fact]
-        public void Translate_should_return_expected_result_for_CovarianceSamp_with_Int64()
+        public void Translate_should_return_expected_result_for_CovarianceSample_with_Int64()
         {
             var collection = GetCollection<C>();
 
             var aggregate = collection.Aggregate()
-                .SetWindowFields(output: p => new { Result = p.CovarianceSamp(x => x.Int64Field1, x => x.Int64Field2, null) });
+                .SetWindowFields(output: p => new { Result = p.CovarianceSample(x => x.Int64Field1, x => x.Int64Field2, null) });
 
             var stages = Translate(collection, aggregate);
             var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $covarianceSamp : ['$Int64Field1', '$Int64Field2'] } } } }" };
@@ -359,12 +359,12 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
         }
 
         [Fact]
-        public void Translate_should_return_expected_result_for_CovarianceSamp_with_nullable_Decimal()
+        public void Translate_should_return_expected_result_for_CovarianceSample_with_nullable_Decimal()
         {
             var collection = GetCollection<C>();
 
             var aggregate = collection.Aggregate()
-                .SetWindowFields(output: p => new { Result = p.CovarianceSamp(x => x.NullableDecimalField1, x => x.NullableDecimalField2, null) });
+                .SetWindowFields(output: p => new { Result = p.CovarianceSample(x => x.NullableDecimalField1, x => x.NullableDecimalField2, null) });
 
             var stages = Translate(collection, aggregate);
             var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $covarianceSamp : ['$NullableDecimalField1', '$NullableDecimalField2'] } } } }" };
@@ -372,12 +372,12 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
         }
 
         [Fact]
-        public void Translate_should_return_expected_result_for_CovarianceSamp_with_nullable_Double()
+        public void Translate_should_return_expected_result_for_CovarianceSample_with_nullable_Double()
         {
             var collection = GetCollection<C>();
 
             var aggregate = collection.Aggregate()
-                .SetWindowFields(output: p => new { Result = p.CovarianceSamp(x => x.NullableDoubleField1, x => x.NullableDoubleField2, null) });
+                .SetWindowFields(output: p => new { Result = p.CovarianceSample(x => x.NullableDoubleField1, x => x.NullableDoubleField2, null) });
 
             var stages = Translate(collection, aggregate);
             var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $covarianceSamp : ['$NullableDoubleField1', '$NullableDoubleField2'] } } } }" };
@@ -385,12 +385,12 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
         }
 
         [Fact]
-        public void Translate_should_return_expected_result_for_CovarianceSamp_with_nullable_Int32()
+        public void Translate_should_return_expected_result_for_CovarianceSample_with_nullable_Int32()
         {
             var collection = GetCollection<C>();
 
             var aggregate = collection.Aggregate()
-                .SetWindowFields(output: p => new { Result = p.CovarianceSamp(x => x.NullableInt32Field1, x => x.NullableInt32Field2, null) });
+                .SetWindowFields(output: p => new { Result = p.CovarianceSample(x => x.NullableInt32Field1, x => x.NullableInt32Field2, null) });
 
             var stages = Translate(collection, aggregate);
             var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $covarianceSamp : ['$NullableInt32Field1', '$NullableInt32Field2'] } } } }" };
@@ -398,12 +398,12 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
         }
 
         [Fact]
-        public void Translate_should_return_expected_result_for_CovarianceSamp_with_nullable_Int64()
+        public void Translate_should_return_expected_result_for_CovarianceSample_with_nullable_Int64()
         {
             var collection = GetCollection<C>();
 
             var aggregate = collection.Aggregate()
-                .SetWindowFields(output: p => new { Result = p.CovarianceSamp(x => x.NullableInt64Field1, x => x.NullableInt64Field2, null) });
+                .SetWindowFields(output: p => new { Result = p.CovarianceSample(x => x.NullableInt64Field1, x => x.NullableInt64Field2, null) });
 
             var stages = Translate(collection, aggregate);
             var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $covarianceSamp : ['$NullableInt64Field1', '$NullableInt64Field2'] } } } }" };
@@ -411,12 +411,12 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
         }
 
         [Fact]
-        public void Translate_should_return_expected_result_for_CovarianceSamp_with_nullable_Single()
+        public void Translate_should_return_expected_result_for_CovarianceSample_with_nullable_Single()
         {
             var collection = GetCollection<C>();
 
             var aggregate = collection.Aggregate()
-                .SetWindowFields(output: p => new { Result = p.CovarianceSamp(x => x.NullableSingleField1, x => x.NullableSingleField2, null) });
+                .SetWindowFields(output: p => new { Result = p.CovarianceSample(x => x.NullableSingleField1, x => x.NullableSingleField2, null) });
 
             var stages = Translate(collection, aggregate);
             var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $covarianceSamp : ['$NullableSingleField1', '$NullableSingleField2'] } } } }" };
@@ -424,12 +424,12 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
         }
 
         [Fact]
-        public void Translate_should_return_expected_result_for_CovarianceSamp_with_Single()
+        public void Translate_should_return_expected_result_for_CovarianceSample_with_Single()
         {
             var collection = GetCollection<C>();
 
             var aggregate = collection.Aggregate()
-                .SetWindowFields(output: p => new { Result = p.CovarianceSamp(x => x.SingleField1, x => x.SingleField2, null) });
+                .SetWindowFields(output: p => new { Result = p.CovarianceSample(x => x.SingleField1, x => x.SingleField2, null) });
 
             var stages = Translate(collection, aggregate);
             var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $covarianceSamp : ['$SingleField1', '$SingleField2'] } } } }" };

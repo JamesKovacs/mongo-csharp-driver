@@ -330,7 +330,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="boundaries">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static decimal CovarianceSamp<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector1, Func<TInput, decimal> selector2, WindowBoundaries boundaries = null)
+        public static decimal CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector1, Func<TInput, decimal> selector2, WindowBoundaries boundaries = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -344,7 +344,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="boundaries">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static decimal? CovarianceSamp<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal?> selector1, Func<TInput, decimal?> selector2, WindowBoundaries boundaries = null)
+        public static decimal? CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal?> selector1, Func<TInput, decimal?> selector2, WindowBoundaries boundaries = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -358,7 +358,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="boundaries">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static double CovarianceSamp<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector1, Func<TInput, double> selector2, WindowBoundaries boundaries = null)
+        public static double CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector1, Func<TInput, double> selector2, WindowBoundaries boundaries = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -372,7 +372,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="boundaries">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static double? CovarianceSamp<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double?> selector1, Func<TInput, double?> selector2, WindowBoundaries boundaries = null)
+        public static double? CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double?> selector1, Func<TInput, double?> selector2, WindowBoundaries boundaries = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -386,7 +386,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="boundaries">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static double CovarianceSamp<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector1, Func<TInput, int> selector2, WindowBoundaries boundaries = null)
+        public static double CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector1, Func<TInput, int> selector2, WindowBoundaries boundaries = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -400,7 +400,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="boundaries">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static double? CovarianceSamp<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int?> selector1, Func<TInput, int?> selector2, WindowBoundaries boundaries = null)
+        public static double? CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int?> selector1, Func<TInput, int?> selector2, WindowBoundaries boundaries = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -414,7 +414,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="boundaries">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static double CovarianceSamp<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector1, Func<TInput, long> selector2, WindowBoundaries boundaries = null)
+        public static double CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector1, Func<TInput, long> selector2, WindowBoundaries boundaries = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -428,7 +428,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="boundaries">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static double? CovarianceSamp<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long?> selector1, Func<TInput, long?> selector2, WindowBoundaries boundaries = null)
+        public static double? CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long?> selector1, Func<TInput, long?> selector2, WindowBoundaries boundaries = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -442,7 +442,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="boundaries">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static float CovarianceSamp<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector1, Func<TInput, float> selector2, WindowBoundaries boundaries = null)
+        public static float CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector1, Func<TInput, float> selector2, WindowBoundaries boundaries = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -456,7 +456,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="boundaries">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static float? CovarianceSamp<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float?> selector1, Func<TInput, float?> selector2, WindowBoundaries boundaries = null)
+        public static float? CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float?> selector1, Func<TInput, float?> selector2, WindowBoundaries boundaries = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
