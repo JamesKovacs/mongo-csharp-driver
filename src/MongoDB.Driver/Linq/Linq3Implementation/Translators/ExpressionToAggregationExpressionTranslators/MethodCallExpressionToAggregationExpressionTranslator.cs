@@ -35,7 +35,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 case "CompareTo": return CompareToMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "Concat": return ConcatMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "Contains": return ContainsMethodToAggregationExpressionTranslator.Translate(context, expression);
-                case "CovariancePop": return CovariancePopMethodToAggregationExpressionTranslator.Translate(context, expression);
+                case "CovariancePopulation": return CovariancePopulationMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "CovarianceSamp": return CovarianceSampMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "DefaultIfEmpty": return DefaultIfEmptyMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "Derivative": return DerivativeMethodToAggregationExpressionTranslator.Translate(context, expression);

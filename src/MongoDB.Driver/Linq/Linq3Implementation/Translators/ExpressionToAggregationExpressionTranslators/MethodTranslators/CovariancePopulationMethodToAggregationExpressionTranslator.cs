@@ -17,7 +17,7 @@ using System.Linq.Expressions;
 
 namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggregationExpressionTranslators.MethodTranslators
 {
-    internal static class CovariancePopMethodToAggregationExpressionTranslator
+    internal static class CovariancePopulationMethodToAggregationExpressionTranslator
     {
         public static AggregationExpression Translate(TranslationContext context, MethodCallExpression expression)
         {
