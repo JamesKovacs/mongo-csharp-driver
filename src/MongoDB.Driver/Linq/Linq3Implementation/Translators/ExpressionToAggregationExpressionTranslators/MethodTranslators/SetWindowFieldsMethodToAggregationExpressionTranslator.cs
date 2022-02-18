@@ -199,7 +199,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 }
 
                 var windowExpression = arguments.Last();
-                var window = windowExpression.GetConstantValue<WindowBoundaries>(expression);
+                var window = windowExpression.GetConstantValue<SetWindowFieldsWindow>(expression);
                 var sortBy = context.Data.GetValueOrDefault("SortBy", null);
                 var serializerRegistry = (BsonSerializerRegistry)context.Data.GetValueOrDefault("SerializerRegistry", null);
 
@@ -237,21 +237,21 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             };
         }
 
-        private static AstSetWindowFieldsWindow ToAstWindow(WindowBoundaries window, object sortBy, IBsonSerializer inputSerializer, BsonSerializerRegistry serializerRegistry)
+        private static AstSetWindowFieldsWindow ToAstWindow(SetWindowFieldsWindow window, object sortBy, IBsonSerializer inputSerializer, BsonSerializerRegistry serializerRegistry)
         {
             if (window == null)
             {
                 return null;
             }
 
-            if (window is DocumentsWindowBoundaries documentsWindow)
+            if (window is DocumentsWindow documentsWindow)
             {
                 var lowerBoundary = documentsWindow.LowerBoundary;
                 var upperBoundary = documentsWindow.UpperBoundary;
                 return new AstSetWindowFieldsWindow("documents", lowerBoundary.Render(), upperBoundary.Render(), unit: null);
             }
 
-            if (window is RangeWindowBoundaries rangeWindow)
+            if (window is RangeWindow rangeWindow)
             {
                 var lowerBoundary = rangeWindow.LowerBoundary;
                 var upperBoundary = rangeWindow.UpperBoundary;

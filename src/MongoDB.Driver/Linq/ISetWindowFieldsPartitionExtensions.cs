@@ -34,7 +34,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The set of the selected values.</returns>
-        public static IEnumerable<TValue> AddToSet<TInput, TValue>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, TValue> selector, WindowBoundaries window = null)
+        public static IEnumerable<TValue> AddToSet<TInput, TValue>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, TValue> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -47,7 +47,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The average of the selected values.</returns>
-        public static decimal Average<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, WindowBoundaries window = null)
+        public static decimal Average<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -60,7 +60,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The average of the selected values.</returns>
-        public static decimal? Average<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal?> selector, WindowBoundaries window = null)
+        public static decimal? Average<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal?> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -73,7 +73,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The average of the selected values.</returns>
-        public static double Average<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, WindowBoundaries window = null)
+        public static double Average<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -86,7 +86,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The average of the selected values.</returns>
-        public static double? Average<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double?> selector, WindowBoundaries window = null)
+        public static double? Average<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double?> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -99,7 +99,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The average of the selected values.</returns>
-        public static float Average<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, WindowBoundaries window = null)
+        public static float Average<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -112,7 +112,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The average of the selected values.</returns>
-        public static float? Average<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float?> selector, WindowBoundaries window = null)
+        public static float? Average<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float?> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -125,7 +125,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The average of the selected values.</returns>
-        public static double Average<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, WindowBoundaries window = null)
+        public static double Average<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -138,7 +138,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The average of the selected values.</returns>
-        public static double? Average<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int?> selector, WindowBoundaries window = null)
+        public static double? Average<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int?> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -151,7 +151,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The average of the selected values.</returns>
-        public static double Average<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, WindowBoundaries window = null)
+        public static double Average<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -164,7 +164,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The average of the selected values.</returns>
-        public static double? Average<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long?> selector, WindowBoundaries window = null)
+        public static double? Average<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long?> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -176,7 +176,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="partition">The partition.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static long Count<TInput>(this ISetWindowFieldsPartition<TInput> partition, WindowBoundaries window = null)
+        public static long Count<TInput>(this ISetWindowFieldsPartition<TInput> partition, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -190,7 +190,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static decimal CovariancePopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector1, Func<TInput, decimal> selector2, WindowBoundaries window = null)
+        public static decimal CovariancePopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector1, Func<TInput, decimal> selector2, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -204,7 +204,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static decimal? CovariancePopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal?> selector1, Func<TInput, decimal?> selector2, WindowBoundaries window = null)
+        public static decimal? CovariancePopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal?> selector1, Func<TInput, decimal?> selector2, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -218,7 +218,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static double CovariancePopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector1, Func<TInput, double> selector2, WindowBoundaries window = null)
+        public static double CovariancePopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector1, Func<TInput, double> selector2, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -232,7 +232,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static double? CovariancePopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double?> selector1, Func<TInput, double?> selector2, WindowBoundaries window = null)
+        public static double? CovariancePopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double?> selector1, Func<TInput, double?> selector2, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -246,7 +246,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static double CovariancePopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector1, Func<TInput, int> selector2, WindowBoundaries window = null)
+        public static double CovariancePopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector1, Func<TInput, int> selector2, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -260,7 +260,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static double? CovariancePopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int?> selector1, Func<TInput, int?> selector2, WindowBoundaries window = null)
+        public static double? CovariancePopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int?> selector1, Func<TInput, int?> selector2, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -274,7 +274,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static double CovariancePopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector1, Func<TInput, long> selector2, WindowBoundaries window = null)
+        public static double CovariancePopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector1, Func<TInput, long> selector2, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -288,7 +288,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static double? CovariancePopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long?> selector1, Func<TInput, long?> selector2, WindowBoundaries window = null)
+        public static double? CovariancePopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long?> selector1, Func<TInput, long?> selector2, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -302,7 +302,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static float CovariancePopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector1, Func<TInput, float> selector2, WindowBoundaries window = null)
+        public static float CovariancePopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector1, Func<TInput, float> selector2, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -316,7 +316,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static float? CovariancePopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float?> selector1, Func<TInput, float?> selector2, WindowBoundaries window = null)
+        public static float? CovariancePopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float?> selector1, Func<TInput, float?> selector2, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -330,7 +330,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static decimal CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector1, Func<TInput, decimal> selector2, WindowBoundaries window = null)
+        public static decimal CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector1, Func<TInput, decimal> selector2, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -344,7 +344,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static decimal? CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal?> selector1, Func<TInput, decimal?> selector2, WindowBoundaries window = null)
+        public static decimal? CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal?> selector1, Func<TInput, decimal?> selector2, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -358,7 +358,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static double CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector1, Func<TInput, double> selector2, WindowBoundaries window = null)
+        public static double CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector1, Func<TInput, double> selector2, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -372,7 +372,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static double? CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double?> selector1, Func<TInput, double?> selector2, WindowBoundaries window = null)
+        public static double? CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double?> selector1, Func<TInput, double?> selector2, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -386,7 +386,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static double CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector1, Func<TInput, int> selector2, WindowBoundaries window = null)
+        public static double CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector1, Func<TInput, int> selector2, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -400,7 +400,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static double? CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int?> selector1, Func<TInput, int?> selector2, WindowBoundaries window = null)
+        public static double? CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int?> selector1, Func<TInput, int?> selector2, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -414,7 +414,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static double CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector1, Func<TInput, long> selector2, WindowBoundaries window = null)
+        public static double CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector1, Func<TInput, long> selector2, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -428,7 +428,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static double? CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long?> selector1, Func<TInput, long?> selector2, WindowBoundaries window = null)
+        public static double? CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long?> selector1, Func<TInput, long?> selector2, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -442,7 +442,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static float CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector1, Func<TInput, float> selector2, WindowBoundaries window = null)
+        public static float CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector1, Func<TInput, float> selector2, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -456,7 +456,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector2">The selector that defines the second expression.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static float? CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float?> selector1, Func<TInput, float?> selector2, WindowBoundaries window = null)
+        public static float? CovarianceSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float?> selector1, Func<TInput, float?> selector2, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -469,34 +469,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The average rate of change within the specified window.</returns>
-        public static decimal Derivative<TInput> (this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, WindowBoundaries window = null)
-        {
-            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
-        }
-
-        /// <summary>
-        /// Returns the average rate of change within the specified window.
-        /// </summary>
-        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
-        /// <param name="partition">The partition.</param>
-        /// <param name="selector">The selector that selects a value from the input document.</param>
-        /// <param name="unit">The unit for time based derivatives.</param>
-        /// <param name="window">The window boundaries.</param>
-        /// <returns>The average rate of change within the specified window.</returns>
-        public static decimal Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, WindowTimeUnit unit, WindowBoundaries window = null)
-        {
-            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
-        }
-
-        /// <summary>
-        /// Returns the average rate of change within the specified window.
-        /// </summary>
-        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
-        /// <param name="partition">The partition.</param>
-        /// <param name="selector">The selector that selects a value from the input document.</param>
-        /// <param name="window">The window boundaries.</param>
-        /// <returns>The average rate of change within the specified window.</returns>
-        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, WindowBoundaries window = null)
+        public static decimal Derivative<TInput> (this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -510,7 +483,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="unit">The unit for time based derivatives.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The average rate of change within the specified window.</returns>
-        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, WindowTimeUnit unit, WindowBoundaries window = null)
+        public static decimal Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, WindowTimeUnit unit, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -523,34 +496,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The average rate of change within the specified window.</returns>
-        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, WindowBoundaries window = null)
-        {
-            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
-        }
-
-        /// <summary>
-        /// Returns the average rate of change within the specified window.
-        /// </summary>
-        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
-        /// <param name="partition">The partition.</param>
-        /// <param name="selector">The selector that selects a value from the input document.</param>
-        /// <param name="unit">The unit for time based derivatives.</param>
-        /// <param name="window">The window boundaries.</param>
-        /// <returns>The average rate of change within the specified window.</returns>
-        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, WindowTimeUnit unit, WindowBoundaries window = null)
-        {
-            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
-        }
-
-        /// <summary>
-        /// Returns the average rate of change within the specified window.
-        /// </summary>
-        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
-        /// <param name="partition">The partition.</param>
-        /// <param name="selector">The selector that selects a value from the input document.</param>
-        /// <param name="window">The window boundaries.</param>
-        /// <returns>The average rate of change within the specified window.</returns>
-        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, WindowBoundaries window = null)
+        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -564,7 +510,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="unit">The unit for time based derivatives.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The average rate of change within the specified window.</returns>
-        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, WindowTimeUnit unit, WindowBoundaries window = null)
+        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, WindowTimeUnit unit, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -577,7 +523,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The average rate of change within the specified window.</returns>
-        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, WindowBoundaries window = null)
+        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -591,7 +537,61 @@ namespace MongoDB.Driver.Linq
         /// <param name="unit">The unit for time based derivatives.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The average rate of change within the specified window.</returns>
-        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, WindowTimeUnit unit, WindowBoundaries window = null)
+        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, WindowTimeUnit unit, SetWindowFieldsWindow window = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the average rate of change within the specified window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="window">The window boundaries.</param>
+        /// <returns>The average rate of change within the specified window.</returns>
+        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, SetWindowFieldsWindow window = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the average rate of change within the specified window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="unit">The unit for time based derivatives.</param>
+        /// <param name="window">The window boundaries.</param>
+        /// <returns>The average rate of change within the specified window.</returns>
+        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, WindowTimeUnit unit, SetWindowFieldsWindow window = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the average rate of change within the specified window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="window">The window boundaries.</param>
+        /// <returns>The average rate of change within the specified window.</returns>
+        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, SetWindowFieldsWindow window = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the average rate of change within the specified window.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="unit">The unit for time based derivatives.</param>
+        /// <param name="window">The window boundaries.</param>
+        /// <returns>The average rate of change within the specified window.</returns>
+        public static double Derivative<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, WindowTimeUnit unit, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -605,7 +605,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="weighting">How to weigh the values when computing the exponential moving average.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The exponential moving average of the selected values.</returns>
-        public static decimal ExponentialMovingAverage<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, ExponentialMovingAverageWeighting weighting, WindowBoundaries window = null)
+        public static decimal ExponentialMovingAverage<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, ExponentialMovingAverageWeighting weighting, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -619,7 +619,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="weighting">How to weigh the values when computing the exponential moving average.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The exponential moving average of the selected values.</returns>
-        public static double ExponentialMovingAverage<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, ExponentialMovingAverageWeighting weighting, WindowBoundaries window = null)
+        public static double ExponentialMovingAverage<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, ExponentialMovingAverageWeighting weighting, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -633,7 +633,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="weighting">How to weigh the values when computing the exponential moving average.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The exponential moving average of the selected values.</returns>
-        public static double ExponentialMovingAverage<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, ExponentialMovingAverageWeighting weighting, WindowBoundaries window = null)
+        public static double ExponentialMovingAverage<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, ExponentialMovingAverageWeighting weighting, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -647,7 +647,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="weighting">How to weigh the values when computing the exponential moving average.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The exponential moving average of the selected values.</returns>
-        public static double ExponentialMovingAverage<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, ExponentialMovingAverageWeighting weighting, WindowBoundaries window = null)
+        public static double ExponentialMovingAverage<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, ExponentialMovingAverageWeighting weighting, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -661,7 +661,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="weighting">How to weigh the values when computing the exponential moving average.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The exponential moving average of the selected values.</returns>
-        public static float ExponentialMovingAverage<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, ExponentialMovingAverageWeighting weighting, WindowBoundaries window = null)
+        public static float ExponentialMovingAverage<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, ExponentialMovingAverageWeighting weighting, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -674,34 +674,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The approximation of the area under a curve.</returns>
-        public static decimal Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, WindowBoundaries window = null)
-        {
-            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
-        }
-
-        /// <summary>
-        /// Returns the approximation of the area under a curve.
-        /// </summary>
-        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
-        /// <param name="partition">The partition.</param>
-        /// <param name="selector">The selector that selects a value from the input document.</param>
-        /// <param name="unit">The unit for time based integrals.</param>
-        /// <param name="window">The window boundaries.</param>
-        /// <returns>The approximation of the area under a curve.</returns>
-        public static decimal Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, WindowTimeUnit unit, WindowBoundaries window = null)
-        {
-            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
-        }
-
-        /// <summary>
-        /// Returns the approximation of the area under a curve.
-        /// </summary>
-        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
-        /// <param name="partition">The partition.</param>
-        /// <param name="selector">The selector that selects a value from the input document.</param>
-        /// <param name="window">The window boundaries.</param>
-        /// <returns>The approximation of the area under a curve.</returns>
-        public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, WindowBoundaries window = null)
+        public static decimal Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -715,7 +688,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="unit">The unit for time based integrals.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The approximation of the area under a curve.</returns>
-        public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, WindowTimeUnit unit, WindowBoundaries window = null)
+        public static decimal Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, WindowTimeUnit unit, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -728,34 +701,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The approximation of the area under a curve.</returns>
-        public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, WindowBoundaries window = null)
-        {
-            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
-        }
-
-        /// <summary>
-        /// Returns the approximation of the area under a curve.
-        /// </summary>
-        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
-        /// <param name="partition">The partition.</param>
-        /// <param name="selector">The selector that selects a value from the input document.</param>
-        /// <param name="unit">The unit for time based integrals.</param>
-        /// <param name="window">The window boundaries.</param>
-        /// <returns>The approximation of the area under a curve.</returns>
-        public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, WindowTimeUnit unit, WindowBoundaries window = null)
-        {
-            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
-        }
-
-        /// <summary>
-        /// Returns the approximation of the area under a curve.
-        /// </summary>
-        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
-        /// <param name="partition">The partition.</param>
-        /// <param name="selector">The selector that selects a value from the input document.</param>
-        /// <param name="window">The window boundaries.</param>
-        /// <returns>The approximation of the area under a curve.</returns>
-        public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, WindowBoundaries window = null)
+        public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -769,7 +715,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="unit">The unit for time based integrals.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The approximation of the area under a curve.</returns>
-        public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, WindowTimeUnit unit, WindowBoundaries window = null)
+        public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, WindowTimeUnit unit, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -782,7 +728,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The approximation of the area under a curve.</returns>
-        public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, WindowBoundaries window = null)
+        public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -796,7 +742,61 @@ namespace MongoDB.Driver.Linq
         /// <param name="unit">The unit for time based integrals.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The approximation of the area under a curve.</returns>
-        public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, WindowTimeUnit unit, WindowBoundaries window = null)
+        public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, WindowTimeUnit unit, SetWindowFieldsWindow window = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the approximation of the area under a curve.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="window">The window boundaries.</param>
+        /// <returns>The approximation of the area under a curve.</returns>
+        public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, SetWindowFieldsWindow window = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the approximation of the area under a curve.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="unit">The unit for time based integrals.</param>
+        /// <param name="window">The window boundaries.</param>
+        /// <returns>The approximation of the area under a curve.</returns>
+        public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, WindowTimeUnit unit, SetWindowFieldsWindow window = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the approximation of the area under a curve.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="window">The window boundaries.</param>
+        /// <returns>The approximation of the area under a curve.</returns>
+        public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, SetWindowFieldsWindow window = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the approximation of the area under a curve.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="unit">The unit for time based integrals.</param>
+        /// <param name="window">The window boundaries.</param>
+        /// <returns>The approximation of the area under a curve.</returns>
+        public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, WindowTimeUnit unit, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -810,7 +810,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The maximum of the selected values.</returns>
-        public static TValue Max<TInput, TValue>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, TValue> selector, WindowBoundaries window = null)
+        public static TValue Max<TInput, TValue>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, TValue> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -824,7 +824,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The minimum of the selected values.</returns>
-        public static TValue Min<TInput, TValue>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, TValue> selector, WindowBoundaries window = null)
+        public static TValue Min<TInput, TValue>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, TValue> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -838,7 +838,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>A sequence of the selected values.</returns>
-        public static IEnumerable<TValue> Push<TInput, TValue>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, TValue> selector, WindowBoundaries window = null)
+        public static IEnumerable<TValue> Push<TInput, TValue>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, TValue> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -851,7 +851,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The population standard deviation of the selected values.</returns>
-        public static decimal StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, WindowBoundaries window = null)
+        public static decimal StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -864,7 +864,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The population standard deviation of the selected values.</returns>
-        public static decimal? StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal?> selector, WindowBoundaries window = null)
+        public static decimal? StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal?> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -877,7 +877,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The population standard deviation of the selected values.</returns>
-        public static double StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, WindowBoundaries window = null)
+        public static double StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -890,7 +890,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The population standard deviation of the selected values.</returns>
-        public static double? StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double?> selector, WindowBoundaries window = null)
+        public static double? StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double?> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -903,7 +903,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The population standard deviation of the selected values.</returns>
-        public static double StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, WindowBoundaries window = null)
+        public static double StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -916,7 +916,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The population standard deviation of the selected values.</returns>
-        public static double? StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int?> selector, WindowBoundaries window = null)
+        public static double? StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int?> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -929,7 +929,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The population standard deviation of the selected values.</returns>
-        public static double StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, WindowBoundaries window = null)
+        public static double StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -942,7 +942,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The population standard deviation of the selected values.</returns>
-        public static double? StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long?> selector, WindowBoundaries window = null)
+        public static double? StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long?> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -955,7 +955,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The population standard deviation of the selected values.</returns>
-        public static float StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, WindowBoundaries window = null)
+        public static float StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -968,7 +968,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The population standard deviation of the selected values.</returns>
-        public static float? StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float?> selector, WindowBoundaries window = null)
+        public static float? StandardDeviationPopulation<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float?> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -981,7 +981,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The sample standard deviation of the selected values.</returns>
-        public static decimal StandardDeviationSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, WindowBoundaries window = null)
+        public static decimal StandardDeviationSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -994,7 +994,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The sample standard deviation of the selected values.</returns>
-        public static decimal? StandardDeviationSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal?> selector, WindowBoundaries window = null)
+        public static decimal? StandardDeviationSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal?> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -1007,7 +1007,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The sample standard deviation of the selected values.</returns>
-        public static double StandardDeviationSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, WindowBoundaries window = null)
+        public static double StandardDeviationSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -1020,7 +1020,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The sample standard deviation of the selected values.</returns>
-        public static double? StandardDeviationSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double?> selector, WindowBoundaries window = null)
+        public static double? StandardDeviationSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double?> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -1033,7 +1033,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The sample standard deviation of the selected values.</returns>
-        public static double StandardDeviationSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, WindowBoundaries window = null)
+        public static double StandardDeviationSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -1046,7 +1046,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The sample standard deviation of the selected values.</returns>
-        public static double? StandardDeviationSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int?> selector, WindowBoundaries window = null)
+        public static double? StandardDeviationSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int?> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -1059,7 +1059,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The sample standard deviation of the selected values.</returns>
-        public static double StandardDeviationSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, WindowBoundaries window = null)
+        public static double StandardDeviationSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -1072,7 +1072,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The sample standard deviation of the selected values.</returns>
-        public static double? StandardDeviationSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long?> selector, WindowBoundaries window = null)
+        public static double? StandardDeviationSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long?> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -1085,7 +1085,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The sample standard deviation of the selected values.</returns>
-        public static float StandardDeviationSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, WindowBoundaries window = null)
+        public static float StandardDeviationSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -1098,7 +1098,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The sample standard deviation of the selected values.</returns>
-        public static float? StandardDeviationSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float?> selector, WindowBoundaries window = null)
+        public static float? StandardDeviationSample<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float?> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -1111,7 +1111,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The sum of the values.</returns>
-        public static decimal Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, WindowBoundaries window = null)
+        public static decimal Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -1124,7 +1124,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The sum of the values.</returns>
-        public static decimal? Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal?> selector, WindowBoundaries window = null)
+        public static decimal? Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, decimal?> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -1137,7 +1137,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The sum of the values.</returns>
-        public static double Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, WindowBoundaries window = null)
+        public static double Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -1150,7 +1150,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The sum of the values.</returns>
-        public static double? Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double?> selector, WindowBoundaries window = null)
+        public static double? Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, double?> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -1163,7 +1163,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The sum of the values.</returns>
-        public static float Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, WindowBoundaries window = null)
+        public static float Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -1176,7 +1176,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The sum of the values.</returns>
-        public static float? Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float?> selector, WindowBoundaries window = null)
+        public static float? Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, float?> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -1189,7 +1189,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The sum of the values.</returns>
-        public static long Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, WindowBoundaries window = null)
+        public static long Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -1202,7 +1202,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The sum of the values.</returns>
-        public static long? Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int?> selector, WindowBoundaries window = null)
+        public static long? Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, int?> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -1215,7 +1215,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The sum of the values.</returns>
-        public static long Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, WindowBoundaries window = null)
+        public static long Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
@@ -1228,7 +1228,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="selector">The selector that selects a value from the input document.</param>
         /// <param name="window">The window boundaries.</param>
         /// <returns>The sum of the values.</returns>
-        public static long? Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long?> selector, WindowBoundaries window = null)
+        public static long? Sum<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long?> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }

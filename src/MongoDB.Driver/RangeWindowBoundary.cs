@@ -25,77 +25,7 @@ using MongoDB.Driver.Linq.Linq3Implementation.Misc;
 namespace MongoDB.Driver
 {
 #pragma warning disable CS1591
-    public abstract class WindowBoundary
-    {
-        #region static
-        private static readonly KeywordWindowBoundary __current = new KeywordWindowBoundary("current");
-        private static readonly KeywordWindowBoundary __unbounded = new KeywordWindowBoundary("unbounded");
-
-        public static KeywordWindowBoundary Current => __current;
-        public static KeywordWindowBoundary Unbounded => __unbounded;
-
-        public static TimeRangeWindowBoundary Days(int value) => new TimeRangeWindowBoundary(value, unit: "day");
-        public static TimeRangeWindowBoundary Hours(int value) => new TimeRangeWindowBoundary(value, unit: "hour");
-        public static TimeRangeWindowBoundary Milliseconds(int value) => new TimeRangeWindowBoundary(value, unit: "millisecond");
-        public static TimeRangeWindowBoundary Minutes(int value) => new TimeRangeWindowBoundary(value, unit: "minute");
-        public static TimeRangeWindowBoundary Months(int value) => new TimeRangeWindowBoundary(value, unit: "month");
-        public static TimeRangeWindowBoundary Quarters(int value) => new TimeRangeWindowBoundary(value, unit: "quarter");
-        public static TimeRangeWindowBoundary Seconds(int value) => new TimeRangeWindowBoundary(value, unit: "second");
-        public static TimeRangeWindowBoundary Weeks(int value) => new TimeRangeWindowBoundary(value, unit: "week");
-        public static TimeRangeWindowBoundary Years(int value) => new TimeRangeWindowBoundary(value, unit: "year");
-        #endregion
-    }
-
-    public sealed class KeywordWindowBoundary
-    {
-        private readonly string _keyword;
-
-        internal KeywordWindowBoundary(string keyword)
-        {
-            _keyword = Ensure.IsNotNullOrEmpty(keyword, nameof(keyword));
-        }
-
-        public string Keyword => _keyword;
-
-        public override string ToString() => $"\"{_keyword}\"";
-    }
-
-    public abstract class DocumentsWindowBoundary : WindowBoundary
-    {
-        public abstract BsonValue Render();
-    }
-
-    public sealed class KeywordDocumentsWindowBoundary : DocumentsWindowBoundary
-    {
-        private readonly string _keyword;
-
-        public KeywordDocumentsWindowBoundary(string keyword)
-        {
-            _keyword = Ensure.IsNotNullOrEmpty(keyword, nameof(keyword));
-        }
-
-        public string Keyword => _keyword;
-
-        public override BsonValue Render() => _keyword;
-        public override string ToString() => $"\"{_keyword}\"";
-    }
-
-    public sealed class PositionDocumentsWindowBoundary : DocumentsWindowBoundary
-    {
-        private readonly int _position;
-
-        public PositionDocumentsWindowBoundary(int position)
-        {
-            _position = position;
-        }
-
-        public int Position => _position;
-
-        public override BsonValue Render() => _position;
-        public override string ToString() => _position.ToString();
-    }
-
-    public abstract class RangeWindowBoundary : WindowBoundary
+    public abstract class RangeWindowBoundary
     {
         public abstract BsonValue Render(IBsonSerializer valueSerializer);
     }

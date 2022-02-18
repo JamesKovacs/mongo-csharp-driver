@@ -36,7 +36,7 @@ namespace MongoDB.Driver.Tests.Jira
                 .SetWindowFields(
                     partitionBy: x => x.State,
                     sortBy: Builders<CakeSales>.Sort.Ascending(x => x.OrderDate),
-                    output: p => new { CumulativeQuantityForState = p.Sum(x => x.Quantity, WindowBoundaries.Documents(WindowBoundary.Unbounded, WindowBoundary.Current)) });
+                    output: p => new { CumulativeQuantityForState = p.Sum(x => x.Quantity, DocumentsWindow.Create(DocumentsWindow.Unbounded, DocumentsWindow.Current)) });
 
             var stages = Linq3TestHelpers.Translate(collection, aggregate);
             var expectedStages = new[]
@@ -80,7 +80,7 @@ namespace MongoDB.Driver.Tests.Jira
                 .SetWindowFields(
                     partitionBy: x => x.OrderDate.Year,
                     sortBy: Builders<CakeSales>.Sort.Ascending(x => x.OrderDate),
-                    output: p => new { CumulativeQuantityForYear = p.Sum(x => x.Quantity, WindowBoundaries.Documents(WindowBoundary.Unbounded, WindowBoundary.Current)) });
+                    output: p => new { CumulativeQuantityForYear = p.Sum(x => x.Quantity, DocumentsWindow.Create(DocumentsWindow.Unbounded, DocumentsWindow.Current)) });
 
             var stages = Linq3TestHelpers.Translate(collection, aggregate);
             var expectedStages = new[]
@@ -124,7 +124,7 @@ namespace MongoDB.Driver.Tests.Jira
                 .SetWindowFields(
                     partitionBy: x => x.OrderDate.Year,
                     sortBy: Builders<CakeSales>.Sort.Ascending(x => x.OrderDate),
-                    output: p => new { AverageQuantity = p.Average(x => x.Quantity, WindowBoundaries.Documents(-1, 0)) });
+                    output: p => new { AverageQuantity = p.Average(x => x.Quantity, DocumentsWindow.Create(-1, 0)) });
 
             var stages = Linq3TestHelpers.Translate(collection, aggregate);
             var expectedStages = new[]
@@ -170,8 +170,8 @@ namespace MongoDB.Driver.Tests.Jira
                     sortBy: Builders<CakeSales>.Sort.Ascending(x => x.OrderDate),
                     output: p => new
                     {
-                        CumulativeQuantityForYear = p.Sum(x => x.Quantity, WindowBoundaries.Documents(WindowBoundary.Unbounded, WindowBoundary.Current)),
-                        MaximumQuantityForYear = p.Max(x => x.Quantity, WindowBoundaries.Documents(WindowBoundary.Unbounded, WindowBoundary.Unbounded)),
+                        CumulativeQuantityForYear = p.Sum(x => x.Quantity, DocumentsWindow.Create(DocumentsWindow.Unbounded, DocumentsWindow.Current)),
+                        MaximumQuantityForYear = p.Max(x => x.Quantity, DocumentsWindow.Create(DocumentsWindow.Unbounded, DocumentsWindow.Unbounded)),
                     });
 
             var stages = Linq3TestHelpers.Translate(collection, aggregate);
@@ -222,7 +222,7 @@ namespace MongoDB.Driver.Tests.Jira
                 .SetWindowFields(
                     partitionBy: x => x.State,
                     sortBy: Builders<CakeSales>.Sort.Ascending(x => x.Price),
-                    output: p => new { QuantityFromSimilarOrders = p.Sum(x => x.Quantity, WindowBoundaries.Range(-10, 10)) });
+                    output: p => new { QuantityFromSimilarOrders = p.Sum(x => x.Quantity, RangeWindow.Create(-10, 10)) });
 
             var stages = Linq3TestHelpers.Translate(collection, aggregate);
             var expectedStages = new[]
@@ -266,7 +266,7 @@ namespace MongoDB.Driver.Tests.Jira
                 .SetWindowFields(
                     partitionBy: x => x.State,
                     sortBy: Builders<CakeSales>.Sort.Ascending(x => x.OrderDate),
-                    output: p => new { RecentOrders = p.Push(x => x.OrderDate, WindowBoundaries.Range(WindowBoundary.Unbounded, WindowBoundary.Months(10))) });
+                    output: p => new { RecentOrders = p.Push(x => x.OrderDate, RangeWindow.Create(RangeWindow.Unbounded, RangeWindow.Months(10))) });
 
             var stages = Linq3TestHelpers.Translate(collection, aggregate);
             var expectedStages = new[]
@@ -311,7 +311,7 @@ namespace MongoDB.Driver.Tests.Jira
                 .SetWindowFields(
                     partitionBy: x => x.State,
                     sortBy: Builders<CakeSales>.Sort.Ascending(x => x.OrderDate),
-                    output: p => new { RecentOrders = p.Push(x => x.OrderDate, WindowBoundaries.Range(WindowBoundary.Unbounded, WindowBoundary.Months(-10))) });
+                    output: p => new { RecentOrders = p.Push(x => x.OrderDate, RangeWindow.Create(RangeWindow.Unbounded, RangeWindow.Months(-10))) });
 
             var stages = Linq3TestHelpers.Translate(collection, aggregate);
             var expectedStages = new[]
