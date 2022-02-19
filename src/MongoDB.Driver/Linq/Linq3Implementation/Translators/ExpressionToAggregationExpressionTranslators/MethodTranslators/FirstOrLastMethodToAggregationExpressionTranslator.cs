@@ -49,6 +49,11 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 return new AggregationExpression(expression, ast, itemSerializer);
             }
 
+            if (SetWindowFieldsMethodMethodToAggregationExpressionTranslator.CanTranslate(expression))
+            {
+                return SetWindowFieldsMethodMethodToAggregationExpressionTranslator.Translate(context, expression);
+            }
+
             throw new ExpressionNotSupportedException(expression);
         }
     }

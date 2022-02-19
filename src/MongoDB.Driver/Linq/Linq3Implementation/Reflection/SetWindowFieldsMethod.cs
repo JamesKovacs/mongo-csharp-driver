@@ -68,6 +68,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         private static readonly MethodInfo __exponentialMovingAverageWithInt32;
         private static readonly MethodInfo __exponentialMovingAverageWithInt64;
         private static readonly MethodInfo __exponentialMovingAverageWithSingle;
+        private static readonly MethodInfo __first;
         private static readonly MethodInfo __integralWithDecimal;
         private static readonly MethodInfo __integralWithDecimalAndUnit;
         private static readonly MethodInfo __integralWithDouble;
@@ -78,6 +79,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         private static readonly MethodInfo __integralWithInt64AndUnit;
         private static readonly MethodInfo __integralWithSingle;
         private static readonly MethodInfo __integralWithSingleAndUnit;
+        private static readonly MethodInfo __last;
         private static readonly MethodInfo __max;
         private static readonly MethodInfo __min;
         private static readonly MethodInfo __push;
@@ -162,6 +164,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
             __exponentialMovingAverageWithInt32 = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, int> selector, ExponentialMovingAverageWeighting weighting, SetWindowFieldsWindow window) => partition.ExponentialMovingAverage(selector, weighting, window));
             __exponentialMovingAverageWithInt64 = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, long> selector, ExponentialMovingAverageWeighting weighting, SetWindowFieldsWindow window) => partition.ExponentialMovingAverage(selector, weighting, window));
             __exponentialMovingAverageWithSingle = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, float> selector, ExponentialMovingAverageWeighting weighting, SetWindowFieldsWindow window) => partition.ExponentialMovingAverage(selector, weighting, window));
+            __first = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, SetWindowFieldsWindow window) => partition.First(selector, window));
             __integralWithDecimal = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, decimal> selector, SetWindowFieldsWindow window) => partition.Integral(selector, window));
             __integralWithDecimalAndUnit = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, decimal> selector, WindowTimeUnit unit, SetWindowFieldsWindow window) => partition.Integral(selector, unit, window));
             __integralWithDouble = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, double> selector, SetWindowFieldsWindow window) => partition.Integral(selector, window));
@@ -172,6 +175,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
             __integralWithInt64AndUnit = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, long> selector, WindowTimeUnit unit, SetWindowFieldsWindow window) => partition.Integral(selector, unit, window));
             __integralWithSingle = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, float> selector, SetWindowFieldsWindow window) => partition.Integral(selector, window));
             __integralWithSingleAndUnit = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, float> selector, WindowTimeUnit unit, SetWindowFieldsWindow window) => partition.Integral(selector, unit, window)); ;
+            __last = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, SetWindowFieldsWindow window) => partition.Last(selector, window));
             __max = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, SetWindowFieldsWindow window) => partition.Max(selector, window));
             __min = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, SetWindowFieldsWindow window) => partition.Min(selector, window));
             __push = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, SetWindowFieldsWindow window) => partition.Push(selector, window));
@@ -255,6 +259,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         public static MethodInfo ExponentialMovingAverageWithInt32 => __exponentialMovingAverageWithInt32;
         public static MethodInfo ExponentialMovingAverageWithInt64 => __exponentialMovingAverageWithInt64;
         public static MethodInfo ExponentialMovingAverageWithSingle => __exponentialMovingAverageWithSingle;
+        public static MethodInfo First => __first;
         public static MethodInfo IntegralWithDecimal => __integralWithDecimal;
         public static MethodInfo IntegralWithDecimalAndUnit => __integralWithDecimalAndUnit;
         public static MethodInfo IntegralWithDouble => __integralWithDouble;
@@ -265,6 +270,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         public static MethodInfo IntegralWithInt64AndUnit => __integralWithInt64AndUnit;
         public static MethodInfo IntegralWithSingle => __integralWithSingle;
         public static MethodInfo IntegralWithSingleAndUnit => __integralWithSingleAndUnit;
+        public static MethodInfo Last => __last;
         public static MethodInfo Max => __max;
         public static MethodInfo Min => __min;
         public static MethodInfo Push => __push;

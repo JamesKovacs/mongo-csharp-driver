@@ -697,6 +697,19 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
         }
 
         [Fact]
+        public void Translate_should_return_expected_result_for_First()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.First(x => x.Int32Field, null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $first : '$Int32Field' } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
         public void Translate_should_return_expected_result_for_Integral_with_Decimal()
         {
             var collection = GetCollection<C>();
@@ -823,6 +836,19 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
 
             var stages = Translate(collection, aggregate);
             var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $integral : { input : '$SingleField', unit : 'day' } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_Last()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Last(x => x.Int32Field, null) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $last : '$Int32Field' } } } }" };
             AssertStages(stages, expectedStages);
         }
 

@@ -667,6 +667,20 @@ namespace MongoDB.Driver.Linq
         }
 
         /// <summary>
+        /// Returns the first value.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <typeparam name="TValue">The type of the selected values.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="window">The window boundaries.</param>
+        /// <returns>The first of the selected values.</returns>
+        public static TValue First<TInput, TValue>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, TValue> selector, SetWindowFieldsWindow window = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
         /// Returns the approximation of the area under a curve.
         /// </summary>
         /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
@@ -797,6 +811,20 @@ namespace MongoDB.Driver.Linq
         /// <param name="window">The window boundaries.</param>
         /// <returns>The approximation of the area under a curve.</returns>
         public static double Integral<TInput>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, long> selector, WindowTimeUnit unit, SetWindowFieldsWindow window = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the last value.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <typeparam name="TValue">The type of the selected values.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="window">The window boundaries.</param>
+        /// <returns>The last of the selected values.</returns>
+        public static TValue Last<TInput, TValue>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, TValue> selector, SetWindowFieldsWindow window = null)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }
