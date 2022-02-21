@@ -462,6 +462,17 @@ namespace MongoDB.Driver.Linq
         }
 
         /// <summary>
+        /// Returns the document position (known as the rank) relative to other documents in the $setWindowFields stage partition.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <returns>The document position.</returns>
+        public static decimal DenseRank<TInput>(this ISetWindowFieldsPartition<TInput> partition)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
         /// Returns the average rate of change within the specified window.
         /// </summary>
         /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
@@ -867,6 +878,17 @@ namespace MongoDB.Driver.Linq
         /// <param name="window">The window boundaries.</param>
         /// <returns>A sequence of the selected values.</returns>
         public static IEnumerable<TValue> Push<TInput, TValue>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, TValue> selector, SetWindowFieldsWindow window = null)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the document position (known as the rank) relative to other documents in the $setWindowFields stage partition.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <returns>The document position.</returns>
+        public static decimal Rank<TInput>(this ISetWindowFieldsPartition<TInput> partition)
         {
             throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
         }

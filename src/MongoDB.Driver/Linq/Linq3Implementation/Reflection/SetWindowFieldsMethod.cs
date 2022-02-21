@@ -53,6 +53,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         private static readonly MethodInfo __covarianceSampleWithNullableInt64s;
         private static readonly MethodInfo __covarianceSampleWithNullableSingles;
         private static readonly MethodInfo __covarianceSampleWithSingles;
+        private static readonly MethodInfo __denseRank;
         private static readonly MethodInfo __derivativeWithDecimal;
         private static readonly MethodInfo __derivativeWithDecimalAndUnit;
         private static readonly MethodInfo __derivativeWithDouble;
@@ -83,6 +84,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         private static readonly MethodInfo __max;
         private static readonly MethodInfo __min;
         private static readonly MethodInfo __push;
+        private static readonly MethodInfo __rank;
         private static readonly MethodInfo __shift;
         private static readonly MethodInfo __shiftWithDefaultValue;
         private static readonly MethodInfo __standardDeviationPopulationWithDecimal;
@@ -151,6 +153,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
             __covarianceSampleWithNullableInt64s = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, long?> selector1, Func<object, long?> selector2, SetWindowFieldsWindow window) => partition.CovarianceSample(selector1, selector2, window));
             __covarianceSampleWithNullableSingles = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, float?> selector1, Func<object, float?> selector2, SetWindowFieldsWindow window) => partition.CovarianceSample(selector1, selector2, window));
             __covarianceSampleWithSingles = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, float> selector1, Func<object, float> selector2, SetWindowFieldsWindow window) => partition.CovarianceSample(selector1, selector2, window));
+            __denseRank = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition) => partition.DenseRank());
             __derivativeWithDecimal = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, decimal> selector, SetWindowFieldsWindow window) => partition.Derivative(selector, window));
             __derivativeWithDecimalAndUnit = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, decimal> selector, WindowTimeUnit unit, SetWindowFieldsWindow window) => partition.Derivative(selector, unit, window));
             __derivativeWithDouble = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, double> selector, SetWindowFieldsWindow window) => partition.Derivative(selector, window));
@@ -181,6 +184,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
             __max = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, SetWindowFieldsWindow window) => partition.Max(selector, window));
             __min = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, SetWindowFieldsWindow window) => partition.Min(selector, window));
             __push = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, SetWindowFieldsWindow window) => partition.Push(selector, window));
+            __rank = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition) => partition.Rank());
             __shift = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, int by) => partition.Shift(selector, by));
             __shiftWithDefaultValue = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, int by, object defaultValue) => partition.Shift(selector, by, defaultValue));
             __standardDeviationPopulationWithDecimal = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, decimal> selector, SetWindowFieldsWindow window) => partition.StandardDeviationPopulation(selector, window));
@@ -248,6 +252,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         public static MethodInfo CovarianceSampleWithNullableInt64s => __covarianceSampleWithNullableInt64s;
         public static MethodInfo CovarianceSampleWithNullableSingles => __covarianceSampleWithNullableSingles;
         public static MethodInfo CovarianceSampleWithSingles => __covarianceSampleWithSingles;
+        public static MethodInfo DenseRank => __denseRank;
         public static MethodInfo DerivativeWithDecimal => __derivativeWithDecimal;
         public static MethodInfo DerivativeWithDecimalAndUnit => __derivativeWithDecimalAndUnit;
         public static MethodInfo DerivativeWithDouble => __derivativeWithDouble;
@@ -278,6 +283,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         public static MethodInfo Max => __max;
         public static MethodInfo Min => __min;
         public static MethodInfo Push => __push;
+        public static MethodInfo Rank => __rank;
         public static MethodInfo Shift => __shift;
         public static MethodInfo ShiftWithDefaultValue => __shiftWithDefaultValue;
         public static MethodInfo StandardDeviationPopulationWithDecimal => __standardDeviationPopulationWithDecimal;

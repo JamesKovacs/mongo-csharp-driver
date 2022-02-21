@@ -437,6 +437,19 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
         }
 
         [Fact]
+        public void Translate_should_return_expected_result_for_DenseRank()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.DenseRank() });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $denseRank : { } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
         public void Translate_should_return_expected_result_for_Derivative_with_Decimal()
         {
             var collection = GetCollection<C>();
@@ -888,6 +901,19 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
 
             var stages = Translate(collection, aggregate);
             var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $push : '$Int32Field' } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_Rank()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Rank() });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $rank : { } } } } }" };
             AssertStages(stages, expectedStages);
         }
 
