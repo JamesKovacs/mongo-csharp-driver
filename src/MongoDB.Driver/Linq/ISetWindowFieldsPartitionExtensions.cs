@@ -872,6 +872,35 @@ namespace MongoDB.Driver.Linq
         }
 
         /// <summary>
+        /// Returns the value from an expression applied to a document in a specified position relative to the current document.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <typeparam name="TValue">The type of the selected values.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="by">The relative position of the document to evaluate the selector on to shift a value to this document.</param>
+        /// <returns>The value from an expression applied to a document in a specified position relative to the current document.</returns>
+        public static TValue Shift<TInput, TValue>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, TValue> selector, int by)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
+        /// Returns the value from an expression applied to a document in a specified position relative to the current document.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <typeparam name="TValue">The type of the selected values.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="selector">The selector that selects a value from the input document.</param>
+        /// <param name="by">The relative position of the document to evaluate the selector on to shift a value to this document.</param>
+        /// <param name="defaultValue">The default value to use if the document position is outside the partition.</param>
+        /// <returns>The value from an expression applied to a document in a specified position relative to the current document.</returns>
+        public static TValue Shift<TInput, TValue>(this ISetWindowFieldsPartition<TInput> partition, Func<TInput, TValue> selector, int by, TValue defaultValue)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
         /// Calculates the population standard deviation of the input values.
         /// </summary>
         /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>

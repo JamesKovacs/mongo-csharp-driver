@@ -892,6 +892,32 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Translators.Express
         }
 
         [Fact]
+        public void Translate_should_return_expected_result_for_Shift()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Shift(x => x.Int32Field, 1) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $shift : { output : '$Int32Field', by : 1 } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
+        public void Translate_should_return_expected_result_for_Shift_with_defaultValue()
+        {
+            var collection = GetCollection<C>();
+
+            var aggregate = collection.Aggregate()
+                .SetWindowFields(output: p => new { Result = p.Shift(x => x.DoubleField, 1, 2.5) });
+
+            var stages = Translate(collection, aggregate);
+            var expectedStages = new[] { "{ $setWindowFields : { output : { Result : { $shift : { output : '$DoubleField', by : 1, default : 2.5 } } } } }" };
+            AssertStages(stages, expectedStages);
+        }
+
+        [Fact]
         public void Translate_should_return_expected_result_for_StandardDeviationPopulation_with_Decimal()
         {
             var collection = GetCollection<C>();

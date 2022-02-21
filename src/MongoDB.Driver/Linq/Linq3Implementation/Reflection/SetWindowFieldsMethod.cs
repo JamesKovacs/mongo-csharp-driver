@@ -83,6 +83,8 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         private static readonly MethodInfo __max;
         private static readonly MethodInfo __min;
         private static readonly MethodInfo __push;
+        private static readonly MethodInfo __shift;
+        private static readonly MethodInfo __shiftWithDefaultValue;
         private static readonly MethodInfo __standardDeviationPopulationWithDecimal;
         private static readonly MethodInfo __standardDeviationPopulationWithDouble;
         private static readonly MethodInfo __standardDeviationPopulationWithInt32;
@@ -179,6 +181,8 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
             __max = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, SetWindowFieldsWindow window) => partition.Max(selector, window));
             __min = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, SetWindowFieldsWindow window) => partition.Min(selector, window));
             __push = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, SetWindowFieldsWindow window) => partition.Push(selector, window));
+            __shift = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, int by) => partition.Shift(selector, by));
+            __shiftWithDefaultValue = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, object> selector, int by, object defaultValue) => partition.Shift(selector, by, defaultValue));
             __standardDeviationPopulationWithDecimal = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, decimal> selector, SetWindowFieldsWindow window) => partition.StandardDeviationPopulation(selector, window));
             __standardDeviationPopulationWithDouble = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, double> selector, SetWindowFieldsWindow window) => partition.StandardDeviationPopulation(selector, window));
             __standardDeviationPopulationWithInt32 = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, int> selector, SetWindowFieldsWindow window) => partition.StandardDeviationPopulation(selector, window));
@@ -274,6 +278,8 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         public static MethodInfo Max => __max;
         public static MethodInfo Min => __min;
         public static MethodInfo Push => __push;
+        public static MethodInfo Shift => __shift;
+        public static MethodInfo ShiftWithDefaultValue => __shiftWithDefaultValue;
         public static MethodInfo StandardDeviationPopulationWithDecimal => __standardDeviationPopulationWithDecimal;
         public static MethodInfo StandardDeviationPopulationWithDouble => __standardDeviationPopulationWithDouble;
         public static MethodInfo StandardDeviationPopulationWithInt32 => __standardDeviationPopulationWithInt32;

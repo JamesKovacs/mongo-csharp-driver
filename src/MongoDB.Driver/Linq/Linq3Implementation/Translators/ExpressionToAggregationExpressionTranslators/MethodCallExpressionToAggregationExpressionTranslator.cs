@@ -58,6 +58,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 case "Reverse": return ReverseMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "Select": return SelectMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "SetEquals": return SetEqualsMethodToAggregationExpressionTranslator.Translate(context, expression);
+                case "Shift": return ShiftMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "Split": return SplitMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "Sqrt": return SqrtMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "StrLenBytes": return StrLenBytesMethodToAggregationExpressionTranslator.Translate(context, expression);

@@ -94,6 +94,8 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             SetWindowFieldsMethod.Max,
             SetWindowFieldsMethod.Min,
             SetWindowFieldsMethod.Push,
+            SetWindowFieldsMethod.Shift,
+            SetWindowFieldsMethod.ShiftWithDefaultValue,
             SetWindowFieldsMethod.StandardDeviationPopulationWithDecimal,
             SetWindowFieldsMethod.StandardDeviationPopulationWithDouble,
             SetWindowFieldsMethod.StandardDeviationPopulationWithInt32,
@@ -150,71 +152,105 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
 
                 var @operator = ToOperator(method);
                 var operatorArgs = new List<AstExpression>();
-                if (arguments.Count >= 3)
-                {
-                    for (var n = 1; n <= arguments.Count - 2; n++)
-                    {
-                        var argument = arguments[n];
+                IBsonSerializer defaultValueSerializer = null;
+                AstSetWindowFieldsWindow astWindow = null;
 
-                        if (argument is LambdaExpression selectorLambda)
+                for (var n = 1; n < arguments.Count; n++)
+                {
+                    var argument = arguments[n];
+
+                    if (argument is LambdaExpression selectorLambda)
+                    {
+                        var selectorParameter = selectorLambda.Parameters[0];
+                        var selectorSymbol = context.CreateSymbol(selectorParameter, inputSerializer, isCurrent: true);
+                        var selectorContext = context.WithSymbol(selectorSymbol);
+                        var selectorTranslation = ExpressionToAggregationExpressionTranslator.Translate(selectorContext, selectorLambda.Body);
+                        operatorArgs.Add(selectorTranslation.Ast);
+
+                        if (method.Is(SetWindowFieldsMethod.ShiftWithDefaultValue) && n == 1)
                         {
-                            var selectorParameter = selectorLambda.Parameters[0];
-                            var selectorSymbol = context.CreateSymbol(selectorParameter, inputSerializer, isCurrent: true);
-                            var selectorContext = context.WithSymbol(selectorSymbol);
-                            var selectorTranslation = ExpressionToAggregationExpressionTranslator.Translate(selectorContext, selectorLambda.Body);
-                            operatorArgs.Add(selectorTranslation.Ast);
+                            defaultValueSerializer = selectorTranslation.Serializer;
+                        }
+
+                        continue;
+                    }
+
+                    if (argument is ConstantExpression constantExpression)
+                    {
+                        var value = constantExpression.GetConstantValue<object>(expression);
+
+                        if (method.IsOneOf(SetWindowFieldsMethod.Shift, SetWindowFieldsMethod.ShiftWithDefaultValue) && n == 2)
+                        {
+                            var by = (int)value;
+                            operatorArgs.Add(by);
                             continue;
                         }
 
-                        if (argument is ConstantExpression constantExpression)
+                        if (method.Is(SetWindowFieldsMethod.ShiftWithDefaultValue) && n == 3)
                         {
-                            var value = constantExpression.GetConstantValue<object>(expression);
-
-                            if (value is WindowTimeUnit unit)
-                            {
-                                var renderedUnit = unit.Render();
-                                operatorArgs.Add(renderedUnit);
-                                continue;
-                            }
-
-                            if (value is ExponentialMovingAverageAlphaWeighting alphaWeighting)
-                            {
-                                @operator = AstSetWindowFieldsOperator.ExpMovingAvgWithAlphaWeighting;
-                                operatorArgs.Add(alphaWeighting.Alpha);
-                                continue;
-                            }
-
-                            if (value is ExponentialMovingAveragePositionalWeighting positionalWeighting)
-                            {
-                                @operator = AstSetWindowFieldsOperator.ExpMovingAvgWithPositionalWeighting;
-                                operatorArgs.Add(positionalWeighting.N);
-                                continue;
-                            }
+                            var defaultValue = value;
+                            var serializedDefaultValue = SerializationHelper.SerializeValue(defaultValueSerializer, defaultValue);
+                            operatorArgs.Add(serializedDefaultValue);
+                            continue;
                         }
 
-                        throw new ExpressionNotSupportedException(argument, expression);
+                        if (value is WindowTimeUnit unit)
+                        {
+                            var renderedUnit = unit.Render();
+                            operatorArgs.Add(renderedUnit);
+                            continue;
+                        }
+
+                        if (value is ExponentialMovingAverageAlphaWeighting alphaWeighting)
+                        {
+                            @operator = AstSetWindowFieldsOperator.ExpMovingAvgWithAlphaWeighting;
+                            operatorArgs.Add(alphaWeighting.Alpha);
+                            continue;
+                        }
+
+                        if (value is ExponentialMovingAveragePositionalWeighting positionalWeighting)
+                        {
+                            @operator = AstSetWindowFieldsOperator.ExpMovingAvgWithPositionalWeighting;
+                            operatorArgs.Add(positionalWeighting.N);
+                            continue;
+                        }
+
+                        if (HasWindowParameter(method) && n == arguments.Count - 1)
+                        {
+                            if (value != null)
+                            {
+                                var window = (SetWindowFieldsWindow)value;
+                                var sortBy = context.Data.GetValueOrDefault("SortBy", null);
+                                var serializerRegistry = (BsonSerializerRegistry)context.Data.GetValueOrDefault("SerializerRegistry", null);
+                                astWindow = ToAstWindow(window, sortBy, inputSerializer, serializerRegistry);
+                            }
+                            continue;
+                        }
                     }
-                }
-                else
-                {
-                    operatorArgs.Add(AstExpression.Constant(new BsonDocument()));
+
+                    throw new ExpressionNotSupportedException(argument, expression);
                 }
 
-                var windowExpression = arguments.Last();
-                var window = windowExpression.GetConstantValue<SetWindowFieldsWindow>(expression);
-                var sortBy = context.Data.GetValueOrDefault("SortBy", null);
-                var serializerRegistry = (BsonSerializerRegistry)context.Data.GetValueOrDefault("SerializerRegistry", null);
+                if (operatorArgs.Count == 0)
+                {
+                    operatorArgs.Add(new BsonDocument());
+                }
 
                 var ast = AstExpression.SetWindowFieldsWindowExpression(
                     @operator,
                     operatorArgs,
-                    ToAstWindow(window, sortBy, inputSerializer, serializerRegistry));
-                var serializer = BsonSerializer.LookupSerializer(method.ReturnType);
+                    astWindow);
+                var serializer = BsonSerializer.LookupSerializer(method.ReturnType); // TODO: use correct serializer
 
                 return new AggregationExpression(expression, ast, serializer);
             }
 
             throw new ExpressionNotSupportedException(expression);
+        }
+
+        private static bool HasWindowParameter(MethodInfo method)
+        {
+            return method.GetParameters().Last().Name == "window";
         }
 
         private static AstSetWindowFieldsOperator ToOperator(MethodInfo method)
@@ -234,6 +270,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 "Max" => AstSetWindowFieldsOperator.Max,
                 "Min" => AstSetWindowFieldsOperator.Min,
                 "Push" => AstSetWindowFieldsOperator.Push,
+                "Shift" => AstSetWindowFieldsOperator.Shift,
                 "StandardDeviationPopulation" => AstSetWindowFieldsOperator.StdDevPop,
                 "StandardDeviationSample" => AstSetWindowFieldsOperator.StdDevSamp,
                 "Sum" => AstSetWindowFieldsOperator.Sum,

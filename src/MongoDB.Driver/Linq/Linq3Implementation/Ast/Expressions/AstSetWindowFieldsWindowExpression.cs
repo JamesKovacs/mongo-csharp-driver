@@ -49,9 +49,10 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
         {
             var renderedArgs =
                 _operator == AstSetWindowFieldsOperator.Derivative ? RenderDerivativeOrIntegralArgs() :
-                _operator == AstSetWindowFieldsOperator.ExpMovingAvgWithAlphaWeighting ? RenderExpMovingAvgArgsWithAlphaWeighting() :
-                _operator == AstSetWindowFieldsOperator.ExpMovingAvgWithPositionalWeighting ? RenderExpMovingAvgArgsWithPositionalWeighting() :
+                _operator == AstSetWindowFieldsOperator.ExpMovingAvgWithAlphaWeighting ? RenderExpMovingAvgArgsWithAlphaWeightingArgs() :
+                _operator == AstSetWindowFieldsOperator.ExpMovingAvgWithPositionalWeighting ? RenderExpMovingAvgArgsWithPositionalWeightingArgs() :
                 _operator == AstSetWindowFieldsOperator.Integral ? RenderDerivativeOrIntegralArgs() :
+                _operator == AstSetWindowFieldsOperator.Shift ? RenderShiftArgs() :
                 _args.Count == 1 ? _args[0].Render() :
                 new BsonArray(_args.Select(a => a.Render()));
 
@@ -84,7 +85,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
             };
         }
 
-        private BsonDocument RenderExpMovingAvgArgsWithAlphaWeighting()
+        private BsonDocument RenderExpMovingAvgArgsWithAlphaWeightingArgs()
         {
             var input = _args[0].Render();
             var alpha = _args[1].Render();
@@ -96,7 +97,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
             };
         }
 
-        private BsonDocument RenderExpMovingAvgArgsWithPositionalWeighting()
+        private BsonDocument RenderExpMovingAvgArgsWithPositionalWeightingArgs()
         {
             var input = _args[0].Render();
             var n = _args[1].Render();
@@ -105,6 +106,20 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
             {
                 { "input", input },
                 { "n", n }
+            };
+        }
+
+        private BsonDocument RenderShiftArgs()
+        {
+            var output = _args[0].Render();
+            var by = _args[1].Render();
+            var defaultValue = _args.Count == 3 ? _args[2].Render() : null;
+
+            return new BsonDocument
+            {
+                { "output", output },
+                { "by", by },
+                { "default", defaultValue, defaultValue != null }
             };
         }
     }
