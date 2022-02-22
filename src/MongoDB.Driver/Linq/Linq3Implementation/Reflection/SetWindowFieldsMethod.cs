@@ -64,6 +64,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         private static readonly MethodInfo __derivativeWithInt64AndUnit;
         private static readonly MethodInfo __derivativeWithSingle;
         private static readonly MethodInfo __derivativeWithSingleAndUnit;
+        private static readonly MethodInfo __documentNumber;
         private static readonly MethodInfo __exponentialMovingAverageWithDecimal;
         private static readonly MethodInfo __exponentialMovingAverageWithDouble;
         private static readonly MethodInfo __exponentialMovingAverageWithInt32;
@@ -164,6 +165,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
             __derivativeWithInt64AndUnit = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, long> selector, WindowTimeUnit unit, SetWindowFieldsWindow window) => partition.Derivative(selector, unit, window));
             __derivativeWithSingle = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, float> selector, SetWindowFieldsWindow window) => partition.Derivative(selector, window));
             __derivativeWithSingleAndUnit = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, float> selector, WindowTimeUnit unit, SetWindowFieldsWindow window) => partition.Derivative(selector, unit, window));;
+            __documentNumber = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition) => partition.DocumentNumber());
             __exponentialMovingAverageWithDecimal = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, decimal> selector, ExponentialMovingAverageWeighting weighting, SetWindowFieldsWindow window) => partition.ExponentialMovingAverage(selector, weighting, window));
             __exponentialMovingAverageWithDouble = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, double> selector, ExponentialMovingAverageWeighting weighting, SetWindowFieldsWindow window) => partition.ExponentialMovingAverage(selector, weighting, window));
             __exponentialMovingAverageWithInt32 = ReflectionInfo.Method((ISetWindowFieldsPartition<object> partition, Func<object, int> selector, ExponentialMovingAverageWeighting weighting, SetWindowFieldsWindow window) => partition.ExponentialMovingAverage(selector, weighting, window));
@@ -263,6 +265,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         public static MethodInfo DerivativeWithInt64AndUnit => __derivativeWithInt64AndUnit;
         public static MethodInfo DerivativeWithSingle => __derivativeWithSingle;
         public static MethodInfo DerivativeWithSingleAndUnit => __derivativeWithSingleAndUnit;
+        public static MethodInfo DocumentNumber => __documentNumber;
         public static MethodInfo ExponentialMovingAverageWithDecimal => __exponentialMovingAverageWithDecimal;
         public static MethodInfo ExponentialMovingAverageWithDouble => __exponentialMovingAverageWithDouble;
         public static MethodInfo ExponentialMovingAverageWithInt32 => __exponentialMovingAverageWithInt32;

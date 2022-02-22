@@ -26,6 +26,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
         CovarianceSamp,
         DenseRank,
         Derivative,
+        DocumentNumber,
         ExpMovingAvgPlaceholder, // temporary placeholder until we know what weighting is used
         ExpMovingAvgWithAlphaWeighting,
         ExpMovingAvgWithPositionalWeighting,
@@ -55,6 +56,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
                 AstSetWindowFieldsOperator.CovarianceSamp => "$covarianceSamp",
                 AstSetWindowFieldsOperator.DenseRank => "$denseRank",
                 AstSetWindowFieldsOperator.Derivative => "$derivative",
+                AstSetWindowFieldsOperator.DocumentNumber => "$documentNumber",
                 AstSetWindowFieldsOperator.ExpMovingAvgWithAlphaWeighting => "$expMovingAvg",
                 AstSetWindowFieldsOperator.ExpMovingAvgWithPositionalWeighting => "$expMovingAvg",
                 AstSetWindowFieldsOperator.First => "$first",

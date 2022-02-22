@@ -75,6 +75,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             SetWindowFieldsMethod.DerivativeWithInt64AndUnit,
             SetWindowFieldsMethod.DerivativeWithSingle,
             SetWindowFieldsMethod.DerivativeWithSingleAndUnit,
+            SetWindowFieldsMethod.DocumentNumber,
             SetWindowFieldsMethod.ExponentialMovingAverageWithDecimal,
             SetWindowFieldsMethod.ExponentialMovingAverageWithDouble,
             SetWindowFieldsMethod.ExponentialMovingAverageWithInt32,
@@ -266,6 +267,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 "CovarianceSample" => AstSetWindowFieldsOperator.CovarianceSamp,
                 "DenseRank" => AstSetWindowFieldsOperator.DenseRank,
                 "Derivative" => AstSetWindowFieldsOperator.Derivative,
+                "DocumentNumber" => AstSetWindowFieldsOperator.DocumentNumber,
                 "ExponentialMovingAverage" => AstSetWindowFieldsOperator.ExpMovingAvgPlaceholder, // will be replaced when weighting argument is processed
                 "First" => AstSetWindowFieldsOperator.First,
                 "Integral" => AstSetWindowFieldsOperator.Integral,

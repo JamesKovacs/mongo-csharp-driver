@@ -41,6 +41,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 case "DenseRank": return DenseRankMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "Derivative": return DerivativeMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "Distinct": return DistinctMethodToAggregationExpressionTranslator.Translate(context, expression);
+                case "DocumentNumber": return DocumentNumberMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "ElementAt": return ElementAtMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "Equals": return EqualsMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "Except": return ExceptMethodToAggregationExpressionTranslator.Translate(context, expression);

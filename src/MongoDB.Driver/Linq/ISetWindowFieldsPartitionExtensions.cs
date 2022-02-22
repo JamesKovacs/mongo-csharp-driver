@@ -608,6 +608,17 @@ namespace MongoDB.Driver.Linq
         }
 
         /// <summary>
+        /// Returns the position of a document (known as the document number) in the $setWindowFields stage partition.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <returns>The document position.</returns>
+        public static decimal DocumentNumber<TInput>(this ISetWindowFieldsPartition<TInput> partition)
+        {
+            throw new InvalidOperationException("This method is only intended to be used with SetWindowFields.");
+        }
+
+        /// <summary>
         /// Returns the exponential moving average value of the numeric values. Ignores non-numeric values.
         /// </summary>
         /// <typeparam name="TInput">The type of the input documents in the partition.</typeparam>
