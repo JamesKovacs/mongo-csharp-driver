@@ -33,7 +33,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators
             var nameGenerator = new NameGenerator();
             if (serializer is ISetWindowFieldsPartitionSerializer partitionSerializer)
             {
-                serializer = partitionSerializer.InputSerializer;
+                serializer = partitionSerializer.InputSerializer; // this is suspect
             }
             var knownSerializersRegistry = KnownSerializerFinder.FindKnownSerializers(expression, (IBsonDocumentSerializer)serializer);
             return new TranslationContext(symbolTable, nameGenerator, knownSerializersRegistry, data);
@@ -103,12 +103,6 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators
         public override string ToString()
         {
             return $"{{ SymbolTable : {_symbolTable} }}";
-        }
-
-        public TranslationContext WithData(string name, object value)
-        {
-            var data = _data.Add(name, value);
-            return new TranslationContext(_symbolTable, _nameGenerator, _knownKnownSerializersRegistry, data);
         }
 
         public TranslationContext WithSingleSymbol(Symbol newSymbol)

@@ -18,40 +18,61 @@ using MongoDB.Driver.Core.Misc;
 
 namespace MongoDB.Driver
 {
-#pragma warning disable CS1591
+    /// <summary>
+    /// Represents a boundary for a documents window in SetWindowFields.
+    /// </summary>
     public abstract class DocumentsWindowBoundary
     {
-        public abstract BsonValue Render();
+        internal abstract BsonValue Render();
     }
 
+    /// <summary>
+    /// Represents a keyword boundary for a document window in SetWindowFields (i.e. "unbounded" or "current").
+    /// </summary>
     public sealed class KeywordDocumentsWindowBoundary : DocumentsWindowBoundary
     {
         private readonly string _keyword;
 
-        public KeywordDocumentsWindowBoundary(string keyword)
+        internal KeywordDocumentsWindowBoundary(string keyword)
         {
             _keyword = Ensure.IsNotNullOrEmpty(keyword, nameof(keyword));
         }
 
+        /// <summary>
+        /// The keyword.
+        /// </summary>
         public string Keyword => _keyword;
 
-        public override BsonValue Render() => _keyword;
+        /// <inheritdoc/>
         public override string ToString() => $"\"{_keyword}\"";
+
+        internal override BsonValue Render() => _keyword;
     }
 
+    /// <summary>
+    /// Represents a position boundary for a document window in SetWindowFields.
+    /// </summary>
     public sealed class PositionDocumentsWindowBoundary : DocumentsWindowBoundary
     {
         private readonly int _position;
 
+        /// <summary>
+        /// Initializes a new instance of PositionDocumentsWindowBoundary.
+        /// </summary>
+        /// <param name="position">The position.</param>
         public PositionDocumentsWindowBoundary(int position)
         {
             _position = position;
         }
 
+        /// <summary>
+        /// The position.
+        /// </summary>
         public int Position => _position;
 
-        public override BsonValue Render() => _position;
+        /// <inheritdoc/>
         public override string ToString() => _position.ToString();
+
+        internal override BsonValue Render() => _position;
     }
-#pragma warning restore
 }

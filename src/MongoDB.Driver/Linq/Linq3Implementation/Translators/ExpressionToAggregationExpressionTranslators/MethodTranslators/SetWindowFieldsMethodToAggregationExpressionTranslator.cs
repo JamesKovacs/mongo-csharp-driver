@@ -28,7 +28,7 @@ using MongoDB.Driver.Linq.Linq3Implementation.Serializers;
 
 namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggregationExpressionTranslators.MethodTranslators
 {
-    internal static class SetWindowFieldsMethodMethodToAggregationExpressionTranslator
+    internal static class SetWindowFieldsMethodToAggregationExpressionTranslator
     {
         private static readonly MethodInfo[] __setWindowFieldsMethods =
         {
@@ -133,12 +133,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
 
         public static bool CanTranslate(MethodCallExpression expression)
         {
-            return CanTranslate(expression.Method);
-        }
-
-        public static bool CanTranslate(MethodInfo method)
-        {
-            return method.IsOneOf(__setWindowFieldsMethods);
+            return expression.Method.IsOneOf(__setWindowFieldsMethods);
         }
 
         public static AggregationExpression Translate(TranslationContext context, MethodCallExpression expression)
@@ -308,7 +303,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 var upperValueBoundary = upperBoundary as ValueRangeWindowBoundary;
                 IBsonSerializer lowerBoundaryValueSerializer = null;
                 IBsonSerializer upperBoundaryValueSerializer = null;
-                if (lowerValueBoundary != null || upperBoundary != null)
+                if (lowerValueBoundary != null || upperValueBoundary != null)
                 {
                     var sortBySerializer = GetSortBySerializer(sortBy, inputSerializer, serializerRegistry);
                     if (lowerValueBoundary != null)
@@ -338,7 +333,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
         {
             var sortByType = sortBy.GetType();
             var documentType = sortByType.GetGenericArguments().Single();
-            var methodInfoDefinition = typeof(SetWindowFieldsMethodMethodToAggregationExpressionTranslator).GetMethod(
+            var methodInfoDefinition = typeof(SetWindowFieldsMethodToAggregationExpressionTranslator).GetMethod(
                 nameof(GetSortBySerializerGeneric),
                 BindingFlags.NonPublic | BindingFlags.Static);
             var methodInfo = methodInfoDefinition.MakeGenericMethod(documentType);

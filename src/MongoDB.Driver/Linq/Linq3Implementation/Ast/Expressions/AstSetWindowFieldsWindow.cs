@@ -20,10 +20,10 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
 {
     internal class AstSetWindowFieldsWindow
     {
-        private readonly string _type;
         private readonly BsonValue _lowerBoundary;
-        private readonly BsonValue _upperBoundary;
+        private readonly string _type;
         private readonly string _unit;
+        private readonly BsonValue _upperBoundary;
 
         public AstSetWindowFieldsWindow(string type, BsonValue lowerBoundary, BsonValue upperBoundary, string unit)
         {
@@ -33,10 +33,10 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
             _unit = unit; // optional
         }
 
-        public string Type => _type;
         public BsonValue LowerBoundary => _lowerBoundary;
-        public BsonValue UpperBoundary => _upperBoundary;
+        public string Type => _type;
         public string Unit => _unit;
+        public BsonValue UpperBoundary => _upperBoundary;
 
         public BsonDocument Render()
         {

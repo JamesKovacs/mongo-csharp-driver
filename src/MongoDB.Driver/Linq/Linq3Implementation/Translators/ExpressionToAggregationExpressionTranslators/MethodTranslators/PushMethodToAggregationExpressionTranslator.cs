@@ -25,9 +25,9 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
         {
             var method = expression.Method;
 
-            if (SetWindowFieldsMethodMethodToAggregationExpressionTranslator.CanTranslate(method))
+            if (SetWindowFieldsMethodToAggregationExpressionTranslator.CanTranslate(expression))
             {
-                return SetWindowFieldsMethodMethodToAggregationExpressionTranslator.Translate(context, expression);
+                return SetWindowFieldsMethodToAggregationExpressionTranslator.Translate(context, expression);
             }
 
             throw new ExpressionNotSupportedException(expression);

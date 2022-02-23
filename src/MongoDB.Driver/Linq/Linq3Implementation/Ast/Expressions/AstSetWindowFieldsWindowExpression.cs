@@ -36,7 +36,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
         }
 
         public IReadOnlyList<AstExpression> Args => _args;
-        public override AstNodeType NodeType => AstNodeType.SetWindowFieldsExpression;
+        public override AstNodeType NodeType => AstNodeType.SetWindowFieldsWindowExpression;
         public AstSetWindowFieldsOperator Operator => _operator;
         public AstSetWindowFieldsWindow Window => _window;
 
@@ -47,14 +47,16 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
 
         public override BsonValue Render()
         {
-            var renderedArgs =
-                _operator == AstSetWindowFieldsOperator.Derivative ? RenderDerivativeOrIntegralArgs() :
-                _operator == AstSetWindowFieldsOperator.ExpMovingAvgWithAlphaWeighting ? RenderExpMovingAvgArgsWithAlphaWeightingArgs() :
-                _operator == AstSetWindowFieldsOperator.ExpMovingAvgWithPositionalWeighting ? RenderExpMovingAvgArgsWithPositionalWeightingArgs() :
-                _operator == AstSetWindowFieldsOperator.Integral ? RenderDerivativeOrIntegralArgs() :
-                _operator == AstSetWindowFieldsOperator.Shift ? RenderShiftArgs() :
-                _args.Count == 1 ? _args[0].Render() :
-                new BsonArray(_args.Select(a => a.Render()));
+            var renderedArgs = _operator switch
+            {
+                AstSetWindowFieldsOperator.Derivative => RenderDerivativeOrIntegralArgs(),
+                AstSetWindowFieldsOperator.ExpMovingAvgWithAlphaWeighting => RenderExpMovingAvgArgsWithAlphaWeightingArgs(),
+                AstSetWindowFieldsOperator.ExpMovingAvgWithPositionalWeighting => RenderExpMovingAvgArgsWithPositionalWeightingArgs(),
+                AstSetWindowFieldsOperator.Integral => RenderDerivativeOrIntegralArgs(),
+                AstSetWindowFieldsOperator.Shift => RenderShiftArgs(),
+                _ when _args.Count == 1 => _args[0].Render(),
+                _ => new BsonArray(_args.Select(a => a.Render()))
+            };
 
             return new BsonDocument
             {

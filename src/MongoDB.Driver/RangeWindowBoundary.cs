@@ -24,45 +24,72 @@ using MongoDB.Driver.Linq.Linq3Implementation.Misc;
 
 namespace MongoDB.Driver
 {
-#pragma warning disable CS1591
+    /// <summary>
+    /// Represents a boundary for a range window in SetWindowFields.
+    /// </summary>
     public abstract class RangeWindowBoundary
     {
-        public abstract BsonValue Render(IBsonSerializer valueSerializer);
+        internal abstract BsonValue Render(IBsonSerializer valueSerializer);
     }
 
+    /// <summary>
+    /// Represents a keyword boundary for a range window in SetWindowFields (i.e. "unbounded" or "current").
+    /// </summary>
     public sealed class KeywordRangeWindowBoundary : RangeWindowBoundary
     {
         private readonly string _keyword;
 
-        public KeywordRangeWindowBoundary(string keyword)
+        internal KeywordRangeWindowBoundary(string keyword)
         {
             _keyword = Ensure.IsNotNullOrEmpty(keyword, nameof(keyword));
         }
 
+        /// <summary>
+        /// The keyword.
+        /// </summary>
         public string Keyword => _keyword;
 
-        public override BsonValue Render(IBsonSerializer valueSerializer) => _keyword;
+        /// <inheritdoc/>
         public override string ToString() => $"\"{_keyword}\"";
+
+        internal override BsonValue Render(IBsonSerializer valueSerializer) => _keyword;
     }
 
+    /// <summary>
+    /// Represents a value boundary for a document window in SetWindowFields.
+    /// </summary>
     public abstract class ValueRangeWindowBoundary : RangeWindowBoundary
     {
-        public abstract Type ValueType { get; }
+        internal abstract Type ValueType { get; }
     }
 
+    /// <summary>
+    /// Represents a value boundary for a range window in SetWindowFields.
+    /// </summary>
     public sealed class ValueRangeWindowBoundary<TValue> : ValueRangeWindowBoundary
     {
         private readonly TValue _value;
 
+        /// <summary>
+        /// Initializes a new instance of ValueRangeWindowBoundary.
+        /// </summary>
+        /// <param name="value">The value.</param>
         public ValueRangeWindowBoundary(TValue value)
         {
             _value = value;
         }
 
+        /// <summary>
+        /// The value.
+        /// </summary>
         public TValue Value => _value;
-        public override Type ValueType => typeof(TValue);
 
-        public override BsonValue Render(IBsonSerializer valueSerializer)
+        internal override Type ValueType => typeof(TValue);
+
+        /// <inheritdoc/>
+        public override string ToString() => _value.ToString();
+
+        internal override BsonValue Render(IBsonSerializer valueSerializer)
         {
             if (valueSerializer == null)
             {
@@ -70,10 +97,11 @@ namespace MongoDB.Driver
             }
             return SerializationHelper.SerializeValue(valueSerializer, _value);
         }
-
-        public override string ToString() => _value.ToString();
     }
 
+    /// <summary>
+    /// Represents a time boundary for a range window in SetWindowFields.
+    /// </summary>
     public sealed class TimeRangeWindowBoundary : RangeWindowBoundary
     {
         private readonly string _unit;
@@ -85,11 +113,20 @@ namespace MongoDB.Driver
             _unit = Ensure.IsNotNullOrEmpty(unit, nameof(unit));
         }
 
+        /// <summary>
+        /// The unit.
+        /// </summary>
         public string Unit => _unit;
+
+        /// <summary>
+        /// The value.
+        /// </summary>
         public int Value => _value;
 
-        public override BsonValue Render(IBsonSerializer valueSerializer) => _value;
+        /// <inheritdoc/>
         public override string ToString() => $"{_value} ({_unit})";
+
+        internal override BsonValue Render(IBsonSerializer valueSerializer) => _value;
     }
 
     internal static class ValueRangeWindowBoundaryConvertingValueSerializerFactory
@@ -161,5 +198,4 @@ namespace MongoDB.Driver
             return (TSortBy)Convert.ChangeType(value, typeof(TSortBy));
         }
     }
-#pragma warning restore
 }

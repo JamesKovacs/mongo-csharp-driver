@@ -58,9 +58,9 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 }
             }
 
-            if (SetWindowFieldsMethodMethodToAggregationExpressionTranslator.CanTranslate(expression))
+            if (SetWindowFieldsMethodToAggregationExpressionTranslator.CanTranslate(expression))
             {
-                return SetWindowFieldsMethodMethodToAggregationExpressionTranslator.Translate(context, expression);
+                return SetWindowFieldsMethodToAggregationExpressionTranslator.Translate(context, expression);
             }
 
             throw new ExpressionNotSupportedException(expression);
