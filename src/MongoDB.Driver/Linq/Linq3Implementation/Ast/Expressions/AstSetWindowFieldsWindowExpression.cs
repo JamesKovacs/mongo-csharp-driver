@@ -107,7 +107,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
             return new BsonDocument
             {
                 { "input", input },
-                { "n", n }
+                { "N", n }
             };
         }
 
