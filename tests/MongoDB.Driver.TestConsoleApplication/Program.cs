@@ -1,44 +1,53 @@
-/* Copyright 2010-present MongoDB Inc.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
-
 using System;
-using System.IO;
-using MongoDB.Driver.Core.Configuration;
-using MongoDB.Driver.Core.Events.Diagnostics;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 
-namespace MongoDB.Driver.TestConsoleApplication
-{
-    class Program
+var settings = new MongoClientSettings { LinqProvider = LinqProvider.V3 };
+var client = new MongoClient(settings);
+var db = client.GetDatabase("test");
+var coll = db.GetCollection<Book>("books");
+
+var query = coll.AsQueryable()
+    .Select(x => new BookDto
     {
-        static void Main(string[] args)
-        {
-            //FilterMeasuring.TestAsync().GetAwaiter().GetResult();
-            int numConcurrentWorkers = 50;
-            //new CoreApi().Run(numConcurrentWorkers, ConfigureCluster);
-            new CoreApiSync().Run(numConcurrentWorkers, ConfigureCluster);
+        Id = x.Id,
+        PageCount = x.PageCount,
+        Author = x.Author == null
+            ? null
+            : new AuthorDto
+            {
+                Id = x.Author.Id,
+                Name = x.Author.Name
+            }
+    });
+Console.WriteLine(query);
 
-            new Api().Run(numConcurrentWorkers, ConfigureCluster);
+class BookDto
+{
+    public ObjectId Id { get; set; }
+    public int PageCount { get; set; }
+    public AuthorDto Author { get; set; }
+}
 
-            //new LegacyApi().Run(numConcurrentWorkers, ConfigureCluster);
-        }
+class AuthorDto
+{
+    public ObjectId Id { get; set; }
+    public string Name { get; set; }
+}
 
-        private static void ConfigureCluster(ClusterBuilder cb)
-        {
-#if NET472
-            cb.UsePerformanceCounters("test", true);
-#endif
-        }
-    }
+class Author : IEquatable<Author>
+{
+    public ObjectId Id { get; set; }
+    public string Name { get; set; }
+    public bool Equals(Author? other) => Id == other.Id && Name == other.Name;
+    public static bool operator ==(Author author1, Author author2) => author1.Equals(author2);
+    public static bool operator !=(Author author1, Author author2) => !author1.Equals(author2);
+}
+
+class Book
+{
+    public ObjectId Id { get; set; }
+    public int PageCount { get; set; }
+    public Author Author { get; set; }
 }
