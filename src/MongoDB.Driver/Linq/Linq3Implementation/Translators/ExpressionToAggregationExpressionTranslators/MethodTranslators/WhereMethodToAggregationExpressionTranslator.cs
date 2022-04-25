@@ -28,7 +28,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             var method = expression.Method;
             var arguments = expression.Arguments;
 
-            if (method.Is(EnumerableMethod.Where))
+            if (method.IsOneOf(EnumerableMethod.Where, MongoEnumerableMethod.WhereWithLimit))
             {
                 var sourceExpression = arguments[0];
                 var sourceTranslation = ExpressionToAggregationExpressionTranslator.TranslateEnumerable(context, sourceExpression);
@@ -40,10 +40,17 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 var predicateTranslation = ExpressionToAggregationExpressionTranslator.Translate(predicateContext, predicateLambda.Body);
                 var itemSerializer = ArraySerializerHelper.GetItemSerializer(sourceTranslation.Serializer);
                 var enumerableSerializer = IEnumerableSerializer.Create(itemSerializer);
+                AggregationExpression limitTranslation = null;
+                if (method.Is(MongoEnumerableMethod.WhereWithLimit))
+                {
+                    var limitExpression = arguments[2];
+                    limitTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, limitExpression);
+                }
                 var ast = AstExpression.Filter(
                     sourceTranslation.Ast,
                     predicateTranslation.Ast,
-                    predicateParameter.Name);
+                    predicateParameter.Name,
+                    limitTranslation?.Ast);
                 return new AggregationExpression(expression, ast, enumerableSerializer);
             }
 

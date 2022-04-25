@@ -72,7 +72,6 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 case "ToList": return ToListMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "ToString": return ToStringMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "Truncate": return TruncateMethodToAggregationExpressionTranslator.Translate(context, expression);
-                case "Where": return WhereMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "Union": return UnionMethodToAggregationExpressionTranslator.Translate(context, expression);
                 case "Zip": return ZipMethodToAggregationExpressionTranslator.Translate(context, expression);
 
@@ -133,6 +132,10 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 case "TrimEnd":
                 case "TrimStart":
                     return TrimMethodToAggregationExpressionTranslator.Translate(context, expression);
+
+                case "Where":
+                case "WhereWithLimit":
+                    return WhereMethodToAggregationExpressionTranslator.Translate(context, expression);
             }
 
             throw new ExpressionNotSupportedException(expression);
