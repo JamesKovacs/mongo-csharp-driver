@@ -26,11 +26,59 @@ namespace MongoDB.Driver.Tests.Jira
     public class CSharp1950Tests : Linq3IntegrationTest
     {
         [Fact]
-        public void StringIn_with_string_field_name_should_work()
+        public void StringIn_with_field_name_and_no_arguments_should_work()
         {
             var collection = CreateCollection();
             var builder = Builders<C>.Filter;
-            var filter = builder.StringIn("S", new StringOrRegularExpression[] { new BsonRegularExpression("^a"), "b3" });
+            var filter = builder.StringIn("S");
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"S\" : { \"$in\" : [] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.S).Should().BeEmpty();
+        }
+
+        [Fact]
+        public void StringIn_with_field_name_and_one_regex_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.StringIn("S", new BsonRegularExpression("^a"));
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"S\" : { \"$in\" : [/^a/] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.S).Should().Equal("a1", "a2");
+        }
+
+        [Fact]
+        public void StringIn_with_field_name_and_one_string_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.StringIn("S", "b3");
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"S\" : { \"$in\" : [\"b3\"] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.S).Should().Equal("b3");
+        }
+
+        [Fact]
+        public void StringIn_with_field_name_and_one_regex_and_one_string_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.StringIn("S", new BsonRegularExpression("^a"), "b3");
 
             var registry = BsonSerializer.SerializerRegistry;
             var serializer = registry.GetSerializer<C>();
@@ -42,11 +90,91 @@ namespace MongoDB.Driver.Tests.Jira
         }
 
         [Fact]
-        public void StringIn_with_string_field_expression_should_work()
+        public void StringIn_with_field_name_and_two_regexes_should_work()
         {
             var collection = CreateCollection();
             var builder = Builders<C>.Filter;
-            var filter = builder.StringIn(x => x.S, new StringOrRegularExpression[] { new BsonRegularExpression("^a"), "b3" });
+            var filter = builder.StringIn("S", new BsonRegularExpression("^a"), new BsonRegularExpression("^b3$"));
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"S\" : { \"$in\" : [/^a/, /^b3$/] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.S).Should().Equal("a1", "a2", "b3");
+        }
+
+        [Fact]
+        public void StringIn_with_field_name_and_two_strings_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.StringIn("S", "a1", "b3");
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"S\" : { \"$in\" : [\"a1\", \"b3\"] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.S).Should().Equal("a1", "b3");
+        }
+
+        [Fact]
+        public void StringIn_with_field_expression_and_no_arguments_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.StringIn(x => x.S);
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"S\" : { \"$in\" : [] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.S).Should().BeEmpty();
+        }
+
+        [Fact]
+        public void StringIn_with_field_expression_and_one_regex_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.StringIn(x => x.S, new BsonRegularExpression("^a"));
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"S\" : { \"$in\" : [/^a/] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.S).Should().Equal("a1", "a2");
+        }
+
+        [Fact]
+        public void StringIn_with_field_expression_and_one_string_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.StringIn(x => x.S, "b3");
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"S\" : { \"$in\" : [\"b3\"] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.S).Should().Equal("b3");
+        }
+
+        [Fact]
+        public void StringIn_with_field_expression_and_one_regex_and_one_string_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.StringIn(x => x.S, new BsonRegularExpression("^a"), "b3");
 
             var registry = BsonSerializer.SerializerRegistry;
             var serializer = registry.GetSerializer<C>();
@@ -58,59 +186,91 @@ namespace MongoDB.Driver.Tests.Jira
         }
 
         [Fact]
-        public void StringIn_with_string_array_field_name_should_work()
+        public void StringIn_with_field_expression_and_two_regexes_should_work()
         {
             var collection = CreateCollection();
             var builder = Builders<C>.Filter;
-            var filter = builder.StringIn("SA", new StringOrRegularExpression[] { new BsonRegularExpression("^a"), "b3" });
+            var filter = builder.StringIn(x => x.S, new BsonRegularExpression("^a"), new BsonRegularExpression("^b3$"));
 
             var registry = BsonSerializer.SerializerRegistry;
             var serializer = registry.GetSerializer<C>();
             var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
-            rendered.Should().Be("{ \"SA\" : { \"$in\" : [/^a/, \"b3\"] } }");
+            rendered.Should().Be("{ \"S\" : { \"$in\" : [/^a/, /^b3$/] } }");
 
             var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
             results.Select(x => x.S).Should().Equal("a1", "a2", "b3");
         }
 
         [Fact]
-        public void StringArrayIn_with_string_array_field_name_should_work()
+        public void StringIn_with_field_expression_and_two_strings_should_work()
         {
             var collection = CreateCollection();
             var builder = Builders<C>.Filter;
-            var filter = builder.AnyStringIn("SA", new StringOrRegularExpression[] { new BsonRegularExpression("^a"), "b3" });
+            var filter = builder.StringIn(x => x.S, "a1", "b3");
 
             var registry = BsonSerializer.SerializerRegistry;
             var serializer = registry.GetSerializer<C>();
             var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
-            rendered.Should().Be("{ \"SA\" : { \"$in\" : [/^a/, \"b3\"] } }");
+            rendered.Should().Be("{ \"S\" : { \"$in\" : [\"a1\", \"b3\"] } }");
 
             var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
-            results.Select(x => x.S).Should().Equal("a1", "a2", "b3");
+            results.Select(x => x.S).Should().Equal("a1", "b3");
         }
 
         [Fact]
-        public void StringArrayIn_with_string_array_field_expression_should_work()
+        public void StringNin_with_field_name_and_no_arguments_should_work()
         {
             var collection = CreateCollection();
             var builder = Builders<C>.Filter;
-            var filter = builder.AnyStringIn(x => x.SA, new StringOrRegularExpression[] { new BsonRegularExpression("^a"), "b3" });
+            var filter = builder.StringNin("S");
 
             var registry = BsonSerializer.SerializerRegistry;
             var serializer = registry.GetSerializer<C>();
             var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
-            rendered.Should().Be("{ \"SA\" : { \"$in\" : [/^a/, \"b3\"] } }");
+            rendered.Should().Be("{ \"S\" : { \"$nin\" : [] } }");
 
             var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
-            results.Select(x => x.S).Should().Equal("a1", "a2", "b3");
+            results.Select(x => x.S).Should().Equal("a1", "a2", "b3", "b4");
         }
 
         [Fact]
-        public void StringNin_with_string_field_name_should_work()
+        public void StringNin_with_field_name_and_one_regex_should_work()
         {
             var collection = CreateCollection();
             var builder = Builders<C>.Filter;
-            var filter = builder.StringNin("S", new StringOrRegularExpression[] { new BsonRegularExpression("^a"), "b3" });
+            var filter = builder.StringNin("S", new BsonRegularExpression("^a"));
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"S\" : { \"$nin\" : [/^a/] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.S).Should().Equal("b3", "b4");
+        }
+
+        [Fact]
+        public void StringNin_with_field_name_and_one_string_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.StringNin("S", "b3");
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"S\" : { \"$nin\" : [\"b3\"] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.S).Should().Equal("a1", "a2", "b4");
+        }
+
+        [Fact]
+        public void StringNin_with_field_name_and_one_regex_and_one_string_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.StringNin("S", new BsonRegularExpression("^a"), "b3");
 
             var registry = BsonSerializer.SerializerRegistry;
             var serializer = registry.GetSerializer<C>();
@@ -122,11 +282,91 @@ namespace MongoDB.Driver.Tests.Jira
         }
 
         [Fact]
-        public void StringNin_with_string_field_expression_should_work()
+        public void StringNin_with_field_name_and_two_regexes_should_work()
         {
             var collection = CreateCollection();
             var builder = Builders<C>.Filter;
-            var filter = builder.StringNin(x => x.S, new StringOrRegularExpression[] { new BsonRegularExpression("^a"), "b3" });
+            var filter = builder.StringNin("S", new BsonRegularExpression("^a"), new BsonRegularExpression("^b3$"));
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"S\" : { \"$nin\" : [/^a/, /^b3$/] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.S).Should().Equal("b4");
+        }
+
+        [Fact]
+        public void StringNin_with_field_name_and_two_strings_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.StringNin("S", "a1", "b3");
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"S\" : { \"$nin\" : [\"a1\", \"b3\"] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.S).Should().Equal("a2", "b4");
+        }
+
+        [Fact]
+        public void StringNin_with_field_expression_and_no_arguments_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.StringNin(x => x.S);
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"S\" : { \"$nin\" : [] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.S).Should().Equal("a1", "a2", "b3", "b4");
+        }
+
+        [Fact]
+        public void StringNin_with_field_expression_and_one_regex_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.StringNin(x => x.S, new BsonRegularExpression("^a"));
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"S\" : { \"$nin\" : [/^a/] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.S).Should().Equal("b3", "b4");
+        }
+
+        [Fact]
+        public void StringNin_with_field_expression_and_one_string_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.StringNin(x => x.S, "b3");
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"S\" : { \"$nin\" : [\"b3\"] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.S).Should().Equal("a1", "a2", "b4");
+        }
+
+        [Fact]
+        public void StringNin_with_field_expression_and_one_regex_and_one_string_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.StringNin(x => x.S, new BsonRegularExpression("^a"), "b3");
 
             var registry = BsonSerializer.SerializerRegistry;
             var serializer = registry.GetSerializer<C>();
@@ -138,43 +378,283 @@ namespace MongoDB.Driver.Tests.Jira
         }
 
         [Fact]
-        public void StringNin_with_string_array_field_name_should_work()
+        public void StringNin_with_field_expression_and_two_regexes_should_work()
         {
             var collection = CreateCollection();
             var builder = Builders<C>.Filter;
-            var filter = builder.StringNin("SA", new StringOrRegularExpression[] { new BsonRegularExpression("^a"), "b3" });
+            var filter = builder.StringNin(x => x.S, new BsonRegularExpression("^a"), new BsonRegularExpression("^b3$"));
 
             var registry = BsonSerializer.SerializerRegistry;
             var serializer = registry.GetSerializer<C>();
             var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
-            rendered.Should().Be("{ \"SA\" : { \"$nin\" : [/^a/, \"b3\"] } }");
+            rendered.Should().Be("{ \"S\" : { \"$nin\" : [/^a/, /^b3$/] } }");
 
             var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
             results.Select(x => x.S).Should().Equal("b4");
         }
 
         [Fact]
-        public void StringArrayNin_with_string_array_field_name_should_work()
+        public void StringNin_with_field_expression_and_two_strings_should_work()
         {
             var collection = CreateCollection();
             var builder = Builders<C>.Filter;
-            var filter = builder.AnyStringNin("SA", new StringOrRegularExpression[] { new BsonRegularExpression("^a"), "b3" });
+            var filter = builder.StringNin(x => x.S, "a1", "b3");
 
             var registry = BsonSerializer.SerializerRegistry;
             var serializer = registry.GetSerializer<C>();
             var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
-            rendered.Should().Be("{ \"SA\" : { \"$nin\" : [/^a/, \"b3\"] } }");
+            rendered.Should().Be("{ \"S\" : { \"$nin\" : [\"a1\", \"b3\"] } }");
 
             var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
-            results.Select(x => x.S).Should().Equal("b4");
+            results.Select(x => x.S).Should().Equal("a2", "b4");
         }
 
         [Fact]
-        public void StringArrayNin_with_string_array_field_expression_should_work()
+        public void AnyStringIn_with_field_name_and_no_arguments_should_work()
         {
             var collection = CreateCollection();
             var builder = Builders<C>.Filter;
-            var filter = builder.AnyStringNin(x => x.SA, new StringOrRegularExpression[] { new BsonRegularExpression("^a"), "b3" });
+            var filter = builder.AnyStringIn("SA");
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"SA\" : { \"$in\" : [] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.SA.Single()).Should().BeEmpty();
+        }
+
+        [Fact]
+        public void AnyStringIn_with_field_name_and_one_regex_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.AnyStringIn("SA", new BsonRegularExpression("^a"));
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"SA\" : { \"$in\" : [/^a/] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.SA.Single()).Should().Equal("a1", "a2");
+        }
+
+        [Fact]
+        public void AnyStringIn_with_field_name_and_one_string_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.AnyStringIn("SA", "b3");
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"SA\" : { \"$in\" : [\"b3\"] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.SA.Single()).Should().Equal("b3");
+        }
+
+        [Fact]
+        public void AnyStringIn_with_field_name_and_one_regex_and_one_string_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.AnyStringIn("SA", new BsonRegularExpression("^a"), "b3");
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"SA\" : { \"$in\" : [/^a/, \"b3\"] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.SA.Single()).Should().Equal("a1", "a2", "b3");
+        }
+
+        [Fact]
+        public void AnyStringIn_with_field_name_and_two_regexes_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.AnyStringIn("SA", new BsonRegularExpression("^a"), new BsonRegularExpression("^b3$"));
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"SA\" : { \"$in\" : [/^a/, /^b3$/] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.SA.Single()).Should().Equal("a1", "a2", "b3");
+        }
+
+        [Fact]
+        public void AnyStringIn_with_field_name_and_two_strings_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.AnyStringIn("SA", "a1", "b3");
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"SA\" : { \"$in\" : [\"a1\", \"b3\"] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.SA.Single()).Should().Equal("a1", "b3");
+        }
+
+        [Fact]
+        public void AnyStringIn_with_field_expression_and_no_arguments_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.AnyStringIn(x => x.SA);
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"SA\" : { \"$in\" : [] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.SA.Single()).Should().BeEmpty();
+        }
+
+        [Fact]
+        public void AnyStringIn_with_field_expression_and_one_regex_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.AnyStringIn(x => x.SA, new BsonRegularExpression("^a"));
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"SA\" : { \"$in\" : [/^a/] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.SA.Single()).Should().Equal("a1", "a2");
+        }
+
+        [Fact]
+        public void AnyStringIn_with_field_expression_and_one_string_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.AnyStringIn(x => x.SA, "b3");
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"SA\" : { \"$in\" : [\"b3\"] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.SA.Single()).Should().Equal("b3");
+        }
+
+        [Fact]
+        public void AnyStringIn_with_field_expression_and_one_regex_and_one_string_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.AnyStringIn(x => x.SA, new BsonRegularExpression("^a"), "b3");
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"SA\" : { \"$in\" : [/^a/, \"b3\"] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.SA.Single()).Should().Equal("a1", "a2", "b3");
+        }
+
+        [Fact]
+        public void AnyStringIn_with_field_expression_and_two_regexes_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.AnyStringIn(x => x.SA, new BsonRegularExpression("^a"), new BsonRegularExpression("^b3$"));
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"SA\" : { \"$in\" : [/^a/, /^b3$/] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.SA.Single()).Should().Equal("a1", "a2", "b3");
+        }
+
+        [Fact]
+        public void AnyStringIn_with_field_expression_and_two_strings_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.AnyStringIn(x => x.SA, "a1", "b3");
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"SA\" : { \"$in\" : [\"a1\", \"b3\"] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.SA.Single()).Should().Equal("a1", "b3");
+        }
+
+        [Fact]
+        public void AnyStringNin_with_field_name_and_no_arguments_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.AnyStringNin("SA");
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"SA\" : { \"$nin\" : [] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.SA.Single()).Should().Equal("a1", "a2", "b3", "b4");
+        }
+
+        [Fact]
+        public void AnyStringNin_with_field_name_and_one_regex_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.AnyStringNin("SA", new BsonRegularExpression("^a"));
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"SA\" : { \"$nin\" : [/^a/] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.SA.Single()).Should().Equal("b3", "b4");
+        }
+
+        [Fact]
+        public void AnyStringNin_with_field_name_and_one_string_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.AnyStringNin("SA", "b3");
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"SA\" : { \"$nin\" : [\"b3\"] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.SA.Single()).Should().Equal("a1", "a2", "b4");
+        }
+
+        [Fact]
+        public void AnyStringNin_with_field_name_and_one_regex_and_one_string_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.AnyStringNin("SA", new BsonRegularExpression("^a"), "b3");
 
             var registry = BsonSerializer.SerializerRegistry;
             var serializer = registry.GetSerializer<C>();
@@ -182,7 +662,135 @@ namespace MongoDB.Driver.Tests.Jira
             rendered.Should().Be("{ \"SA\" : { \"$nin\" : [/^a/, \"b3\"] } }");
 
             var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
-            results.Select(x => x.S).Should().Equal("b4");
+            results.Select(x => x.SA.Single()).Should().Equal("b4");
+        }
+
+        [Fact]
+        public void AnyStringNin_with_field_name_and_two_regexes_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.AnyStringNin("SA", new BsonRegularExpression("^a"), new BsonRegularExpression("^b3$"));
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"SA\" : { \"$nin\" : [/^a/, /^b3$/] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.SA.Single()).Should().Equal("b4");
+        }
+
+        [Fact]
+        public void AnyStringNin_with_field_name_and_two_strings_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.AnyStringNin("SA", "a1", "b3");
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"SA\" : { \"$nin\" : [\"a1\", \"b3\"] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.SA.Single()).Should().Equal("a2", "b4");
+        }
+
+        [Fact]
+        public void AnyStringNin_with_field_expression_and_no_arguments_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.AnyStringNin(x => x.SA);
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"SA\" : { \"$nin\" : [] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.SA.Single()).Should().Equal("a1", "a2", "b3", "b4");
+        }
+
+        [Fact]
+        public void AnyStringNin_with_field_expression_and_one_regex_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.AnyStringNin(x => x.SA, new BsonRegularExpression("^a"));
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"SA\" : { \"$nin\" : [/^a/] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.SA.Single()).Should().Equal("b3", "b4");
+        }
+
+        [Fact]
+        public void AnyStringNin_with_field_expression_and_one_string_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.AnyStringNin(x => x.SA, "b3");
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"SA\" : { \"$nin\" : [\"b3\"] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.SA.Single()).Should().Equal("a1", "a2", "b4");
+        }
+
+        [Fact]
+        public void AnyStringNin_with_field_expression_and_one_regex_and_one_string_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.AnyStringNin(x => x.SA, new BsonRegularExpression("^a"), "b3");
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"SA\" : { \"$nin\" : [/^a/, \"b3\"] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.SA.Single()).Should().Equal("b4");
+        }
+
+        [Fact]
+        public void AnyStringNin_with_field_expression_and_two_regexes_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.AnyStringNin(x => x.SA, new BsonRegularExpression("^a"), new BsonRegularExpression("^b3$"));
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"SA\" : { \"$nin\" : [/^a/, /^b3$/] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.SA.Single()).Should().Equal("b4");
+        }
+
+        [Fact]
+        public void AnyStringNin_with_field_expression_and_two_strings_should_work()
+        {
+            var collection = CreateCollection();
+            var builder = Builders<C>.Filter;
+            var filter = builder.AnyStringNin(x => x.SA, "a1", "b3");
+
+            var registry = BsonSerializer.SerializerRegistry;
+            var serializer = registry.GetSerializer<C>();
+            var rendered = filter.Render(serializer, registry, LinqProvider.V3).ToJson();
+            rendered.Should().Be("{ \"SA\" : { \"$nin\" : [\"a1\", \"b3\"] } }");
+
+            var results = collection.FindSync(filter).ToList().OrderBy(x => x.Id).ToList();
+            results.Select(x => x.SA.Single()).Should().Equal("a2", "b4");
         }
 
         private IMongoCollection<C> CreateCollection()

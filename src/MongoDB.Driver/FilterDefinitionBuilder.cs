@@ -309,9 +309,31 @@ namespace MongoDB.Driver
         /// <param name="field">The field.</param>
         /// <param name="values">The values.</param>
         /// <returns>An in filter.</returns>
+        public FilterDefinition<TDocument> AnyStringIn(FieldDefinition<TDocument, IEnumerable<string>> field, params StringOrRegularExpression[] values)
+        {
+            return AnyStringIn(field, (IEnumerable<StringOrRegularExpression>)values);
+        }
+
+        /// <summary>
+        /// Creates an in filter for a string array field.
+        /// </summary>
+        /// <param name="field">The field.</param>
+        /// <param name="values">The values.</param>
+        /// <returns>An in filter.</returns>
         public FilterDefinition<TDocument> AnyStringIn(Expression<Func<TDocument, IEnumerable<string>>> field, IEnumerable<StringOrRegularExpression> values)
         {
             return new StringArrayFieldInOrNinFilterDefinition<TDocument>(new ExpressionFieldDefinition<TDocument, IEnumerable<string>>(field), "$in", values);
+        }
+
+        /// <summary>
+        /// Creates an in filter for a string array field.
+        /// </summary>
+        /// <param name="field">The field.</param>
+        /// <param name="values">The values.</param>
+        /// <returns>An in filter.</returns>
+        public FilterDefinition<TDocument> AnyStringIn(Expression<Func<TDocument, IEnumerable<string>>> field, params StringOrRegularExpression[] values)
+        {
+            return AnyStringIn(field, (IEnumerable<StringOrRegularExpression>)values);
         }
 
         /// <summary>
@@ -331,9 +353,31 @@ namespace MongoDB.Driver
         /// <param name="field">The field.</param>
         /// <param name="values">The values.</param>
         /// <returns>A not in filter.</returns>
+        public FilterDefinition<TDocument> AnyStringNin(FieldDefinition<TDocument, IEnumerable<string>> field, params StringOrRegularExpression[] values)
+        {
+            return AnyStringNin(field, (IEnumerable<StringOrRegularExpression>)values);
+        }
+
+        /// <summary>
+        /// Creates a not in filter for a string array field.
+        /// </summary>
+        /// <param name="field">The field.</param>
+        /// <param name="values">The values.</param>
+        /// <returns>A not in filter.</returns>
         public FilterDefinition<TDocument> AnyStringNin(Expression<Func<TDocument, IEnumerable<string>>> field, IEnumerable<StringOrRegularExpression> values)
         {
             return new StringArrayFieldInOrNinFilterDefinition<TDocument>(new ExpressionFieldDefinition<TDocument, IEnumerable<string>>(field), "$nin", values);
+        }
+
+        /// <summary>
+        /// Creates a not in filter for a string array field.
+        /// </summary>
+        /// <param name="field">The field.</param>
+        /// <param name="values">The values.</param>
+        /// <returns>A not in filter.</returns>
+        public FilterDefinition<TDocument> AnyStringNin(Expression<Func<TDocument, IEnumerable<string>>> field, params StringOrRegularExpression[] values)
+        {
+            return AnyStringNin(field, (IEnumerable<StringOrRegularExpression>)values);
         }
 
         /// <summary>
@@ -1470,9 +1514,31 @@ namespace MongoDB.Driver
         /// <param name="field">The field.</param>
         /// <param name="values">The values.</param>
         /// <returns>An in filter.</returns>
+        public FilterDefinition<TDocument> StringIn(FieldDefinition<TDocument, string> field, params StringOrRegularExpression[] values)
+        {
+            return StringIn(field, (IEnumerable<StringOrRegularExpression>)values);
+        }
+
+        /// <summary>
+        /// Creates an in filter for a string field.
+        /// </summary>
+        /// <param name="field">The field.</param>
+        /// <param name="values">The values.</param>
+        /// <returns>An in filter.</returns>
         public FilterDefinition<TDocument> StringIn(Expression<Func<TDocument, string>> field, IEnumerable<StringOrRegularExpression> values)
         {
             return new StringFieldInOrNinFilterDefinition<TDocument>(new ExpressionFieldDefinition<TDocument, string>(field), "$in", values);
+        }
+
+        /// <summary>
+        /// Creates an in filter for a string field.
+        /// </summary>
+        /// <param name="field">The field.</param>
+        /// <param name="values">The values.</param>
+        /// <returns>An in filter.</returns>
+        public FilterDefinition<TDocument> StringIn(Expression<Func<TDocument, string>> field, params StringOrRegularExpression[] values)
+        {
+            return StringIn(field, (IEnumerable<StringOrRegularExpression>)values);
         }
 
         /// <summary>
@@ -1492,9 +1558,31 @@ namespace MongoDB.Driver
         /// <param name="field">The field.</param>
         /// <param name="values">The values.</param>
         /// <returns>A not in filter.</returns>
+        public FilterDefinition<TDocument> StringNin(FieldDefinition<TDocument, string> field, params StringOrRegularExpression[] values)
+        {
+            return StringNin(field, (IEnumerable<StringOrRegularExpression>)values);
+        }
+
+        /// <summary>
+        /// Creates a not in filter for a string field.
+        /// </summary>
+        /// <param name="field">The field.</param>
+        /// <param name="values">The values.</param>
+        /// <returns>A not in filter.</returns>
         public FilterDefinition<TDocument> StringNin(Expression<Func<TDocument, string>> field, IEnumerable<StringOrRegularExpression> values)
         {
             return new StringFieldInOrNinFilterDefinition<TDocument>(new ExpressionFieldDefinition<TDocument, string>(field), "$nin", values);
+        }
+
+        /// <summary>
+        /// Creates a not in filter for a string field.
+        /// </summary>
+        /// <param name="field">The field.</param>
+        /// <param name="values">The values.</param>
+        /// <returns>A not in filter.</returns>
+        public FilterDefinition<TDocument> StringNin(Expression<Func<TDocument, string>> field, params StringOrRegularExpression[] values)
+        {
+            return StringNin(field, (IEnumerable<StringOrRegularExpression>)values);
         }
 
         /// <summary>
