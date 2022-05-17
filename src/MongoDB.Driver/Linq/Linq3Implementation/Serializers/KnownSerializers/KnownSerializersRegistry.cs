@@ -42,6 +42,21 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
             _registry.Add(expression, knownSerializers);
         }
 
+        public void AddKnownSerializer(Expression expression, IBsonSerializer knownSerializer)
+        {
+            if (knownSerializer.ValueType != expression.Type)
+            {
+                throw new ArgumentException($"Serializer value type {knownSerializer.ValueType} does not match expresion type {expression.Type}.", nameof(knownSerializer));
+            }
+
+            if (!_registry.TryGetValue(expression, out var knownSerializers))
+            {
+                throw new InvalidOperationException("KnownSerializersNode does not exist yet for expression: {expression}.");
+            }
+
+            knownSerializers.AddKnownSerializer(expression.Type, knownSerializer);
+        }
+
         public IBsonSerializer GetSerializer(Expression expression, IBsonSerializer defaultSerializer = null)
         {
             var expressionType = expression is LambdaExpression lambdaExpression ? lambdaExpression.ReturnType : expression.Type;
