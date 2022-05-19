@@ -68,12 +68,12 @@ namespace MongoDB.Driver
         }
 
         /// <summary>
-        /// Gets the BsonRegularExpression value (throws InvalidCastException if value is not a BsonRegularExpression).
+        /// Gets the BsonRegularExpression value (returns null if value is not a BsonRegularExpression).
         /// </summary>
         public BsonRegularExpression RegularExpression => (BsonRegularExpression)_value;
 
         /// <summary>
-        /// Gets the string value (throws InvalidCastException if value is not a string).
+        /// Gets the string value (returns null if value is not a string).
         /// </summary>
         public string String => (string)_value;
 
