@@ -50,6 +50,8 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         private static readonly MethodInfo __averageNullableSingleWithSelector;
         private static readonly MethodInfo __averageSingle;
         private static readonly MethodInfo __averageSingleWithSelector;
+        private static readonly MethodInfo __bottom;
+        private static readonly MethodInfo __bottomN;
         private static readonly MethodInfo __cast;
         private static readonly MethodInfo __concat;
         private static readonly MethodInfo __contains;
@@ -199,6 +201,8 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
             __averageNullableSingleWithSelector = ReflectionInfo.Method((IEnumerable<object> source, Func<object, float?> selector) => source.Average(selector));
             __averageSingle = ReflectionInfo.Method((IEnumerable<float> source) => source.Average());
             __averageSingleWithSelector = ReflectionInfo.Method((IEnumerable<object> source, Func<object, float> selector) => source.Average(selector));
+            __bottom = ReflectionInfo.Method((IEnumerable<object> source, SortDefinition<object> sortBy, Func<object, object> output) => source.Bottom(sortBy, output));
+            __bottomN = ReflectionInfo.Method((IEnumerable<object> source, SortDefinition<object> sortBy, Func<object, object> output, int n) => source.BottomN(sortBy, output, n));
             __cast = ReflectionInfo.Method((IEnumerable source) => source.Cast<object>());
             __concat = ReflectionInfo.Method((IEnumerable<object> first, IEnumerable<object> second) => first.Concat(second));
             __contains = ReflectionInfo.Method((IEnumerable<object> source, object value) => source.Contains(value));
@@ -347,6 +351,8 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         public static MethodInfo AverageNullableSingleWithSelector => __averageNullableSingleWithSelector;
         public static MethodInfo AverageSingle => __averageSingle;
         public static MethodInfo AverageSingleWithSelector => __averageSingleWithSelector;
+        public static MethodInfo Bottom => __bottom;
+        public static MethodInfo BottomN => __bottomN;
         public static MethodInfo Cast => __cast;
         public static MethodInfo Concat => __concat;
         public static MethodInfo Contains => __contains;

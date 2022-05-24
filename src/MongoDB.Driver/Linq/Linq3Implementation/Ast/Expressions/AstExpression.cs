@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Misc;
+using MongoDB.Driver.Linq.Linq3Implementation.Ast.Stages;
 
 namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
 {
@@ -61,14 +62,9 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
             return new AstUnaryExpression(AstUnaryOperator.Abs, arg);
         }
 
-        public static AstAccumulatorExpression AccumulatorExpression(AstAccumulatorOperator @operator, AstExpression arg)
+        public static AstAccumulatorField AccumulatorField(string name, AstUnaryAccumulatorOperator @operator, AstExpression arg)
         {
-            return new AstAccumulatorExpression(@operator, arg);
-        }
-
-        public static AstAccumulatorField AccumulatorField(string name, AstAccumulatorOperator @operator, AstExpression arg)
-        {
-            var value = new AstAccumulatorExpression(@operator, arg);
+            var value = new AstUnaryAccumulatorExpression(@operator, arg);
             return new AstAccumulatorField(name, value);
         }
 
@@ -160,6 +156,26 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
         public static AstExpression BinaryWindowExpression(AstBinaryWindowOperator @operator, AstExpression arg1, AstExpression arg2, AstWindow window)
         {
             return new AstBinaryWindowExpression(@operator, arg1, arg2, window);
+        }
+
+        public static AstExpression Bottom(AstExpression input, AstVarExpression @as, AstSortFields sortBy, AstExpression output)
+        {
+            return new AstBottomExpression(input, @as, sortBy, output, n: null);
+        }
+
+        public static AstExpression BottomN(AstExpression input, AstVarExpression @as, AstSortFields sortBy, AstExpression output, AstExpression n)
+        {
+            return new AstBottomExpression(input, @as, sortBy, output, n);
+        }
+
+        public static AstAccumulatorExpression BottomAccumulator(AstSortFields sortBy, AstExpression output)
+        {
+            return new AstBottomAccumulatorExpression(sortBy, output, n: null);
+        }
+
+        public static AstAccumulatorExpression BottomNAccumulator(AstSortFields sortBy, AstExpression output, AstExpression n)
+        {
+            return new AstBottomAccumulatorExpression(sortBy, output, n);
         }
 
         public static AstExpression Ceil(AstExpression arg)
@@ -812,6 +828,11 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
         public static AstExpression Trunc(AstExpression arg)
         {
             return new AstUnaryExpression(AstUnaryOperator.Trunc, arg);
+        }
+
+        public static AstAccumulatorExpression UnaryAccumulator(AstUnaryAccumulatorOperator @operator, AstExpression arg)
+        {
+            return new AstUnaryAccumulatorExpression(@operator, arg);
         }
 
         public static AstExpression UnaryWindowExpression(AstUnaryWindowOperator @operator, AstExpression arg, AstWindow window)

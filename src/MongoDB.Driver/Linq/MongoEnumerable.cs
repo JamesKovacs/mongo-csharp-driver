@@ -58,6 +58,64 @@ namespace MongoDB.Driver.Linq
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="sortBy"></param>
+        /// <param name="output"></param>
+        /// <returns></returns>
+        /// <exception cref="NotSupportedException"></exception>
+        public static TResult Bottom<TSource, TResult>(
+            this IEnumerable<TSource> source,
+            SortDefinition<TSource> sortBy,
+            Func<TSource, TResult> output)
+        {
+            throw new NotSupportedException("This method is not functional. It is only usable in conjunction with MongoDB.");
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="sortBy"></param>
+        /// <param name="output"></param>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        /// <exception cref="NotSupportedException"></exception>
+        public static IEnumerable<TResult> BottomN<TSource, TResult>(
+            this IEnumerable<TSource> source,
+            SortDefinition<TSource> sortBy,
+            Func<TSource, TResult> output,
+            int n)
+        {
+            throw new NotSupportedException("This method is not functional. It is only usable in conjunction with MongoDB.");
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="sortBy"></param>
+        /// <param name="output"></param>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        /// <exception cref="NotSupportedException"></exception>
+        public static IEnumerable<TResult> BottomN<TSource, TResult>(
+            this IEnumerable<TSource> source,
+            SortDefinition<TSource> sortBy,
+            Func<TSource, TResult> output,
+            Func<TSource, int> n)
+        {
+            throw new NotSupportedException("This method is not functional. It is only usable in conjunction with MongoDB.");
+        }
+
+        /// <summary>
         /// Represents the first matching element in an array used in a query (corresponds to the server's "$" update operator).
         /// </summary>
         /// <typeparam name="TSource">The type of the elements of <paramref name="source" />.</typeparam>

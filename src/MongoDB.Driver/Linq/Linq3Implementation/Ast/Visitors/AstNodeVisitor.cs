@@ -65,11 +65,6 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Visitors
             }
         }
 
-        public virtual AstNode VisitAccumulatorExpression(AstAccumulatorExpression node)
-        {
-            return node.Update(VisitAndConvert(node.Arg));
-        }
-
         public virtual AstNode VisitAccumulatorField(AstAccumulatorField node)
         {
             return node.Update(VisitAndConvert(node.Value));
@@ -177,6 +172,16 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Visitors
         public virtual AstNode VisitBitsAnySetFilterOperation(AstBitsAnySetFilterOperation node)
         {
             return node;
+        }
+
+        public virtual AstNode VisitBottomAccumulatorExpression(AstBottomAccumulatorExpression node)
+        {
+            return node.Update(node.SortBy, VisitAndConvert(node.Output), VisitAndConvert(node.N));
+        }
+
+        public virtual AstNode VisitBottomExpression(AstBottomExpression node)
+        {
+            return node.Update(VisitAndConvert(node.Input), VisitAndConvert(node.As), node.SortBy, VisitAndConvert(node.Output), VisitAndConvert(node.N));
         }
 
         public virtual AstNode VisitBucketAutoStage(AstBucketAutoStage node)
@@ -717,6 +722,11 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Visitors
         public virtual AstNode VisitTypeFilterOperation(AstTypeFilterOperation node)
         {
             return node;
+        }
+
+        public virtual AstNode VisitUnaryAccumulatorExpression(AstUnaryAccumulatorExpression node)
+        {
+            return node.Update(VisitAndConvert(node.Arg));
         }
 
         public virtual AstNode VisitUnaryExpression(AstUnaryExpression node)
