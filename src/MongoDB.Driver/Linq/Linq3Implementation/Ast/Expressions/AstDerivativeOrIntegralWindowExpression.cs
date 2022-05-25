@@ -61,7 +61,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
 
         public AstDerivativeOrIntegralWindowExpression Update(AstDerivativeOrIntegralWindowOperator @operator, AstExpression arg, WindowTimeUnit? unit, AstWindow window)
         {
-            if (@operator == _operator && arg == _arg && window == _window)
+            if (@operator == _operator && arg == _arg && unit == _unit && window == _window)
             {
                 return this;
             }

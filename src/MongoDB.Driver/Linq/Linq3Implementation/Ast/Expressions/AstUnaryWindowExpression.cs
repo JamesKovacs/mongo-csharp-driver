@@ -33,7 +33,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
         }
 
         public AstExpression Arg => _arg;
-        public override AstNodeType NodeType => AstNodeType.BinaryWindowExpression;
+        public override AstNodeType NodeType => AstNodeType.UnaryWindowExpression;
         public AstUnaryWindowOperator Operator => _operator;
         public AstWindow Window => _window;
 

@@ -157,6 +157,11 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
             return new AstUnaryExpression(AstUnaryOperator.Avg, array);
         }
 
+        public static AstExpression BinaryWindowExpression(AstBinaryWindowOperator @operator, AstExpression arg1, AstExpression arg2, AstWindow window)
+        {
+            return new AstBinaryWindowExpression(@operator, arg1, arg2, window);
+        }
+
         public static AstExpression Ceil(AstExpression arg)
         {
             return new AstUnaryExpression(AstUnaryOperator.Ceil, arg);
@@ -260,11 +265,6 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
             };
 
             return AstExpression.Convert(input, to, onError, onNull);
-        }
-
-        public static AstExpression CovarianceWindowExpression(AstCovarianceWindowOperator @operator, AstExpression arg1, AstExpression arg2, AstWindow window)
-        {
-            return new AstCovarianceWindowExpression(@operator, arg1, arg2, window);
         }
 
         public static AstExpression DateAdd(

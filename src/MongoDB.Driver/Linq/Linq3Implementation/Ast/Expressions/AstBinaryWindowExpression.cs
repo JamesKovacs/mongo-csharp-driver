@@ -19,14 +19,14 @@ using MongoDB.Driver.Linq.Linq3Implementation.Ast.Visitors;
 
 namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
 {
-    internal sealed class AstCovarianceWindowExpression : AstWindowExpression
+    internal sealed class AstBinaryWindowExpression : AstWindowExpression
     {
         private readonly AstExpression _arg1;
         private readonly AstExpression _arg2;
-        private readonly AstCovarianceWindowOperator _operator;
+        private readonly AstBinaryWindowOperator _operator;
         private readonly AstWindow _window;
 
-        public AstCovarianceWindowExpression(AstCovarianceWindowOperator @operator, AstExpression arg1, AstExpression arg2, AstWindow window)
+        public AstBinaryWindowExpression(AstBinaryWindowOperator @operator, AstExpression arg1, AstExpression arg2, AstWindow window)
         {
             _operator = @operator;
             _arg1 = Ensure.IsNotNull(arg1, nameof(arg1));
@@ -36,13 +36,13 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
 
         public AstExpression Arg1 => _arg1;
         public AstExpression Arg2 => _arg2;
-        public override AstNodeType NodeType => AstNodeType.CovarianceWindowExpression;
-        public AstCovarianceWindowOperator Operator => _operator;
+        public override AstNodeType NodeType => AstNodeType.BinaryWindowExpression;
+        public AstBinaryWindowOperator Operator => _operator;
         public AstWindow Window => _window;
 
         public override AstNode Accept(AstNodeVisitor visitor)
         {
-            return visitor.VisitCovarianceWindowExpression(this);
+            return visitor.VisitBinaryWindowExpression(this);
         }
 
         public override BsonValue Render()
@@ -54,14 +54,14 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
             };
         }
 
-        public AstCovarianceWindowExpression Update(AstCovarianceWindowOperator @operator, AstExpression arg1, AstExpression arg2, AstWindow window)
+        public AstBinaryWindowExpression Update(AstBinaryWindowOperator @operator, AstExpression arg1, AstExpression arg2, AstWindow window)
         {
             if (@operator == _operator && arg1 == _arg1 && arg2 == _arg2 && window == _window)
             {
                 return this;
             }
 
-            return new AstCovarianceWindowExpression(@operator, arg1, arg2, window);
+            return new AstBinaryWindowExpression(@operator, arg1, arg2, window);
         }
     }
 }

@@ -189,6 +189,30 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             WindowMethod.SumWithSingle
         };
 
+        private static readonly MethodInfo[] __binaryMethods =
+        {
+            WindowMethod.CovariancePopulationWithDecimals,
+            WindowMethod.CovariancePopulationWithDoubles,
+            WindowMethod.CovariancePopulationWithInt32s,
+            WindowMethod.CovariancePopulationWithInt64s,
+            WindowMethod.CovariancePopulationWithNullableDecimals,
+            WindowMethod.CovariancePopulationWithNullableDoubles,
+            WindowMethod.CovariancePopulationWithNullableInt32s,
+            WindowMethod.CovariancePopulationWithNullableInt64s,
+            WindowMethod.CovariancePopulationWithNullableSingles,
+            WindowMethod.CovariancePopulationWithSingles,
+            WindowMethod.CovarianceSampleWithDecimals,
+            WindowMethod.CovarianceSampleWithDoubles,
+            WindowMethod.CovarianceSampleWithInt32s,
+            WindowMethod.CovarianceSampleWithInt64s,
+            WindowMethod.CovarianceSampleWithNullableDecimals,
+            WindowMethod.CovarianceSampleWithNullableDoubles,
+            WindowMethod.CovarianceSampleWithNullableInt32s,
+            WindowMethod.CovarianceSampleWithNullableInt64s,
+            WindowMethod.CovarianceSampleWithNullableSingles,
+            WindowMethod.CovarianceSampleWithSingles
+        };
+
         private static readonly MethodInfo[] __derivativeOrIntegralMethods =
         {
             WindowMethod.DerivativeWithDecimal,
@@ -211,30 +235,6 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             WindowMethod.IntegralWithInt64AndUnit,
             WindowMethod.IntegralWithSingle,
             WindowMethod.IntegralWithSingleAndUnit
-        };
-
-        private static readonly MethodInfo[] __covarianceMethods =
-        {
-            WindowMethod.CovariancePopulationWithDecimals,
-            WindowMethod.CovariancePopulationWithDoubles,
-            WindowMethod.CovariancePopulationWithInt32s,
-            WindowMethod.CovariancePopulationWithInt64s,
-            WindowMethod.CovariancePopulationWithNullableDecimals,
-            WindowMethod.CovariancePopulationWithNullableDoubles,
-            WindowMethod.CovariancePopulationWithNullableInt32s,
-            WindowMethod.CovariancePopulationWithNullableInt64s,
-            WindowMethod.CovariancePopulationWithNullableSingles,
-            WindowMethod.CovariancePopulationWithSingles,
-            WindowMethod.CovarianceSampleWithDecimals,
-            WindowMethod.CovarianceSampleWithDoubles,
-            WindowMethod.CovarianceSampleWithInt32s,
-            WindowMethod.CovarianceSampleWithInt64s,
-            WindowMethod.CovarianceSampleWithNullableDecimals,
-            WindowMethod.CovarianceSampleWithNullableDoubles,
-            WindowMethod.CovarianceSampleWithNullableInt32s,
-            WindowMethod.CovarianceSampleWithNullableInt64s,
-            WindowMethod.CovarianceSampleWithNullableSingles,
-            WindowMethod.CovarianceSampleWithSingles
         };
 
         private static readonly MethodInfo[] __exponentialMovingAverageMethods =
@@ -298,6 +298,19 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                     return new AggregationExpression(expression, ast, serializer);
                 }
 
+                if (method.IsOneOf(__binaryMethods))
+                {
+                    var selector1Lambda = GetArgument<LambdaExpression>(parameters, "selector1", arguments);
+                    var selector2Lambda = GetArgument<LambdaExpression>(parameters, "selector2", arguments);
+                    var selector1Translation = TranslateSelector(context, selector1Lambda, inputSerializer);
+                    var selector2Translation = TranslateSelector(context, selector2Lambda, inputSerializer);
+
+                    var @operator = GetBinaryWindowOperator(method);
+                    var ast = AstExpression.BinaryWindowExpression(@operator, selector1Translation.Ast, selector2Translation.Ast, window);
+                    var serializer = BsonSerializer.LookupSerializer(method.ReturnType); // TODO: use correct serializer
+                    return new AggregationExpression(expression, ast, serializer);
+                }
+
                 if (method.IsOneOf(__derivativeOrIntegralMethods))
                 {
                     WindowTimeUnit? unit = default;
@@ -308,19 +321,6 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
 
                     var @operator = GetDerivativeOrIntegralWindowOperator(method);
                     var ast = AstExpression.DerivativeOrIntegralWindowExpression(@operator, selectorTranslation.Ast, unit, window);
-                    var serializer = BsonSerializer.LookupSerializer(method.ReturnType); // TODO: use correct serializer
-                    return new AggregationExpression(expression, ast, serializer);
-                }
-
-                if (method.IsOneOf(__covarianceMethods))
-                {
-                    var selector1Lambda = GetArgument<LambdaExpression>(parameters, "selector1", arguments);
-                    var selector2Lambda = GetArgument<LambdaExpression>(parameters, "selector2", arguments);
-                    var selector1Translation = TranslateSelector(context, selector1Lambda, inputSerializer);
-                    var selector2Translation = TranslateSelector(context, selector2Lambda, inputSerializer);
-
-                    var @operator = GetCovarianceWindowOperator(method);
-                    var ast = AstExpression.CovarianceWindowExpression(@operator, selector1Translation.Ast, selector2Translation.Ast, window);
                     var serializer = BsonSerializer.LookupSerializer(method.ReturnType); // TODO: use correct serializer
                     return new AggregationExpression(expression, ast, serializer);
                 }
@@ -368,12 +368,12 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             throw new InvalidOperationException($"There is no parameter named {parameterName}.");
         }
 
-        public static AstCovarianceWindowOperator GetCovarianceWindowOperator(MethodInfo method)
+        public static AstBinaryWindowOperator GetBinaryWindowOperator(MethodInfo method)
         {
             return method.Name switch
             {
-                "CovariancePopulation" => AstCovarianceWindowOperator.Population,
-                "CovarianceSample" => AstCovarianceWindowOperator.Sample,
+                "CovariancePopulation" => AstBinaryWindowOperator.CovariancePopulation,
+                "CovarianceSample" => AstBinaryWindowOperator.CovarianceSample,
                 _ => throw new InvalidOperationException($"Invalid method name: {method.Name}.")
             };
         }

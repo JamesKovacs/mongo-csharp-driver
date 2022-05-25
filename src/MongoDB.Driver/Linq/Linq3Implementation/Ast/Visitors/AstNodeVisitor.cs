@@ -154,6 +154,11 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Visitors
             return node.Update(VisitAndConvert(node.Arg1), VisitAndConvert(node.Arg2));
         }
 
+        public virtual AstNode VisitBinaryWindowExpression(AstBinaryWindowExpression node)
+        {
+            return node.Update(node.Operator, VisitAndConvert(node.Arg1), VisitAndConvert(node.Arg2), node.Window);
+        }
+
         public virtual AstNode VisitBitsAllClearFilterOperation(AstBitsAllClearFilterOperation node)
         {
             return node;
@@ -227,11 +232,6 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Visitors
         public virtual AstNode VisitCountStage(AstCountStage node)
         {
             return node;
-        }
-
-        public virtual AstNode VisitCovarianceWindowExpression(AstCovarianceWindowExpression node)
-        {
-            return node.Update(node.Operator, VisitAndConvert(node.Arg1), VisitAndConvert(node.Arg2), node.Window);
         }
 
         public virtual AstNode VisitCurrentOpStage(AstCurrentOpStage node)

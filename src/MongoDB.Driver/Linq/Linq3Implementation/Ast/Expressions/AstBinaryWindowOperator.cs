@@ -17,21 +17,21 @@ using System;
 
 namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
 {
-    internal enum AstCovarianceWindowOperator
+    internal enum AstBinaryWindowOperator
     {
-        Population,
-        Sample
+        CovariancePopulation,
+        CovarianceSample
     }
 
-    internal static class AstCovarianceWindowOperatorExtensions
+    internal static class AstBinaryWindowOperatorExtensions
     {
-        public static string Render(this AstCovarianceWindowOperator @operator)
+        public static string Render(this AstBinaryWindowOperator @operator)
         {
             return @operator switch
             {
-                AstCovarianceWindowOperator.Population => "$covariancePop",
-                AstCovarianceWindowOperator.Sample => "$covarianceSamp",
-                _ => throw new InvalidOperationException($"Unexpected covariance window operator: {@operator}.")
+                AstBinaryWindowOperator.CovariancePopulation => "$covariancePop",
+                AstBinaryWindowOperator.CovarianceSample => "$covarianceSamp",
+                _ => throw new InvalidOperationException($"Unexpected binary window operator: {@operator}.")
             };
         }
     }
