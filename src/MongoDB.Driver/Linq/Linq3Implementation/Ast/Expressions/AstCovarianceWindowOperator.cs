@@ -13,20 +13,26 @@
 * limitations under the License.
 */
 
-using System.Linq.Expressions;
+using System;
 
-namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggregationExpressionTranslators.MethodTranslators
+namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
 {
-    internal static class DerivativeMethodToAggregationExpressionTranslator
+    internal enum AstCovarianceWindowOperator
     {
-        public static AggregationExpression Translate(TranslationContext context, MethodCallExpression expression)
-        {
-            if (WindowMethodToAggregationExpressionTranslator.CanTranslate(expression))
-            {
-                return WindowMethodToAggregationExpressionTranslator.Translate(context, expression);
-            }
+        Population,
+        Sample
+    }
 
-            throw new ExpressionNotSupportedException(expression);
+    internal static class AstCovarianceWindowOperatorExtensions
+    {
+        public static string Render(this AstCovarianceWindowOperator @operator)
+        {
+            return @operator switch
+            {
+                AstCovarianceWindowOperator.Population => "$covariancePop",
+                AstCovarianceWindowOperator.Sample => "$covarianceSamp",
+                _ => throw new InvalidOperationException($"Unexpected covariance window operator: {@operator}.")
+            };
         }
     }
 }
