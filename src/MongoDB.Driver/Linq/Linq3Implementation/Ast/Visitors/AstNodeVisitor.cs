@@ -761,7 +761,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Visitors
 
         public virtual AstNode VisitWindowField(AstWindowField node)
         {
-            return node.Update(VisitAndConvert(node.Value));
+            return node.Update(node.Path, VisitAndConvert(node.Value));
         }
 
         public virtual AstNode VisitZipExpression(AstZipExpression node)

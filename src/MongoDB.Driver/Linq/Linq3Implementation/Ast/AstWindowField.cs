@@ -55,14 +55,14 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast
             return $"\"{_path}\" : {_value.Render().ToJson()}";
         }
 
-        public AstWindowField Update(AstWindowExpression value)
+        public AstWindowField Update(string path, AstWindowExpression value)
         {
-            if (value == _value)
+            if (path == _path && value == _value)
             {
                 return this;
             }
 
-            return new AstWindowField(_path, value);
+            return new AstWindowField(path, value);
         }
     }
 }
