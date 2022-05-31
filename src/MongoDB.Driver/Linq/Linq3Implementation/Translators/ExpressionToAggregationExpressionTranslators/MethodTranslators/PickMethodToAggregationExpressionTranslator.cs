@@ -29,14 +29,25 @@ using MongoDB.Driver.Linq.Linq3Implementation.Serializers;
 
 namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggregationExpressionTranslators.MethodTranslators
 {
-    internal static class BottomMethodToAggregationExpressionTranslator
+    internal static class PickMethodToAggregationExpressionTranslator
     {
+        private static readonly MethodInfo[] __pickMethods = new[]
+        {
+            EnumerableMethod.Bottom,
+            EnumerableMethod.BottomN
+        };
+
+        private static readonly MethodInfo[] __withNMethods = new[]
+        {
+            EnumerableMethod.BottomN
+        };
+
         public static AggregationExpression Translate(TranslationContext context, MethodCallExpression expression)
         {
             var method = expression.Method;
             var arguments = expression.Arguments;
 
-            if (method.IsOneOf(EnumerableMethod.Bottom, EnumerableMethod.BottomN))
+            if (method.IsOneOf(__pickMethods))
             {
                 var sourceExpression = arguments[0];
                 var sourceTranslation = ExpressionToAggregationExpressionTranslator.TranslateEnumerable(context, sourceExpression);
@@ -44,43 +55,56 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
 
                 var sortByExpression = arguments[1];
                 var sortByDefinition = GetSortByDefinition(sortByExpression, expression);
-                var sortBy = RenderSortByDefinition(expression, sortByExpression, sortByDefinition, itemSerializer);
+                var sortBy = TranslateSortByDefinition(expression, sortByExpression, sortByDefinition, itemSerializer);
 
-                var outputLambda = (LambdaExpression)arguments[2];
-                var outputParameter = outputLambda.Parameters.Single();
-                var outputParameterSymbol = context.CreateSymbol(outputParameter, itemSerializer);
-                var outputContext = context.WithSymbol(outputParameterSymbol);
-                var outputTranslation = ExpressionToAggregationExpressionTranslator.TranslateLambdaBody(outputContext, outputLambda, itemSerializer, asRoot: false);
+                var selectorLambda = (LambdaExpression)arguments[2];
+                var selectorParameter = selectorLambda.Parameters.Single();
+                var selectorParameterSymbol = context.CreateSymbol(selectorParameter, itemSerializer);
+                var selectorContext = context.WithSymbol(selectorParameterSymbol);
+                var selectorTranslation = ExpressionToAggregationExpressionTranslator.TranslateLambdaBody(selectorContext, selectorLambda, itemSerializer, asRoot: false);
 
-                AstExpression ast;
+                AggregationExpression nTranslation = null;
                 IBsonSerializer resultSerializer;
-                if (method.Is(EnumerableMethod.Bottom))
+                if (method.IsOneOf(__withNMethods))
                 {
-                    ast = AstExpression.Bottom(
-                        input: sourceTranslation.Ast,
-                        @as: outputParameterSymbol.Var,
-                        sortBy: sortBy,
-                        output: outputTranslation.Ast);
-                    resultSerializer = outputTranslation.Serializer;
+                    var nExpression = arguments.Last();
+                    nTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, nExpression);
+                    resultSerializer = IEnumerableSerializer.Create(selectorTranslation.Serializer);
                 }
                 else
                 {
-                    var nExpression = arguments[3];
-                    var nTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, nExpression);
-
-                    ast = AstExpression.BottomN(
-                        input: sourceTranslation.Ast,
-                        @as: outputParameterSymbol.Var,
-                        sortBy: sortBy,
-                        output: outputTranslation.Ast,
-                        n: nTranslation.Ast);
-                    resultSerializer = IEnumerableSerializer.Create(outputTranslation.Serializer);
+                    resultSerializer = selectorTranslation.Serializer;
                 }
+
+                var @operator = GetOperator(method);
+                var ast = AstExpression.PickExpression(
+                    @operator,
+                    sourceTranslation.Ast,
+                    selectorParameterSymbol.Var,
+                    sortBy,
+                    selectorTranslation.Ast,
+                    nTranslation?.Ast);
 
                 return new AggregationExpression(expression, ast, resultSerializer);
             }
 
             throw new ExpressionNotSupportedException(expression);
+        }
+
+        private static AstPickOperator GetOperator(MethodInfo method)
+        {
+            return method.Name switch
+            {
+                "Bottom" => AstPickOperator.Bottom,
+                "BottomN" => AstPickOperator.BottomN,
+                "FirstN" => AstPickOperator.FirstN,
+                "LastN" => AstPickOperator.LastN,
+                "MaxN" => AstPickOperator.MaxN,
+                "MinN" => AstPickOperator.MinN,
+                "Top" => AstPickOperator.TopN,
+                "TopN" => AstPickOperator.TopN,
+                _ => throw new InvalidOperationException($"Invalid method name: {method.Name}.")
+            };
         }
 
         private static object GetSortByDefinition(Expression sortByExpression, Expression expression)
@@ -103,18 +127,15 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             }
         }
 
-        private static AstSortFields RenderSortByDefinition(Expression expression, Expression sortByExpression, object sortByDefinition, IBsonSerializer documentSerializer)
+        private static AstSortFields TranslateSortByDefinition(Expression expression, Expression sortByExpression, object sortByDefinition, IBsonSerializer documentSerializer)
         {
-            var methodInfoDefinition = typeof(BottomMethodToAggregationExpressionTranslator).GetMethod("RenderSortByDefinitionGeneric", BindingFlags.Static | BindingFlags.NonPublic);
+            var methodInfoDefinition = typeof(PickMethodToAggregationExpressionTranslator).GetMethod(nameof(TranslateSortByDefinitionGeneric), BindingFlags.Static | BindingFlags.NonPublic);
             var documentType = documentSerializer.ValueType;
             var methodInfo = methodInfoDefinition.MakeGenericMethod(documentType);
             return (AstSortFields)methodInfo.Invoke(null, new object[] { expression, sortByExpression, sortByDefinition, documentSerializer });
         }
 
-#pragma warning disable IDE0051 // Remove unused private members
-        // Visual Studio thinks this method is unused but that's only because we call it using reflection
-        private static AstSortFields RenderSortByDefinitionGeneric<TDocument>(Expression expression, Expression sortByExpression, SortDefinition<TDocument> sortByDefinition, IBsonSerializer<TDocument> documentSerializer)
-#pragma warning restore IDE0051 // Remove unused private members
+        private static AstSortFields TranslateSortByDefinitionGeneric<TDocument>(Expression expression, Expression sortByExpression, SortDefinition<TDocument> sortByDefinition, IBsonSerializer<TDocument> documentSerializer)
         {
             var serializerRegistry = BsonSerializer.SerializerRegistry;
             var sortDocument = sortByDefinition.Render(documentSerializer, serializerRegistry);

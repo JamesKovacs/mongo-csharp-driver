@@ -158,26 +158,6 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
             return new AstBinaryWindowExpression(@operator, arg1, arg2, window);
         }
 
-        public static AstExpression Bottom(AstExpression input, AstVarExpression @as, AstSortFields sortBy, AstExpression output)
-        {
-            return new AstBottomExpression(input, @as, sortBy, output, n: null);
-        }
-
-        public static AstExpression BottomN(AstExpression input, AstVarExpression @as, AstSortFields sortBy, AstExpression output, AstExpression n)
-        {
-            return new AstBottomExpression(input, @as, sortBy, output, n);
-        }
-
-        public static AstAccumulatorExpression BottomAccumulator(AstSortFields sortBy, AstExpression output)
-        {
-            return new AstBottomAccumulatorExpression(sortBy, output, n: null);
-        }
-
-        public static AstAccumulatorExpression BottomNAccumulator(AstSortFields sortBy, AstExpression output, AstExpression n)
-        {
-            return new AstBottomAccumulatorExpression(sortBy, output, n);
-        }
-
         public static AstExpression Ceil(AstExpression arg)
         {
             return new AstUnaryExpression(AstUnaryOperator.Ceil, arg);
@@ -626,6 +606,16 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
             }
 
             return new AstOrExpression(args);
+        }
+
+        public static AstExpression PickExpression(AstPickOperator @operator, AstExpression source, AstVarExpression @as, AstSortFields sortBy, AstExpression selector, AstExpression n)
+        {
+            return new AstPickExpression(@operator, source, @as, sortBy, selector, n);
+        }
+
+        public static AstExpression PickAccumulatorExpression(AstPickAccumulatorOperator @operator, AstSortFields sortBy, AstExpression selector, AstExpression n)
+        {
+            return new AstPickAccumulatorExpression(@operator, sortBy, selector, n);
         }
 
         public static AstExpression Pow(AstExpression arg, AstExpression exponent)

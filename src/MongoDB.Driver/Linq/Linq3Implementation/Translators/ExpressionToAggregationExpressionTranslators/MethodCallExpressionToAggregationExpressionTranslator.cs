@@ -91,7 +91,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
 
                 case "Bottom":
                 case "BottomN":
-                    return BottomMethodToAggregationExpressionTranslator.Translate(context, expression);
+                    return PickMethodToAggregationExpressionTranslator.Translate(context, expression);
 
                 case "Count":
                 case "LongCount":

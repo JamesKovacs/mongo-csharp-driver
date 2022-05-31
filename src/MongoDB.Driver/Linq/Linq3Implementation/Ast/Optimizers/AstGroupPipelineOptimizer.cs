@@ -318,25 +318,26 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Optimizers
                 return base.VisitMapExpression(node);
             }
 
-            public override AstNode VisitBottomExpression(AstBottomExpression node)
+            public override AstNode VisitPickExpression(AstPickExpression node)
             {
-                // { $bottom : { input : { $getField : { input : "$$ROOT", field : "_elements" } }, as : "x", sortBy : s, output : f(x) } }
-                // => { __agg0 : { $bottom : { sortBy : s, output : f(x => root) } } } + "$__agg0"
-                if (node.Input is AstGetFieldExpression getFieldExpression &&
+                // { $pickOperator : { source : { $getField : { input : "$$ROOT", field : "_elements" } }, as : "x", sortBy : s, selector : f(x) } }
+                // => { __agg0 : { $pickAccumulatorOperator : { sortBy : s, selector : f(x => root) } } } + "$__agg0"
+                if (node.Source is AstGetFieldExpression getFieldExpression &&
                     getFieldExpression.Input is AstVarExpression varExpression &&
                     varExpression.Name == "ROOT" &&
                     getFieldExpression.FieldName is AstConstantExpression constantFieldNameExpression &&
                     constantFieldNameExpression.Value.IsString &&
                     constantFieldNameExpression.Value.AsString == "_elements")
                 {
+                    var @operator = node.Operator.ToAccumulatorOperator();
                     var root = AstExpression.Var("ROOT", isCurrent: true);
-                    var rewrittenOutput = (AstExpression)AstNodeReplacer.Replace(node.Output, (node.As, root));
-                    var accumulatorExpression = new AstBottomAccumulatorExpression(node.SortBy, rewrittenOutput, node.N);
+                    var rewrittenSelector = (AstExpression)AstNodeReplacer.Replace(node.Selector, (node.As, root));
+                    var accumulatorExpression = new AstPickAccumulatorExpression(@operator, node.SortBy, rewrittenSelector, node.N);
                     var accumulatorFieldName = _accumulators.AddAccumulatorExpression(accumulatorExpression);
                     return AstExpression.GetField(root, accumulatorFieldName);
                 }
 
-                return base.VisitBottomExpression(node);
+                return base.VisitPickExpression(node);
             }
 
             public override AstNode VisitUnaryExpression(AstUnaryExpression node)
