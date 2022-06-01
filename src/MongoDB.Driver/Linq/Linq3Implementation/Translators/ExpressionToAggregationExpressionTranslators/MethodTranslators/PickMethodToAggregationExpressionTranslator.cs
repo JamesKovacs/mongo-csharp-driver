@@ -34,12 +34,23 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
         private static readonly MethodInfo[] __pickMethods = new[]
         {
             EnumerableMethod.Bottom,
-            EnumerableMethod.BottomN
+            EnumerableMethod.BottomN,
+            EnumerableMethod.FirstN,
+            EnumerableMethod.LastN,
+            EnumerableMethod.MaxN,
+            EnumerableMethod.MinN,
+            EnumerableMethod.Top,
+            EnumerableMethod.TopN,
         };
 
         private static readonly MethodInfo[] __withNMethods = new[]
         {
-            EnumerableMethod.BottomN
+            EnumerableMethod.BottomN,
+            EnumerableMethod.FirstN,
+            EnumerableMethod.LastN,
+            EnumerableMethod.MaxN,
+            EnumerableMethod.MinN,
+            EnumerableMethod.TopN,
         };
 
         public static AggregationExpression Translate(TranslationContext context, MethodCallExpression expression)
@@ -101,7 +112,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 "LastN" => AstPickOperator.LastN,
                 "MaxN" => AstPickOperator.MaxN,
                 "MinN" => AstPickOperator.MinN,
-                "Top" => AstPickOperator.TopN,
+                "Top" => AstPickOperator.Top,
                 "TopN" => AstPickOperator.TopN,
                 _ => throw new InvalidOperationException($"Invalid method name: {method.Name}.")
             };

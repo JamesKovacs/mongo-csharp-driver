@@ -91,6 +91,12 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
 
                 case "Bottom":
                 case "BottomN":
+                case "FirstN":
+                case "LastN":
+                case "MaxN":
+                case "MinN":
+                case "Top":
+                case "TopN":
                     return PickMethodToAggregationExpressionTranslator.Translate(context, expression);
 
                 case "Count":

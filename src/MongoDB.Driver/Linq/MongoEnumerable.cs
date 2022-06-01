@@ -107,6 +107,78 @@ namespace MongoDB.Driver.Linq
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="selector"></param>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        /// <exception cref="NotSupportedException"></exception>
+        public static IEnumerable<TResult> FirstN<TSource, TResult>(
+            this IEnumerable<TSource> source,
+            Func<TSource, TResult> selector,
+            int n)
+        {
+            throw new NotSupportedException("This method is not functional. It is only usable in conjunction with MongoDB.");
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="selector"></param>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        /// <exception cref="NotSupportedException"></exception>
+        public static IEnumerable<TResult> LastN<TSource, TResult>(
+            this IEnumerable<TSource> source,
+            Func<TSource, TResult> selector,
+            int n)
+        {
+            throw new NotSupportedException("This method is not functional. It is only usable in conjunction with MongoDB.");
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="selector"></param>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        /// <exception cref="NotSupportedException"></exception>
+        public static IEnumerable<TResult> MaxN<TSource, TResult>(
+            this IEnumerable<TSource> source,
+            Func<TSource, TResult> selector,
+            int n)
+        {
+            throw new NotSupportedException("This method is not functional. It is only usable in conjunction with MongoDB.");
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="selector"></param>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        /// <exception cref="NotSupportedException"></exception>
+        public static IEnumerable<TResult> MinN<TSource, TResult>(
+            this IEnumerable<TSource> source,
+            Func<TSource, TResult> selector,
+            int n)
+        {
+            throw new NotSupportedException("This method is not functional. It is only usable in conjunction with MongoDB.");
+        }
+
+        /// <summary>
         /// Computes the population standard deviation of a sequence of values.
         /// </summary>
         /// <param name="source">A sequence of values to calculate the population standard deviation of.</param>
@@ -624,6 +696,44 @@ namespace MongoDB.Driver.Linq
         public static decimal? StandardDeviationSample<TSource>(this IEnumerable<TSource> source, Func<TSource, decimal?> selector)
         {
             return source.Select(selector).StandardDeviationSample();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="sortBy"></param>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        /// <exception cref="NotSupportedException"></exception>
+        public static TResult Top<TSource, TResult>(
+            this IEnumerable<TSource> source,
+            SortDefinition<TSource> sortBy,
+            Func<TSource, TResult> selector)
+        {
+            throw new NotSupportedException("This method is not functional. It is only usable in conjunction with MongoDB.");
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="sortBy"></param>
+        /// <param name="selector"></param>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        /// <exception cref="NotSupportedException"></exception>
+        public static IEnumerable<TResult> TopN<TSource, TResult>(
+            this IEnumerable<TSource> source,
+            SortDefinition<TSource> sortBy,
+            Func<TSource, TResult> selector,
+            int n)
+        {
+            throw new NotSupportedException("This method is not functional. It is only usable in conjunction with MongoDB.");
         }
 
         /// <summary>

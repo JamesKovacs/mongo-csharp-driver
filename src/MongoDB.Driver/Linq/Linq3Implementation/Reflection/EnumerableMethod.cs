@@ -64,6 +64,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         private static readonly MethodInfo __elementAtOrDefault;
         private static readonly MethodInfo __except;
         private static readonly MethodInfo __first;
+        private static readonly MethodInfo __firstN;
         private static readonly MethodInfo __firstOrDefault;
         private static readonly MethodInfo __firstOrDefaultWithPredicate;
         private static readonly MethodInfo __firstWithPredicate;
@@ -75,6 +76,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         private static readonly MethodInfo __intersect;
         private static readonly MethodInfo __join;
         private static readonly MethodInfo __last;
+        private static readonly MethodInfo __lastN;
         private static readonly MethodInfo __lastOrDefault;
         private static readonly MethodInfo __lastOrDefaultWithPredicate;
         private static readonly MethodInfo __lastWithPredicate;
@@ -89,6 +91,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         private static readonly MethodInfo __maxInt32WithSelector;
         private static readonly MethodInfo __maxInt64;
         private static readonly MethodInfo __maxInt64WithSelector;
+        private static readonly MethodInfo __maxN;
         private static readonly MethodInfo __maxNullableDecimal;
         private static readonly MethodInfo __maxNullableDecimalWithSelector;
         private static readonly MethodInfo __maxNullableDouble;
@@ -111,6 +114,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         private static readonly MethodInfo __minInt32WithSelector;
         private static readonly MethodInfo __minInt64;
         private static readonly MethodInfo __minInt64WithSelector;
+        private static readonly MethodInfo __minN;
         private static readonly MethodInfo __minNullableDecimal;
         private static readonly MethodInfo __minNullableDecimalWithSelector;
         private static readonly MethodInfo __minNullableDouble;
@@ -167,6 +171,8 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         private static readonly MethodInfo __thenByDescending;
         private static readonly MethodInfo __toArray;
         private static readonly MethodInfo __toList;
+        private static readonly MethodInfo __top;
+        private static readonly MethodInfo __topN;
         private static readonly MethodInfo __union;
         private static readonly MethodInfo __where;
         private static readonly MethodInfo __whereWithPredicateTakingIndex;
@@ -201,8 +207,8 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
             __averageNullableSingleWithSelector = ReflectionInfo.Method((IEnumerable<object> source, Func<object, float?> selector) => source.Average(selector));
             __averageSingle = ReflectionInfo.Method((IEnumerable<float> source) => source.Average());
             __averageSingleWithSelector = ReflectionInfo.Method((IEnumerable<object> source, Func<object, float> selector) => source.Average(selector));
-            __bottom = ReflectionInfo.Method((IEnumerable<object> source, SortDefinition<object> sortBy, Func<object, object> output) => source.Bottom(sortBy, output));
-            __bottomN = ReflectionInfo.Method((IEnumerable<object> source, SortDefinition<object> sortBy, Func<object, object> output, int n) => source.BottomN(sortBy, output, n));
+            __bottom = ReflectionInfo.Method((IEnumerable<object> source, SortDefinition<object> sortBy, Func<object, object> selector) => source.Bottom(sortBy, selector));
+            __bottomN = ReflectionInfo.Method((IEnumerable<object> source, SortDefinition<object> sortBy, Func<object, object> selector, int n) => source.BottomN(sortBy, selector, n));
             __cast = ReflectionInfo.Method((IEnumerable source) => source.Cast<object>());
             __concat = ReflectionInfo.Method((IEnumerable<object> first, IEnumerable<object> second) => first.Concat(second));
             __contains = ReflectionInfo.Method((IEnumerable<object> source, object value) => source.Contains(value));
@@ -215,6 +221,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
             __elementAtOrDefault = ReflectionInfo.Method((IEnumerable<object> source, int index) => source.ElementAtOrDefault(index));
             __except = ReflectionInfo.Method((IEnumerable<object> first, IEnumerable<object> second) => first.Except(second));
             __first = ReflectionInfo.Method((IEnumerable<object> source) => source.First());
+            __firstN = ReflectionInfo.Method((IEnumerable<object> source, Func<object, object> selector, int n) => source.FirstN(selector, n));
             __firstOrDefault = ReflectionInfo.Method((IEnumerable<object> source) => source.FirstOrDefault());
             __firstOrDefaultWithPredicate = ReflectionInfo.Method((IEnumerable<object> source, Func<object, bool> predicate) => source.FirstOrDefault(predicate));
             __firstWithPredicate = ReflectionInfo.Method((IEnumerable<object> source, Func<object, bool> predicate) => source.First(predicate));
@@ -226,6 +233,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
             __intersect = ReflectionInfo.Method((IEnumerable<object> first, IEnumerable<object> second) => first.Intersect(second));
             __join = ReflectionInfo.Method((IEnumerable<object> outer, IEnumerable<object> inner, Func<object, object> outerKeySelector, Func<object, object> innerKeySelector, Func<object, object, object> resultSelector) => outer.Join(inner, outerKeySelector, innerKeySelector, resultSelector));
             __last = ReflectionInfo.Method((IEnumerable<object> source) => source.Last());
+            __lastN = ReflectionInfo.Method((IEnumerable<object> source, Func<object, object> selector, int n) => source.LastN(selector, n));
             __lastOrDefault = ReflectionInfo.Method((IEnumerable<object> source) => source.LastOrDefault());
             __lastOrDefaultWithPredicate = ReflectionInfo.Method((IEnumerable<object> source, Func<object, bool> predicate) => source.LastOrDefault(predicate));
             __lastWithPredicate = ReflectionInfo.Method((IEnumerable<object> source, Func<object, bool> predicate) => source.Last(predicate));
@@ -240,6 +248,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
             __maxInt32WithSelector = ReflectionInfo.Method((IEnumerable<object> source, Func<object, int> selector) => source.Max(selector));
             __maxInt64 = ReflectionInfo.Method((IEnumerable<long> source) => source.Max());
             __maxInt64WithSelector = ReflectionInfo.Method((IEnumerable<object> source, Func<object, long> selector) => source.Max(selector));
+            __maxN = ReflectionInfo.Method((IEnumerable<object> source, Func<object, object> selector, int n) => source.MaxN(selector, n));
             __maxNullableDecimal = ReflectionInfo.Method((IEnumerable<decimal?> source) => source.Max());
             __maxNullableDecimalWithSelector = ReflectionInfo.Method((IEnumerable<object> source, Func<object, decimal?> selector) => source.Max(selector));
             __maxNullableDouble = ReflectionInfo.Method((IEnumerable<double?> source) => source.Max());
@@ -258,6 +267,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
             __minDecimalWithSelector = ReflectionInfo.Method((IEnumerable<object> source, Func<object, decimal> selector) => source.Min(selector));
             __minDouble = ReflectionInfo.Method((IEnumerable<double> source) => source.Min());
             __minDoubleWithSelector = ReflectionInfo.Method((IEnumerable<object> source, Func<object, double> selector) => source.Min(selector));
+            __minN = ReflectionInfo.Method((IEnumerable<object> source, Func<object, object> selector, int n) => source.MinN(selector, n));
             __minInt32 = ReflectionInfo.Method((IEnumerable<int> source) => source.Min());
             __minInt32WithSelector = ReflectionInfo.Method((IEnumerable<object> source, Func<object, int> selector) => source.Min(selector));
             __minInt64 = ReflectionInfo.Method((IEnumerable<long> source) => source.Min());
@@ -318,6 +328,8 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
             __thenByDescending = ReflectionInfo.Method((IOrderedEnumerable<object> source, Func<object, object> keySelector) => source.ThenByDescending(keySelector));
             __toArray = ReflectionInfo.Method((IEnumerable<object> source) => source.ToArray());
             __toList = ReflectionInfo.Method((IEnumerable<object> source) => source.ToList());
+            __top = ReflectionInfo.Method((IEnumerable<object> source, SortDefinition<object> sortBy, Func<object, object> selector) => source.Top(sortBy, selector));
+            __topN = ReflectionInfo.Method((IEnumerable<object> source, SortDefinition<object> sortBy, Func<object, object> selector, int n) => source.TopN(sortBy, selector, n));
             __union = ReflectionInfo.Method((IEnumerable<object> first, IEnumerable<object> second) => first.Union(second));
             __where = ReflectionInfo.Method((IEnumerable<object> source, Func<object, bool> predicate) => source.Where(predicate));
             __whereWithPredicateTakingIndex = ReflectionInfo.Method((IEnumerable<object> source, Func<object, int, bool> predicate) => source.Where(predicate));
@@ -365,6 +377,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         public static MethodInfo ElementAtOrDefault => __elementAtOrDefault;
         public static MethodInfo Except => __except;
         public static MethodInfo First => __first;
+        public static MethodInfo FirstN => __firstN;
         public static MethodInfo FirstOrDefault => __firstOrDefault;
         public static MethodInfo FirstOrDefaultWithPredicate => __firstOrDefaultWithPredicate;
         public static MethodInfo FirstWithPredicate => __firstWithPredicate;
@@ -376,6 +389,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         public static MethodInfo Intersect => __intersect;
         public static MethodInfo Join => __join;
         public static MethodInfo Last => __last;
+        public static MethodInfo LastN => __lastN;
         public static MethodInfo LastOrDefault => __lastOrDefault;
         public static MethodInfo LastOrDefaultWithPredicate => __lastOrDefaultWithPredicate;
         public static MethodInfo LastWithPredicate => __lastWithPredicate;
@@ -390,6 +404,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         public static MethodInfo MaxInt32WithSelector => __maxInt32WithSelector;
         public static MethodInfo MaxInt64 => __maxInt64;
         public static MethodInfo MaxInt64WithSelector => __maxInt64WithSelector;
+        public static MethodInfo MaxN => __maxN;
         public static MethodInfo MaxNullableDecimal => __maxNullableDecimal;
         public static MethodInfo MaxNullableDecimalWithSelector => __maxNullableDecimalWithSelector;
         public static MethodInfo MaxNullableDouble => __maxNullableDouble;
@@ -412,6 +427,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         public static MethodInfo MinInt32WithSelector => __minInt32WithSelector;
         public static MethodInfo MinInt64 => __minInt64;
         public static MethodInfo MinInt64WithSelector => __minInt64WithSelector;
+        public static MethodInfo MinN => __minN;
         public static MethodInfo MinNullableDecimal => __minNullableDecimal;
         public static MethodInfo MinNullableDecimalWithSelector => __minNullableDecimalWithSelector;
         public static MethodInfo MinNullableDouble => __minNullableDouble;
@@ -468,6 +484,8 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         public static MethodInfo ThenByDescending => __thenByDescending;
         public static MethodInfo ToArray => __toArray;
         public static MethodInfo ToList => __toList;
+        public static MethodInfo Top => __top;
+        public static MethodInfo TopN => __topN;
         public static MethodInfo Union => __union;
         public static MethodInfo Where => __where;
         public static MethodInfo WhereWithPredicateTakingIndex => __whereWithPredicateTakingIndex;
