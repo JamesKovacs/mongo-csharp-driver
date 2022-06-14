@@ -35,12 +35,18 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
         {
             EnumerableMethod.Bottom,
             EnumerableMethod.BottomN,
+            EnumerableMethod.BottomNWithComputedN,
             EnumerableMethod.FirstN,
+            EnumerableMethod.FirstNWithComputedN,
             EnumerableMethod.LastN,
+            EnumerableMethod.LastNWithComputedN,
             EnumerableMethod.MaxN,
+            EnumerableMethod.MaxNWithComputedN,
             EnumerableMethod.MinN,
+            EnumerableMethod.MinNWithComputedN,
             EnumerableMethod.Top,
             EnumerableMethod.TopN,
+            EnumerableMethod.TopNWithComputedN
         };
 
         private static readonly MethodInfo[] __withNMethods = new[]
@@ -50,13 +56,33 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             EnumerableMethod.LastN,
             EnumerableMethod.MaxN,
             EnumerableMethod.MinN,
+            EnumerableMethod.TopN
+        };
+
+        private static readonly MethodInfo[] __withComputedNMethods = new[]
+        {
+            EnumerableMethod.BottomNWithComputedN,
+            EnumerableMethod.FirstNWithComputedN,
+            EnumerableMethod.LastNWithComputedN,
+            EnumerableMethod.MaxNWithComputedN,
+            EnumerableMethod.MinNWithComputedN,
+            EnumerableMethod.TopNWithComputedN
+        };
+
+        private static readonly MethodInfo[] __withSortByMethods = new[]
+        {
+            EnumerableMethod.Bottom,
+            EnumerableMethod.BottomN,
+            EnumerableMethod.BottomNWithComputedN,
+            EnumerableMethod.Top,
             EnumerableMethod.TopN,
+            EnumerableMethod.TopNWithComputedN
         };
 
         public static AggregationExpression Translate(TranslationContext context, MethodCallExpression expression)
         {
             var method = expression.Method;
-            var arguments = expression.Arguments;
+            var arguments = expression.Arguments.ToArray();
 
             if (method.IsOneOf(__pickMethods))
             {
@@ -64,11 +90,15 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 var sourceTranslation = ExpressionToAggregationExpressionTranslator.TranslateEnumerable(context, sourceExpression);
                 var itemSerializer = ArraySerializerHelper.GetItemSerializer(sourceTranslation.Serializer);
 
-                var sortByExpression = arguments[1];
-                var sortByDefinition = GetSortByDefinition(sortByExpression, expression);
-                var sortBy = TranslateSortByDefinition(expression, sortByExpression, sortByDefinition, itemSerializer);
+                AstSortFields sortBy = null;
+                if (method.IsOneOf(__withSortByMethods))
+                {
+                    var sortByExpression = arguments[1];
+                    var sortByDefinition = GetSortByDefinition(sortByExpression, expression);
+                    sortBy = TranslateSortByDefinition(expression, sortByExpression, sortByDefinition, itemSerializer);
+                }
 
-                var selectorLambda = (LambdaExpression)arguments[2];
+                var selectorLambda = (LambdaExpression)GetSelectorArgument(method, arguments);
                 var selectorParameter = selectorLambda.Parameters.Single();
                 var selectorParameterSymbol = context.CreateSymbol(selectorParameter, itemSerializer);
                 var selectorContext = context.WithSymbol(selectorParameterSymbol);
@@ -76,10 +106,28 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
 
                 AggregationExpression nTranslation = null;
                 IBsonSerializer resultSerializer;
-                if (method.IsOneOf(__withNMethods))
+                if (method.IsOneOf(__withNMethods, __withComputedNMethods))
                 {
                     var nExpression = arguments.Last();
-                    nTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, nExpression);
+                    if (method.IsOneOf(__withNMethods))
+                    {
+                        nTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, nExpression);
+                    }
+                    else
+                    {
+                        var keyExpression = arguments[arguments.Length - 2];
+                        var keyTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, keyExpression);
+                        if (!IsValidKey(keyTranslation))
+                        {
+                            throw new ExpressionNotSupportedException(keyExpression, expression, because: "key must be a reference the _id field");
+                        }
+
+                        var nLambda = (LambdaExpression)nExpression;
+                        var keyParameter = nLambda.Parameters.Single();
+                        var keySymbol = context.CreateSymbol(keyParameter, keyTranslation.Serializer, isCurrent: true);
+                        var nContext = context.WithSingleSymbol(keySymbol);
+                        nTranslation = ExpressionToAggregationExpressionTranslator.Translate(nContext, nLambda.Body);
+                    }
                     resultSerializer = IEnumerableSerializer.Create(selectorTranslation.Serializer);
                 }
                 else
@@ -118,6 +166,27 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             };
         }
 
+        private static Expression GetSelectorArgument(MethodInfo method, Expression[] arguments)
+        {
+            switch (method.Name)
+            {
+                case "FirstN":
+                case "LastN":
+                case "MaxN":
+                case "MinN":
+                    return arguments[1];
+
+                case "Bottom":
+                case "BottomN":
+                case "Top":
+                case "TopN":
+                    return arguments[2];
+
+                default:
+                    throw new InvalidOperationException($"Method {method.Name} does not have a sortBy argument.");
+            }
+        }
+
         private static object GetSortByDefinition(Expression sortByExpression, Expression expression)
         {
             if (sortByExpression.NodeType == ExpressionType.Constant)
@@ -136,6 +205,20 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             {
                 throw new ExpressionNotSupportedException(sortByExpression, expression, because: $"attempting to evaluate the sortBy expression failed: {ex.Message}");
             }
+        }
+
+        private static bool IsValidKey(AggregationExpression keyTranslation)
+        {
+            if (keyTranslation.Ast is AstGetFieldExpression getFieldExpression &&
+                getFieldExpression.Input is AstVarExpression inputVarExpression &&
+                getFieldExpression.FieldName is AstConstantExpression constantFieldName &&
+                inputVarExpression.Name == "ROOT" &&
+                constantFieldName.Value == "_id")
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private static AstSortFields TranslateSortByDefinition(Expression expression, Expression sortByExpression, object sortByDefinition, IBsonSerializer documentSerializer)
