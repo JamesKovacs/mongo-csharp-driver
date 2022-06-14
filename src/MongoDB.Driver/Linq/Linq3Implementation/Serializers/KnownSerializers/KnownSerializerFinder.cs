@@ -14,6 +14,7 @@
 */
 
 using System;
+using System.Linq;
 using System.Linq.Expressions;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -87,14 +88,14 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Serializers.KnownSerializers
                     {
                         var rightExpressionSerializer = _registry.GetSerializer(rightExpression);
                         var leftExpressionSerializer = EnumUnderlyingTypeSerializer.Create(rightExpressionSerializer);
-                        _registry.AddKnownSerializer(leftExpression, leftExpressionSerializer);
+                        _registry.AddKnownSerializer(leftExpression, leftExpressionSerializer, allowPropagation: false);
                     }
 
                     if (rightExpression is ConstantExpression rightConstantExpression)
                     {
                         var leftExpressionSerializer = _registry.GetSerializer(leftExpression);
                         var rightExpressionSerializer = EnumUnderlyingTypeSerializer.Create(leftExpressionSerializer);
-                        _registry.AddKnownSerializer(rightExpression, rightExpressionSerializer);
+                        _registry.AddKnownSerializer(rightExpression, rightExpressionSerializer, allowPropagation: false);
                     }
                 }
             }
