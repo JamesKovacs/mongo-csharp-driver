@@ -18,13 +18,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Bson.TestHelpers.JsonDrivenTests;
 using MongoDB.Bson.TestHelpers.XunitExtensions;
 using MongoDB.Driver.Core;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.TestHelpers;
-using MongoDB.Driver.Core.TestHelpers.Logging;
 using MongoDB.Driver.Core.TestHelpers.XunitExtensions;
 using MongoDB.Driver.Tests.UnifiedTestOperations.Matchers;
 using Xunit;
@@ -48,8 +48,8 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
         {
             _additionalArgs = additionalArgs; // can be null
             _eventFormatters = eventFormatters; // can be null
-            _loggerFactory = loggerFactory ?? EmptyLoggerFactory.Instance;
-            _logger = _loggerFactory.CreateLogger<UnifiedTestRunner>();
+            _loggerFactory = loggerFactory;
+            _logger = loggerFactory?.CreateLogger<UnifiedTestRunner>();
         }
 
         // public properties
@@ -57,7 +57,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
 
         public void Run(JsonDrivenTestCase testCase)
         {
-            _logger.Debug("Running {0}", testCase.Name);
+            _logger?.LogDebug("Running {0}", testCase.Name);
 
             // Top-level fields
             var schemaVersion = testCase.Shared["schemaVersion"].AsString; // cannot be null
@@ -139,7 +139,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
 
         public void Dispose()
         {
-            _logger.Debug("Disposing");
+            _logger?.LogDebug("Disposing");
 
             if (_failPoints != null)
             {
@@ -157,11 +157,11 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                 // Ignored because Dispose shouldn't fail
             }
 
-            _logger.Debug("Disposing entity map");
+            _logger?.LogDebug("Disposing entity map");
 
             _entityMap?.Dispose();
 
-            _logger.Debug("Disposed");
+            _logger?.LogDebug("Disposed");
         }
 
         // private methods
@@ -178,7 +178,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                     .GetCollection<BsonDocument>(collectionName)
                     .WithWriteConcern(WriteConcern.WMajority);
 
-                _logger.Debug("Dropping {0}", collectionName);
+                _logger?.LogDebug("Dropping {0}", collectionName);
 
                 database.DropCollection(collectionName);
                 if (documents.Any())
@@ -194,7 +194,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
 
         private void AssertEvents(BsonArray eventItems, UnifiedEntityMap entityMap)
         {
-            _logger.Debug("Asserting events");
+            _logger?.LogDebug("Asserting events");
 
             var unifiedEventMatcher = new UnifiedEventMatcher(new UnifiedValueMatcher(entityMap));
             foreach (var eventItem in eventItems.Cast<BsonDocument>())
@@ -245,7 +245,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
 
         private void AssertOutcome(IMongoClient client, BsonArray outcome)
         {
-            _logger.Debug("Asserting outcome");
+            _logger?.LogDebug("Asserting outcome");
 
             foreach (var outcomeItem in outcome)
             {
@@ -322,7 +322,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
             var operationArguments = operation.GetValue("arguments", null)?.AsBsonDocument;
 
 
-            _logger.Debug("Created {0} operation", operationName);
+            _logger?.LogDebug("Created {0} operation", operationName);
 
             return factory.CreateOperation(operationName, operationTarget, operationArguments);
         }

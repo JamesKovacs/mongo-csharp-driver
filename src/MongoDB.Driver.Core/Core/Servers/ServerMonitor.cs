@@ -17,9 +17,11 @@ using System;
 using System.Diagnostics;
 using System.Net;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Events;
+using MongoDB.Driver.Core.Logging;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.WireProtocol;
 
@@ -35,6 +37,7 @@ namespace MongoDB.Driver.Core.Servers
         private readonly EndPoint _endPoint;
         private HeartbeatDelay _heartbeatDelay;
         private readonly object _lock = new object();
+        private readonly EventsLogger _eventsLogger;
         private readonly CancellationToken _monitorCancellationToken; // used to cancel the entire monitor
         private readonly CancellationTokenSource _monitorCancellationTokenSource; // used to cancel the entire monitor
         private readonly IRoundTripTimeMonitor _roundTripTimeMonitor;
@@ -45,11 +48,6 @@ namespace MongoDB.Driver.Core.Servers
 
         private Thread _serverMonitorThread;
 
-        private readonly Action<ServerHeartbeatStartedEvent> _heartbeatStartedEventHandler;
-        private readonly Action<ServerHeartbeatSucceededEvent> _heartbeatSucceededEventHandler;
-        private readonly Action<ServerHeartbeatFailedEvent> _heartbeatFailedEventHandler;
-        private readonly Action<SdamInformationEvent> _sdamInformationEventHandler;
-
         public event EventHandler<ServerDescriptionChangedEventArgs> DescriptionChanged;
 
         public ServerMonitor(
@@ -58,7 +56,8 @@ namespace MongoDB.Driver.Core.Servers
             IConnectionFactory connectionFactory,
             ServerMonitorSettings serverMonitorSettings,
             IEventSubscriber eventSubscriber,
-            ServerApi serverApi)
+            ServerApi serverApi,
+            ILoggerFactory loggerFactory)
             : this(
                 serverId,
                 endPoint,
@@ -70,8 +69,10 @@ namespace MongoDB.Driver.Core.Servers
                     serverId,
                     endPoint,
                     Ensure.IsNotNull(serverMonitorSettings, nameof(serverMonitorSettings)).HeartbeatInterval,
-                    serverApi),
-                serverApi)
+                    serverApi,
+                    loggerFactory?.CreateLogger<RoundTripTimeMonitor>()),
+                serverApi,
+                loggerFactory)
         {
         }
 
@@ -82,7 +83,8 @@ namespace MongoDB.Driver.Core.Servers
             ServerMonitorSettings serverMonitorSettings,
             IEventSubscriber eventSubscriber,
             IRoundTripTimeMonitor roundTripTimeMonitor,
-            ServerApi serverApi)
+            ServerApi serverApi,
+            ILoggerFactory loggerFactory)
         {
             _monitorCancellationTokenSource = new CancellationTokenSource();
             _serverId = Ensure.IsNotNull(serverId, nameof(serverId));
@@ -95,14 +97,12 @@ namespace MongoDB.Driver.Core.Servers
             _roundTripTimeMonitor = Ensure.IsNotNull(roundTripTimeMonitor, nameof(roundTripTimeMonitor));
 
             _state = new InterlockedInt32(State.Initial);
-            eventSubscriber.TryGetEventHandler(out _heartbeatStartedEventHandler);
-            eventSubscriber.TryGetEventHandler(out _heartbeatSucceededEventHandler);
-            eventSubscriber.TryGetEventHandler(out _heartbeatFailedEventHandler);
-            eventSubscriber.TryGetEventHandler(out _sdamInformationEventHandler);
             _serverApi = serverApi;
 
             _monitorCancellationToken = _monitorCancellationTokenSource.Token;
             _heartbeatCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_monitorCancellationToken);
+
+            _eventsLogger = loggerFactory.CreateEventsLogger<IServerMonitor>(eventSubscriber, _serverId);
         }
 
         public ServerDescription Description => Interlocked.CompareExchange(ref _currentDescription, null, null);
@@ -133,6 +133,8 @@ namespace MongoDB.Driver.Core.Servers
         {
             if (_state.TryChange(State.Disposed))
             {
+                _eventsLogger.LogDebug("Disposing");
+
                 _monitorCancellationTokenSource.Cancel();
                 _monitorCancellationTokenSource.Dispose();
                 if (_connection != null)
@@ -140,6 +142,8 @@ namespace MongoDB.Driver.Core.Servers
                     _connection.Dispose();
                 }
                 _roundTripTimeMonitor.Dispose();
+
+                _eventsLogger.LogDebug("Disposed");
             }
         }
 
@@ -147,9 +151,13 @@ namespace MongoDB.Driver.Core.Servers
         {
             if (_state.TryChange(State.Initial, State.Open))
             {
+                _eventsLogger.LogDebug("Initializing");
+
                 _roundTripTimeMonitor.Start();
                 _serverMonitorThread = new Thread(new ParameterizedThreadStart(ThreadStart)) { IsBackground = true };
                 _serverMonitorThread.Start(_monitorCancellationToken);
+
+                _eventsLogger.LogDebug("Initialized");
             }
 
             void ThreadStart(object monitorCancellationToken)
@@ -237,22 +245,11 @@ namespace MongoDB.Driver.Core.Servers
                     catch (Exception unexpectedException)
                     {
                         // if we catch an exception here it's because of a bug in the driver (but we need to defend ourselves against that)
-
-                        var handler = _sdamInformationEventHandler;
-                        if (handler != null)
-                        {
-                            try
-                            {
-                                handler.Invoke(new SdamInformationEvent(() =>
-                                    string.Format(
-                                        "Unexpected exception in ServerMonitor.MonitorServer: {0}",
-                                        unexpectedException.ToString())));
-                            }
-                            catch
-                            {
-                                // ignore any exceptions thrown by the handler (note: event handlers aren't supposed to throw exceptions)
-                            }
-                        }
+                        _eventsLogger.LogAndPublish(new SdamInformationEvent(() =>
+                            string.Format(
+                                "Unexpected exception in ServerMonitor.MonitorServer: {0}",
+                                unexpectedException.ToString())),
+                            unexpectedException);
 
                         // since an unexpected exception was thrown set the server description to Unknown (with the unexpected exception)
                         try
@@ -427,10 +424,8 @@ namespace MongoDB.Driver.Core.Servers
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (_heartbeatStartedEventHandler != null)
-            {
-                _heartbeatStartedEventHandler(new ServerHeartbeatStartedEvent(connection.ConnectionId, connection.Description.HelloResult.TopologyVersion != null));
-            }
+
+            _eventsLogger.LogAndPublish(new ServerHeartbeatStartedEvent(connection.ConnectionId, connection.Description.HelloResult.TopologyVersion != null));
 
             try
             {
@@ -438,19 +433,14 @@ namespace MongoDB.Driver.Core.Servers
                 var helloResult = HelloHelper.GetResult(connection, helloProtocol, cancellationToken);
                 stopwatch.Stop();
 
-                if (_heartbeatSucceededEventHandler != null)
-                {
-                    _heartbeatSucceededEventHandler(new ServerHeartbeatSucceededEvent(connection.ConnectionId, stopwatch.Elapsed, connection.Description.HelloResult.TopologyVersion != null));
-                }
+                _eventsLogger.LogAndPublish(new ServerHeartbeatSucceededEvent(connection.ConnectionId, stopwatch.Elapsed, connection.Description.HelloResult.TopologyVersion != null));
 
                 return helloResult;
             }
             catch (Exception ex)
             {
-                if (_heartbeatFailedEventHandler != null)
-                {
-                    _heartbeatFailedEventHandler(new ServerHeartbeatFailedEvent(connection.ConnectionId, ex, connection.Description.HelloResult.TopologyVersion != null));
-                }
+                _eventsLogger.LogAndPublish(new ServerHeartbeatFailedEvent(connection.ConnectionId, ex, connection.Description.HelloResult.TopologyVersion != null));
+
                 throw;
             }
         }

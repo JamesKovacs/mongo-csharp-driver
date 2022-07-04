@@ -14,6 +14,7 @@
 */
 
 using System.Net;
+using Microsoft.Extensions.Logging;
 using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Configuration;
 using MongoDB.Driver.Core.ConnectionPools;
@@ -35,6 +36,7 @@ namespace MongoDB.Driver.Core.Servers
         private readonly IEventSubscriber _eventSubscriber;
         private readonly ServerApi _serverApi;
         private readonly ServerSettings _settings;
+        private readonly ILoggerFactory _loggerFactory;
 
         // constructors
         public ServerFactory(
@@ -47,7 +49,8 @@ namespace MongoDB.Driver.Core.Servers
             IConnectionPoolFactory connectionPoolFactory,
             IServerMonitorFactory serverMonitoryFactory,
             IEventSubscriber eventSubscriber,
-            ServerApi serverApi)
+            ServerApi serverApi,
+            ILoggerFactory loggerFactory)
         {
             ClusterConnectionModeHelper.EnsureConnectionModeValuesAreValid(clusterConnectionMode, connectionModeSwitch, directConnection);
 
@@ -59,6 +62,7 @@ namespace MongoDB.Driver.Core.Servers
             _serverMonitorFactory = Ensure.IsNotNull(serverMonitoryFactory, nameof(serverMonitoryFactory));
             _eventSubscriber = Ensure.IsNotNull(eventSubscriber, nameof(eventSubscriber));
             _serverApi = serverApi; // can be null
+            _loggerFactory = loggerFactory;
         }
 
         // methods
@@ -74,7 +78,8 @@ namespace MongoDB.Driver.Core.Servers
                         endPoint,
                         _connectionPoolFactory,
                         _eventSubscriber,
-                        _serverApi),
+                        _serverApi,
+                        _loggerFactory?.CreateLogger<IServer>()),
 
                 _ =>
                     new DefaultServer(
@@ -88,7 +93,8 @@ namespace MongoDB.Driver.Core.Servers
                         _connectionPoolFactory,
                         _serverMonitorFactory,
                         _eventSubscriber,
-                        _serverApi)
+                        _serverApi,
+                        _loggerFactory?.CreateLogger<IServer>())
             };
     }
 }

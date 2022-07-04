@@ -34,16 +34,8 @@ namespace MongoDB.Driver.Tests.Specifications.Runner
         {
         }
 
-        public override void Dispose()
-        {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
-
-            base.Dispose();
-        }
-
-        // private methods
-        private void Dispose(bool disposing)
+        // protected methods
+        protected override void Dispose(bool disposing)
         {
             if (disposing)
             {

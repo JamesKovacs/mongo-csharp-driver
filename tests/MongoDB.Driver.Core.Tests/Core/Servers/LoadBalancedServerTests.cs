@@ -30,12 +30,14 @@ using MongoDB.Driver.Core.ConnectionPools;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Events;
 using MongoDB.Driver.Core.TestHelpers;
+using MongoDB.Driver.Core.TestHelpers.Logging;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace MongoDB.Driver.Core.Servers
 {
-    public class LoadBalancedTests
+    public class LoadBalancedTests : LoggableTestClass
     {
         private IClusterClock _clusterClock;
         private ClusterId _clusterId;
@@ -48,7 +50,7 @@ namespace MongoDB.Driver.Core.Servers
         private ServerSettings _settings;
         private LoadBalancedServer _subject;
 
-        public LoadBalancedTests()
+        public LoadBalancedTests(ITestOutputHelper output) : base(output)
         {
             _clusterId = new ClusterId();
             _endPoint = new DnsEndPoint("localhost", 27017);
@@ -68,7 +70,7 @@ namespace MongoDB.Driver.Core.Servers
             _serverApi = new ServerApi(ServerApiVersion.V1, true, true);
             _settings = new ServerSettings(heartbeatInterval: Timeout.InfiniteTimeSpan);
 
-            _subject = new LoadBalancedServer(_clusterId, _clusterClock, _settings, _endPoint, _mockConnectionPoolFactory.Object, _capturedEvents, _serverApi);
+            _subject = new LoadBalancedServer(_clusterId, _clusterClock, _settings, _endPoint, _mockConnectionPoolFactory.Object, _capturedEvents, _serverApi, CreateLogger<IServer>());
             _connectionId = new ConnectionId(_subject.ServerId);
         }
 
@@ -97,13 +99,13 @@ namespace MongoDB.Driver.Core.Servers
         [Fact]
         public void Constructor_should_not_throw_when_serverApi_is_null()
         {
-            _ = new LoadBalancedServer(_clusterId, _clusterClock, _settings, _endPoint, _mockConnectionPoolFactory.Object, _capturedEvents, serverApi: null);
+            _ = new LoadBalancedServer(_clusterId, _clusterClock, _settings, _endPoint, _mockConnectionPoolFactory.Object, _capturedEvents, serverApi: null, null);
         }
 
         [Fact]
         public void Constructor_should_throw_when_settings_is_null()
         {
-            var exception = Record.Exception(() => new LoadBalancedServer(_clusterId, _clusterClock, serverSettings: null, _endPoint, _mockConnectionPoolFactory.Object, _capturedEvents, _serverApi));
+            var exception = Record.Exception(() => new LoadBalancedServer(_clusterId, _clusterClock, serverSettings: null, _endPoint, _mockConnectionPoolFactory.Object, _capturedEvents, _serverApi, null));
 
             exception.Should().BeOfType<ArgumentNullException>();
         }
@@ -111,7 +113,7 @@ namespace MongoDB.Driver.Core.Servers
         [Fact]
         public void Constructor_should_throw_when_clusterId_is_null()
         {
-            var exception = Record.Exception(() => new LoadBalancedServer(clusterId: null, _clusterClock, serverSettings: _settings, _endPoint, _mockConnectionPoolFactory.Object, _capturedEvents, _serverApi));
+            var exception = Record.Exception(() => new LoadBalancedServer(clusterId: null, _clusterClock, serverSettings: _settings, _endPoint, _mockConnectionPoolFactory.Object, _capturedEvents, _serverApi, null));
 
             exception.Should().BeOfType<ArgumentNullException>();
         }
@@ -119,7 +121,7 @@ namespace MongoDB.Driver.Core.Servers
         [Fact]
         public void Constructor_should_throw_when_clusterClock_is_null()
         {
-            var exception = Record.Exception(() => new LoadBalancedServer(_clusterId, clusterClock: null, serverSettings: _settings, _endPoint, _mockConnectionPoolFactory.Object, _capturedEvents, _serverApi));
+            var exception = Record.Exception(() => new LoadBalancedServer(_clusterId, clusterClock: null, serverSettings: _settings, _endPoint, _mockConnectionPoolFactory.Object, _capturedEvents, _serverApi, null));
 
             exception.Should().BeOfType<ArgumentNullException>();
         }
@@ -127,7 +129,7 @@ namespace MongoDB.Driver.Core.Servers
         [Fact]
         public void Constructor_should_throw_when_endPoint_is_null()
         {
-            var exception = Record.Exception(() => new LoadBalancedServer(_clusterId, _clusterClock, serverSettings: _settings, endPoint: null, _mockConnectionPoolFactory.Object, _capturedEvents, _serverApi));
+            var exception = Record.Exception(() => new LoadBalancedServer(_clusterId, _clusterClock, serverSettings: _settings, endPoint: null, _mockConnectionPoolFactory.Object, _capturedEvents, _serverApi, null));
 
             exception.Should().BeOfType<ArgumentNullException>();
         }
@@ -135,7 +137,7 @@ namespace MongoDB.Driver.Core.Servers
         [Fact]
         public void Constructor_should_throw_when_connectionPoolFactory_is_null()
         {
-            var exception = Record.Exception(() => new LoadBalancedServer(_clusterId, _clusterClock, serverSettings: _settings, _endPoint, connectionPoolFactory: null, _capturedEvents, _serverApi));
+            var exception = Record.Exception(() => new LoadBalancedServer(_clusterId, _clusterClock, serverSettings: _settings, _endPoint, connectionPoolFactory: null, _capturedEvents, _serverApi, null));
 
             exception.Should().BeOfType<ArgumentNullException>();
         }
@@ -143,7 +145,7 @@ namespace MongoDB.Driver.Core.Servers
         [Fact]
         public void Constructor_should_throw_when_eventSubscriber_is_null()
         {
-            var exception = Record.Exception(() => new LoadBalancedServer(_clusterId, _clusterClock, serverSettings: _settings, _endPoint, _mockConnectionPoolFactory.Object, eventSubscriber: null, _serverApi));
+            var exception = Record.Exception(() => new LoadBalancedServer(_clusterId, _clusterClock, serverSettings: _settings, _endPoint, _mockConnectionPoolFactory.Object, eventSubscriber: null, _serverApi, null));
 
             exception.Should().BeOfType<ArgumentNullException>();
         }
@@ -197,7 +199,8 @@ namespace MongoDB.Driver.Core.Servers
                 _endPoint,
                 mockConnectionPoolFactory.Object,
                 _capturedEvents,
-                _serverApi);
+                _serverApi,
+                CreateLogger<IServer>());
             server.Initialize();
 
             var exception = Record.Exception(() =>
@@ -346,14 +349,14 @@ namespace MongoDB.Driver.Core.Servers
             connectionFactory.Setup(cf => cf.CreateConnection(serverId, _endPoint)).Returns(mockConnection.Object);
 
             var connectionPoolSettings = new ConnectionPoolSettings();
-            var connectionPool = new ExclusiveConnectionPool(serverId, _endPoint, connectionPoolSettings, connectionFactory.Object, new EventAggregator(), mockConnectionExceptionHandler.Object);
+            var connectionPool = new ExclusiveConnectionPool(serverId, _endPoint, connectionPoolSettings, connectionFactory.Object, new EventAggregator(), mockConnectionExceptionHandler.Object, null);
 
             var mockConnectionPoolFactory = new Mock<IConnectionPoolFactory>();
             mockConnectionPoolFactory
                 .Setup(f => f.CreateConnectionPool(It.IsAny<ServerId>(), _endPoint, It.IsAny<IConnectionExceptionHandler>()))
                 .Returns(connectionPool);
 
-            var subject = new LoadBalancedServer(_clusterId, _clusterClock, _settings, _endPoint, mockConnectionPoolFactory.Object, _capturedEvents, _serverApi);
+            var subject = new LoadBalancedServer(_clusterId, _clusterClock, _settings, _endPoint, mockConnectionPoolFactory.Object, _capturedEvents, _serverApi, CreateLogger<IServer>());
             subject.Initialize();
 
             IChannelHandle channel = null;
@@ -467,7 +470,8 @@ namespace MongoDB.Driver.Core.Servers
                 _endPoint,
                 mockConnectionPoolFactory.Object,
                 _capturedEvents,
-                _serverApi);
+                _serverApi,
+                CreateLogger<IServer>());
             server.Initialize();
 
             return server;

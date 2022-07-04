@@ -16,6 +16,7 @@
 using System;
 using System.Net;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Configuration;
 using MongoDB.Driver.Core.ConnectionPools;
@@ -37,7 +38,8 @@ namespace MongoDB.Driver.Core.Servers
             EndPoint endPoint,
             IConnectionPoolFactory connectionPoolFactory,
             IEventSubscriber eventSubscriber,
-            ServerApi serverApi)
+            ServerApi serverApi,
+            ILogger<IServer> logger)
             : base(
                   clusterId,
                   clusterClock,
@@ -50,7 +52,8 @@ namespace MongoDB.Driver.Core.Servers
                   endPoint,
                   connectionPoolFactory,
                   eventSubscriber,
-                  serverApi)
+                  serverApi,
+                  logger)
         {
             _baseDescription = _currentDescription = new ServerDescription(ServerId, endPoint, reasonChanged: "ServerInitialDescription");
         }

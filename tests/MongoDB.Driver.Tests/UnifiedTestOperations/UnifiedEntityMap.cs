@@ -16,11 +16,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver.Core;
 using MongoDB.Driver.Core.Events;
 using MongoDB.Driver.Core.Misc;
-using MongoDB.Driver.Core.TestHelpers.Logging;
 using MongoDB.Driver.Core.TestHelpers.XunitExtensions;
 using MongoDB.Driver.GridFS;
 using MongoDB.Driver.TestHelpers;
@@ -584,7 +584,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                         };
                     }
                 },
-                _loggerFactory.CreateLogger<DisposableMongoClient>(),
+                _loggerFactory,
                 useMultipleShardRouters);
 
             return (client, clientEventCapturers);

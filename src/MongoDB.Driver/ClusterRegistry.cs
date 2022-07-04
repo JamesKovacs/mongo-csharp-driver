@@ -18,6 +18,7 @@ using System.Linq;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
+using Microsoft.Extensions.Logging;
 using MongoDB.Driver.Core.Authentication;
 using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Configuration;
@@ -52,7 +53,7 @@ namespace MongoDB.Driver
         private readonly Dictionary<ClusterKey, ICluster> _registry = new Dictionary<ClusterKey, ICluster>();
 
         // methods
-        private ICluster CreateCluster(ClusterKey clusterKey)
+        private ICluster CreateCluster(ClusterKey clusterKey, ILoggerFactory loggerFactory)
         {
             var builder = new ClusterBuilder()
                 .ConfigureCluster(settings => ConfigureCluster(settings, clusterKey))
@@ -60,7 +61,8 @@ namespace MongoDB.Driver
                 .ConfigureConnectionPool(settings => ConfigureConnectionPool(settings, clusterKey))
                 .ConfigureConnection(settings => ConfigureConnection(settings, clusterKey))
                 .ConfigureTcp(settings => ConfigureTcp(settings, clusterKey))
-                .ConfigureSdamLogging(settings => ConfigureSdamLogging(settings, clusterKey));
+                .ConfigureSdamLogging(settings => ConfigureSdamLogging(settings, clusterKey))
+                .ConfigureLoggingFactory(_ => loggerFactory);
 
             if (clusterKey.UseTls)
             {
@@ -174,14 +176,14 @@ namespace MongoDB.Driver
                 writeTimeout: clusterKey.SocketTimeout);
         }
 
-        internal ICluster GetOrCreateCluster(ClusterKey clusterKey)
+        internal ICluster GetOrCreateCluster(ClusterKey clusterKey, ILoggerFactory loggerFactory)
         {
             lock (_lock)
             {
                 ICluster cluster;
                 if (!_registry.TryGetValue(clusterKey, out cluster))
                 {
-                    cluster = CreateCluster(clusterKey);
+                    cluster = CreateCluster(clusterKey, loggerFactory);
                     _registry.Add(clusterKey, cluster);
                 }
                 return cluster;
