@@ -1,45 +1,54 @@
-/* Copyright 2010-present MongoDB Inc.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
-
 using System;
-using System.IO;
+using System.Collections.Generic;
 using MongoDB.Bson;
-using MongoDB.Driver.Core.Configuration;
-using MongoDB.Driver.Core.Events.Diagnostics;
+using MongoDB.Driver;
+using MongoDB.Driver.Encryption;
+using MongoDB.Driver.Linq;
 
-namespace MongoDB.Driver.TestConsoleApplication
+var uri = "mongodb+srv://james:aVEQ3ry7Do3O5xS6@cluster0.1foxh.mongodb.net/test?retryWrites=true&w=majority";
+var settings = MongoClientSettings.FromConnectionString(uri);
+settings.LinqProvider = LinqProvider.V3;
+
+var localMasterKey = Convert.FromBase64String("Mng0NCt4ZHVUYUJCa1kxNkVyNUR1QURhZ2h2UzR2d2RrZzh0cFBwM3R6NmdWMDFBMUN3YkQ5aXRRMkhGRGdQV09wOGVNYUMxT2k3NjZKelhaQmRCZGJkTXVyZG9uSjFk");
+var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();
+var localKey = new Dictionary<string, object>
 {
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            //FilterMeasuring.TestAsync().GetAwaiter().GetResult();
-            int numConcurrentWorkers = 50;
-            //new CoreApi().Run(numConcurrentWorkers, ConfigureCluster);
-            new CoreApiSync().Run(numConcurrentWorkers, ConfigureCluster);
+    { "key", localMasterKey }
+};
+kmsProviders.Add("local", localKey);
+var keyVaultNamespace = CollectionNamespace.FromFullName("encryption.__keyVault");
+var autoEncryptionOptions = new AutoEncryptionOptions(keyVaultNamespace, kmsProviders);
 
-            new Api().Run(numConcurrentWorkers, ConfigureCluster);
+settings.AutoEncryptionOptions = autoEncryptionOptions;
+var client = new MongoClient(settings);
+var db = client.GetDatabase("test");
+var collection = db.GetCollection<BsonDocument>("sample_mflix");
 
-            //new LegacyApi().Run(numConcurrentWorkers, ConfigureCluster);
-        }
-
-        private static void ConfigureCluster(ClusterBuilder cb)
-        {
-#if NET472
-            cb.UsePerformanceCounters("test", true);
-#endif
+// Simple search example
+var searchStage = @"
+{
+    $search : {
+        text : {
+            query : 'baseball',
+            path : 'plot'
         }
     }
+}";
+var projection = @"
+{
+    _id : 0,
+    title : 1,
+    plot : 1
+}";
+var pipeline = new EmptyPipelineDefinition<BsonDocument>()
+    .AppendStage<BsonDocument, BsonDocument, BsonDocument>(searchStage)
+    .Limit(5)
+    .Project(projection);
+var moviesAboutBaseball = collection.Aggregate(pipeline).ToList();
+
+Console.WriteLine("Movies about baseball:");
+foreach (var movie in moviesAboutBaseball)
+{
+    Console.WriteLine($"  {movie}");
 }
+Console.WriteLine();
