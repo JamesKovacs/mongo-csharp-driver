@@ -300,7 +300,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToFilter
             if (IsStringLengthComparison(leftExpression) || IsStringCountComparison(leftExpression))
             {
                 return TranslateStringLengthComparison(context, expression, leftExpression, comparisonOperator, rightExpression);
-            }    
+            }
 
             throw new ExpressionNotSupportedException(expression);
         }

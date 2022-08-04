@@ -22,6 +22,7 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Linq;
 using MongoDB.Driver.Linq.Linq3Implementation;
 using MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToExecutableQueryTranslators;
+using static MongoDB.Driver.Tests.DriverTestConfiguration;
 
 namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests
 {
@@ -62,8 +63,8 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests
         {
             return linqProvider switch
             {
-                LinqProvider.V2 => DriverTestConfiguration.Client,
-                LinqProvider.V3 => DriverTestConfiguration.Linq3Client,
+                LinqProvider.V2 => Client,
+                LinqProvider.V3 => Linq3Client,
                 _ => throw new ArgumentException($"Invalid linqProvider: {linqProvider}.", nameof(linqProvider))
             };
         }
