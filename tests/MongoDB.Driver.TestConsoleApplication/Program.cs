@@ -1,45 +1,14 @@
-/* Copyright 2010-present MongoDB Inc.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
-
 using System;
-using System.IO;
+using System.Net.Sockets;
 using MongoDB.Bson;
-using MongoDB.Driver.Core.Configuration;
-using MongoDB.Driver.Core.Events.Diagnostics;
+using MongoDB.Driver;
 
-namespace MongoDB.Driver.TestConsoleApplication
+void Configure(Socket socket) => socket.SetRawSocketOption((int)SocketOptionLevel.Tcp, 0x105, (byte[])BitConverter.GetBytes(1));
+var settings = new MongoClientSettings
 {
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            //FilterMeasuring.TestAsync().GetAwaiter().GetResult();
-            int numConcurrentWorkers = 50;
-            //new CoreApi().Run(numConcurrentWorkers, ConfigureCluster);
-            new CoreApiSync().Run(numConcurrentWorkers, ConfigureCluster);
-
-            new Api().Run(numConcurrentWorkers, ConfigureCluster);
-
-            //new LegacyApi().Run(numConcurrentWorkers, ConfigureCluster);
-        }
-
-        private static void ConfigureCluster(ClusterBuilder cb)
-        {
-#if NET472
-            cb.UsePerformanceCounters("test", true);
-#endif
-        }
-    }
-}
+    ClusterConfigurator = cb => cb.ConfigureTcp(tcp => tcp.With(socketConfigurator: (Action<Socket>)Configure))
+};
+var client = new MongoClient(settings);
+var db = client.GetDatabase("test");
+var result = db.RunCommand<BsonDocument>("{ping:1}");
+Console.WriteLine(result);
