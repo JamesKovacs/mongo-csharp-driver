@@ -169,8 +169,6 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
             _entityMap?.Dispose();
 
             _logger.LogDebug("Disposed");
-
-            _loggerFactory?.Dispose();
         }
 
         // private methods
