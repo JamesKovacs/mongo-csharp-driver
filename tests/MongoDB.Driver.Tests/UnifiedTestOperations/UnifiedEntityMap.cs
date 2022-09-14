@@ -27,6 +27,7 @@ using MongoDB.Driver.Encryption;
 using MongoDB.Driver.GridFS;
 using MongoDB.Driver.TestHelpers;
 using MongoDB.Driver.Tests.Specifications.client_side_encryption;
+using MongoDB.Driver.Tests.UnifiedTestOperations.Matchers;
 
 namespace MongoDB.Driver.Tests.UnifiedTestOperations
 {
@@ -38,6 +39,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
         private readonly Dictionary<string, DisposableMongoClient> _clients;
         private readonly Dictionary<string, ClientEncryption> _clientEncryptions;
         private readonly Dictionary<string, EventCapturer> _clientEventCapturers;
+        private readonly Dictionary<string, Dictionary<string, LogLevel>> _loggingComponents;
         private readonly Dictionary<string, IMongoCollection<BsonDocument>> _collections;
         private readonly Dictionary<string, IEnumerator<BsonDocument>> _cursors;
         private readonly Dictionary<string, IMongoDatabase> _databases;
@@ -49,6 +51,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
         private readonly Dictionary<string, IClientSessionHandle> _sessions;
         private readonly Dictionary<string, BsonDocument> _sessionIds;
         private readonly Dictionary<string, long> _successCounts;
+        private readonly ILoggerFactory _loggerFactory;
 
         // public constructors
         public UnifiedEntityMap(
@@ -57,6 +60,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
             Dictionary<string, DisposableMongoClient> clients,
             Dictionary<string, ClientEncryption> clientEncryptions,
             Dictionary<string, EventCapturer> clientEventCapturers,
+            Dictionary<string, Dictionary<string, LogLevel>> loggingComponents,
             Dictionary<string, IMongoCollection<BsonDocument>> collections,
             Dictionary<string, IEnumerator<BsonDocument>> cursors,
             Dictionary<string, IMongoDatabase> databases,
@@ -66,13 +70,15 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
             Dictionary<string, BsonValue> results,
             Dictionary<string, IClientSessionHandle> sessions,
             Dictionary<string, BsonDocument> sessionIds,
-            Dictionary<string, long> successCounts)
+            Dictionary<string, long> successCounts,
+            ILoggerFactory loggerFactory)
         {
             _buckets = buckets;
             _changeStreams = changeStreams;
             _clients = clients;
             _clientEncryptions = clientEncryptions;
             _clientEventCapturers = clientEventCapturers;
+            _loggingComponents = loggingComponents;
             _collections = collections;
             _cursors = cursors;
             _databases = databases;
@@ -83,6 +89,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
             _sessions = sessions;
             _sessionIds = sessionIds;
             _successCounts = successCounts;
+            _loggerFactory = loggerFactory;
         }
 
         // public properties
@@ -121,12 +128,22 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                 return _errorDocuments;
             }
         }
+
         public Dictionary<string, EventCapturer> EventCapturers
         {
             get
             {
                 ThrowIfDisposed();
                 return _clientEventCapturers;
+            }
+        }
+
+        public Dictionary<string, Dictionary<string, LogLevel>> LoggingComponents
+        {
+            get
+            {
+                ThrowIfDisposed();
+                return _loggingComponents;
             }
         }
 
@@ -145,6 +162,15 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
             {
                 ThrowIfDisposed();
                 return _iterationCounts;
+            }
+        }
+
+        public ILoggerFactory LoggerFactory
+        {
+            get
+            {
+                ThrowIfDisposed();
+                return _loggerFactory;
             }
         }
 
@@ -260,6 +286,21 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                 throw new ObjectDisposedException(nameof(UnifiedEntityMap));
             }
         }
+
+        public void AddEntities(UnifiedEntityMap unifiedEntityMap)
+        {
+            _buckets.AddRange(unifiedEntityMap._buckets);
+            _changeStreams.AddRange(unifiedEntityMap._changeStreams);
+            _clients.AddRange(unifiedEntityMap._clients);
+            _clientEncryptions.AddRange(unifiedEntityMap._clientEncryptions);
+            _clientEventCapturers.AddRange(unifiedEntityMap._clientEventCapturers);
+            _collections.AddRange(unifiedEntityMap._collections);
+            _cursors.AddRange(unifiedEntityMap._cursors);
+            _databases.AddRange(unifiedEntityMap._databases);
+            _loggingComponents.AddRange(unifiedEntityMap._loggingComponents);
+            _sessions.AddRange(unifiedEntityMap._sessions);
+            _sessionIds.AddRange(unifiedEntityMap._sessionIds);
+        }
     }
 
     public class UnifiedEntityMapBuilder
@@ -278,6 +319,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
             var buckets = new Dictionary<string, IGridFSBucket>();
             var changeStreams = new Dictionary<string, IEnumerator<ChangeStreamDocument<BsonDocument>>>();
             var clientEventCapturers = new Dictionary<string, EventCapturer>();
+            var loggingComponents = new Dictionary<string, Dictionary<string, LogLevel>>();
             var clients = new Dictionary<string, DisposableMongoClient>();
             var clientEncryptions = new Dictionary<string, ClientEncryption>();
             var collections = new Dictionary<string, IMongoCollection<BsonDocument>>();
@@ -312,12 +354,14 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                             break;
                         case "client":
                             EnsureIsNotHandled(clients, id);
-                            var (client, eventCapturers) = CreateClient(entity);
+                            var (client, eventCapturers, clientLoggingComponents) = CreateClient(entity);
                             clients.Add(id, client);
                             foreach (var createdEventCapturer in eventCapturers)
                             {
                                 clientEventCapturers.Add(createdEventCapturer.Key, createdEventCapturer.Value);
                             }
+
+                            loggingComponents.Add(id, clientLoggingComponents);
                             break;
                         case "clientEncryption":
                             {
@@ -355,6 +399,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                 clients,
                 clientEncryptions,
                 clientEventCapturers,
+                loggingComponents,
                 collections,
                 cursors,
                 databases,
@@ -364,7 +409,8 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                 results,
                 sessions,
                 sessionIds,
-                successCounts);
+                successCounts,
+                _loggerFactory);
 
             void EnsureIsNotHandled<TEntity>(Dictionary<string, TEntity> dictionary, string key)
             {
@@ -399,15 +445,18 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
             return new GridFSBucket(database);
         }
 
-        private (DisposableMongoClient Client, Dictionary<string, EventCapturer> ClientEventCapturers) CreateClient(BsonDocument entity)
+        private (DisposableMongoClient Client, Dictionary<string, EventCapturer> ClientEventCapturers, Dictionary<string, LogLevel> LoggingComponents)
+            CreateClient(BsonDocument entity)
         {
             string appName = null;
             var clientEventCapturers = new Dictionary<string, EventCapturer>();
+            Dictionary<string, LogLevel> loggingComponents = null;
             string clientId = null;
             var commandNamesToSkipInEvents = new List<string>();
             List<(string Key, IEnumerable<string> Events, List<string> CommandNotToCapture)> eventTypesToCapture = new ();
             bool? loadBalanced = null;
             int? maxPoolSize = null;
+            int? minPoolSize = null;
             bool? observeSensitiveCommands = null;
             var readConcern = ReadConcern.Default;
             var retryReads = true;
@@ -434,6 +483,9 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                                     break;
                                 case "loadBalanced":
                                     loadBalanced = option.Value.ToBoolean();
+                                    break;
+                                case "minPoolSize":
+                                    minPoolSize = option.Value.ToInt32();
                                     break;
                                 case "maxPoolSize":
                                     maxPoolSize = option.Value.ToInt32();
@@ -463,6 +515,12 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                     case "useMultipleMongoses":
                         useMultipleShardRouters = element.Value.AsBoolean;
                         RequireServer.Check().MultipleMongosesIfSharded(required: useMultipleShardRouters);
+                        break;
+                    case "observeLogMessages":
+                        loggingComponents = element.Value.AsBsonDocument
+                            .ToDictionary(
+                                pair => UnifiedLogMatcher.ParseCategory(pair.Name),
+                                pair => UnifiedLogMatcher.ParseLogLevel(pair.Value.AsString));
                         break;
                     case "observeEvents":
                         var observeEvents = element.Value.AsBsonArray.Select(x => x.AsString);
@@ -569,6 +627,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                     settings.ApplicationName = appName;
                     settings.LoadBalanced = loadBalanced.GetValueOrDefault(defaultValue: settings.LoadBalanced);
                     settings.MaxConnectionPoolSize = maxPoolSize.GetValueOrDefault(defaultValue: settings.MaxConnectionPoolSize);
+                    settings.MinConnectionPoolSize = minPoolSize.GetValueOrDefault(defaultValue: settings.MinConnectionPoolSize);
                     settings.RetryReads = retryReads;
                     settings.RetryWrites = retryWrites;
                     settings.ReadConcern = readConcern;
@@ -590,7 +649,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                 _loggerFactory,
                 useMultipleShardRouters);
 
-            return (client, clientEventCapturers);
+            return (client, clientEventCapturers, loggingComponents);
         }
 
         private ClientEncryption CreateClientEncryption(Dictionary<string, DisposableMongoClient> clients, BsonDocument entity)

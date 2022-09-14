@@ -25,7 +25,7 @@ namespace MongoDB.Driver.Core.Events
     /// <summary>
     /// Occurs when the pool is about to be cleared.
     /// </summary>
-    public struct ConnectionPoolClearingEvent
+    public struct ConnectionPoolClearingEvent : IEvent
     {
         private readonly ConnectionPoolSettings _connectionPoolSettings;
         private readonly ObjectId? _serviceId;
@@ -55,6 +55,8 @@ namespace MongoDB.Driver.Core.Events
             _timestamp = DateTime.UtcNow;
             _serviceId = serviceId; // can be null
         }
+
+        EventType IEvent.Type => EventType.ConnectionPoolClearing;
 
         /// <summary>
         /// Gets the cluster identifier.

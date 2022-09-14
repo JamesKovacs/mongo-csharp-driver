@@ -23,7 +23,7 @@ namespace MongoDB.Driver.Core.Events
     /// <summary>
     /// Occurs when a connection fails.
     /// </summary>
-    public struct ConnectionFailedEvent
+    public struct ConnectionFailedEvent : IEvent
     {
         private readonly ConnectionId _connectionId;
         private readonly Exception _exception;
@@ -40,6 +40,8 @@ namespace MongoDB.Driver.Core.Events
             _exception = exception;
             _timestamp = DateTime.UtcNow;
         }
+
+        EventType IEvent.Type => EventType.ConnectionFailed;
 
         /// <summary>
         /// Gets the cluster identifier.

@@ -22,7 +22,7 @@ namespace MongoDB.Driver.Core.Events
     /// <summary>
     /// Occurs after the pool is closed.
     /// </summary>
-    public struct ConnectionPoolClosedEvent
+    public struct ConnectionPoolClosedEvent : IEvent
     {
         private readonly ServerId _serverId;
         private readonly DateTime _timestamp;
@@ -36,6 +36,8 @@ namespace MongoDB.Driver.Core.Events
             _serverId = serverId;
             _timestamp = DateTime.UtcNow;
         }
+
+        EventType IEvent.Type => EventType.ConnectionPoolClosed;
 
         /// <summary>
         /// Gets the cluster identifier.

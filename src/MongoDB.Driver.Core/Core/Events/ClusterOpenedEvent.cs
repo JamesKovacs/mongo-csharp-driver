@@ -22,7 +22,7 @@ namespace MongoDB.Driver.Core.Events
     /// <summary>
     /// Occurs after a cluster is opened.
     /// </summary>
-    public struct ClusterOpenedEvent
+    public struct ClusterOpenedEvent : IEvent
     {
         private readonly ClusterId _clusterId;
         private readonly ClusterSettings _clusterSettings;
@@ -42,6 +42,8 @@ namespace MongoDB.Driver.Core.Events
             _duration = duration;
             _timestamp = DateTime.UtcNow;
         }
+
+        EventType IEvent.Type => EventType.ClusterOpened;
 
         /// <summary>
         /// Gets the cluster identifier.

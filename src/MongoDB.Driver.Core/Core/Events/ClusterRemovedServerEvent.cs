@@ -22,7 +22,7 @@ namespace MongoDB.Driver.Core.Events
     /// <summary>
     /// Occurs after a server has been removed from the cluster.
     /// </summary>
-    public struct ClusterRemovedServerEvent
+    public struct ClusterRemovedServerEvent : IEvent
     {
         private readonly TimeSpan _duration;
         private readonly string _reason;
@@ -42,6 +42,8 @@ namespace MongoDB.Driver.Core.Events
             _duration = duration;
             _timestamp = DateTime.UtcNow;
         }
+
+        EventType IEvent.Type => EventType.ClusterRemovedServer;
 
         /// <summary>
         /// Gets the cluster identifier.

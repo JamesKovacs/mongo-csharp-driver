@@ -22,7 +22,7 @@ namespace MongoDB.Driver.Core.Events
     /// <summary>
     /// Occurs after a server is added to the cluster.
     /// </summary>
-    public struct ClusterAddedServerEvent
+    public struct ClusterAddedServerEvent : IEvent
     {
         private readonly TimeSpan _duration;
         private readonly ServerId _serverId;
@@ -39,6 +39,8 @@ namespace MongoDB.Driver.Core.Events
             _duration = duration;
             _timestamp = DateTime.UtcNow;
         }
+
+        EventType IEvent.Type => EventType.ClusterAddedServer;
 
         /// <summary>
         /// Gets the cluster identifier.

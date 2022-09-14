@@ -21,7 +21,7 @@ namespace MongoDB.Driver.Core.Events
     /// <summary>
     /// An informational event used for logging Server Discovery and Monitoring (SDAM) events.
     /// </summary>
-    public struct SdamInformationEvent
+    public struct SdamInformationEvent : IEvent
     {
         private readonly object _arg0;
         private readonly object[] _args;
@@ -41,6 +41,8 @@ namespace MongoDB.Driver.Core.Events
             this(messageFormat, 1, arg0, null)
         {
         }
+
+        EventType IEvent.Type => EventType.SdamInformation;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SdamInformationEvent"/> struct.

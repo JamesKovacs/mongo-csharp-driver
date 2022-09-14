@@ -22,7 +22,7 @@ namespace MongoDB.Driver.Core.Events
     /// <summary>
     /// Occurs when a connection could not be checked out of the pool.
     /// </summary>
-    public struct ConnectionPoolCheckingOutConnectionFailedEvent
+    public struct ConnectionPoolCheckingOutConnectionFailedEvent : IEvent
     {
         private readonly ConnectionCheckOutFailedReason _reason;
         private readonly ServerId _serverId;
@@ -49,6 +49,8 @@ namespace MongoDB.Driver.Core.Events
             _reason = reason;
             _timestamp = DateTime.UtcNow;
         }
+
+        EventType IEvent.Type => EventType.ConnectionPoolCheckingOutConnectionFailed;
 
         /// <summary>
         /// Gets the cluster identifier.

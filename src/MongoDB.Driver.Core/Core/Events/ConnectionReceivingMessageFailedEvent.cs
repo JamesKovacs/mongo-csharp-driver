@@ -23,7 +23,7 @@ namespace MongoDB.Driver.Core.Events
     /// <summary>
     /// Occurs when a message was unable to be received.
     /// </summary>
-    public struct ConnectionReceivingMessageFailedEvent
+    public struct ConnectionReceivingMessageFailedEvent : IEvent
     {
         private readonly ConnectionId _connectionId;
         private readonly Exception _exception;
@@ -46,6 +46,8 @@ namespace MongoDB.Driver.Core.Events
             _operationId = operationId;
             _timestamp = DateTime.UtcNow;
         }
+
+        EventType IEvent.Type => EventType.ConnectionReceivingMessageFailed;
 
         /// <summary>
         /// Gets the cluster identifier.

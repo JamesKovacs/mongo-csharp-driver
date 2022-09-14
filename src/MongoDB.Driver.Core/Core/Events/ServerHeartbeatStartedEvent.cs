@@ -21,9 +21,9 @@ using MongoDB.Driver.Core.Servers;
 namespace MongoDB.Driver.Core.Events
 {
     /// <summary>
-    /// Occurs when a heartbeat succeeded.
+    /// Occurs before heartbeat is issued.
     /// </summary>
-    public struct ServerHeartbeatStartedEvent
+    public struct ServerHeartbeatStartedEvent : IEvent
     {
         private readonly bool _awaited;
         private readonly ConnectionId _connectionId;
@@ -40,6 +40,8 @@ namespace MongoDB.Driver.Core.Events
             _connectionId = connectionId;
             _timestamp = DateTime.UtcNow;
         }
+
+        EventType IEvent.Type => EventType.ServerHeartbeatStarted;
 
         /// <summary>
         /// Determines if this heartbeat event is for an awaitable hello.

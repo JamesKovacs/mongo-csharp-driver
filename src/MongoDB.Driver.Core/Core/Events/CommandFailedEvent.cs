@@ -23,7 +23,7 @@ namespace MongoDB.Driver.Core.Events
     /// <summary>
     /// Occurs when a command has failed.
     /// </summary>
-    public struct CommandFailedEvent
+    public struct CommandFailedEvent : IEvent
     {
         private readonly string _commandName;
         private readonly ConnectionId _connectionId;
@@ -69,6 +69,8 @@ namespace MongoDB.Driver.Core.Events
             _serviceId = serviceId; // can be null
             _timestamp = DateTime.UtcNow;
         }
+
+        EventType IEvent.Type => EventType.CommandFailed;
 
         /// <summary>
         /// Gets the name of the command.

@@ -24,7 +24,7 @@ namespace MongoDB.Driver.Core.Events
     /// <summary>
     /// Occurs before a message is sent.
     /// </summary>
-    public struct ConnectionSendingMessagesEvent
+    public struct ConnectionSendingMessagesEvent : IEvent
     {
         private readonly ConnectionId _connectionId;
         private readonly long? _operationId;
@@ -44,6 +44,8 @@ namespace MongoDB.Driver.Core.Events
             _operationId = operationId;
             _timestamp = DateTime.UtcNow;
         }
+
+        EventType IEvent.Type => EventType.ConnectionSendingMessages;
 
         /// <summary>
         /// Gets the cluster identifier.

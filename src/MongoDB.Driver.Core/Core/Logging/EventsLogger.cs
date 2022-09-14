@@ -16,501 +16,786 @@
 using System;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver.Core.Events;
-using static MongoDB.Driver.Core.Logging.StructuredLogsTemplates;
 
 namespace MongoDB.Driver.Core.Logging
 {
-    internal sealed class EventsLogger<T> : LoggerDecorator<T>
-        where T : LogCategories.EventCategory
+    internal sealed class EventsLogger<T> where T : LogCategories.EventCategory
     {
         private readonly EventsPublisher _eventsPublisher;
-        private bool _isInformationEnabled;
+        private readonly ILogger<T> _logger;
 
-        public EventsLogger(IEventSubscriber eventSubscriber, ILogger<T> logger, string id) :
-            base(logger, IdParameter, id)
+        public EventsLogger(IEventSubscriber eventSubscriber, ILogger<T> logger)
         {
+            _logger = logger;
             _eventsPublisher = eventSubscriber != null ? new EventsPublisher(eventSubscriber) : null;
-            _isInformationEnabled = Logger?.IsEnabled(LogLevel.Information) == true;
         }
 
-        private string Id => DecorationValue;
+        public ILogger<T> Logger => _logger;
 
-        // All events have information log level
-        public bool IsEventTracked<TEvent>() => _isInformationEnabled || _eventsPublisher?.IsEventTracked<TEvent>() == true;
+        public bool IsEventTracked<TEvent>() where TEvent : struct, IEvent =>
+            Logger?.IsEnabled(GetEventVerbosity<TEvent>()) == true ||
+            _eventsPublisher?.IsEventTracked<TEvent>() == true;
 
-        #region Command
+        private LogLevel GetEventVerbosity<TEvent>() where TEvent : struct, IEvent =>
+            StructuredLogsTemplates.GetTemplate(new TEvent().Type).LogLevel;
 
-        public void LogAndPublish(CommandStartedEvent @event)
+        public void LogAndPublish<TEvent>(TEvent @event) where TEvent : struct, IEvent
+            => LogAndPublish(null, @event);
+
+        public void LogAndPublish<TEvent>(Exception exception, TEvent @event) where TEvent : struct, IEvent
         {
-            if (_isInformationEnabled)
+            var template = StructuredLogsTemplates.GetTemplate(@event.Type);
+
+            if (_logger?.IsEnabled(template.LogLevel) == true)
             {
-                Logger.LogInformation(Id_Message_RequestId_CommandName_Command,
-                    Id,
-                    "Command started",
-                    @event.RequestId,
-                    @event.CommandName,
-                    @event.Command.ToString()); // Convert command to string, as BsonDocument can be disposed
+                var @params = template.GetParams(@event);
+
+                Log(template.LogLevel, template.Template, exception, @params);
             }
 
-            _eventsPublisher?.Publish(EventType.CommandStarted, @event);
+            _eventsPublisher?.Publish(@event);
         }
 
-        public void LogAndPublish(CommandSucceededEvent @event)
+        public void LogAndPublish<TEvent, TArg>(TEvent @event, TArg arg) where TEvent : struct, IEvent
         {
-            Logger?.LogInformation(Id_Message_RequestId_CommandName,
-                Id,
-                "Command succeeded",
-                @event.RequestId,
-                @event.CommandName);
+            var template = StructuredLogsTemplates.GetTemplate(@event.Type);
 
-            _eventsPublisher?.Publish(EventType.CommandSucceeded, @event);
-        }
-
-        public void LogAndPublish(CommandFailedEvent @event)
-        {
-            Logger?.LogInformation(@event.Failure, Id_Message_RequestId_CommandName, Id, "Command failed", @event.RequestId, @event.CommandName);
-
-            _eventsPublisher?.Publish(EventType.CommandFailed, @event);
-        }
-
-        #endregion
-
-        #region Connection
-
-        public void LogAndPublish(ConnectionFailedEvent @event)
-        {
-            Logger?.LogInformation(Id_Message_ServerId, Id, "Failed", @event.ServerId);
-
-            _eventsPublisher?.Publish(EventType.ConnectionFailed, @event);
-        }
-
-        public void LogAndPublish(ConnectionClosingEvent @event)
-        {
-            Logger?.LogInformation(Id_Message_ServerId, Id, "Closing", @event.ServerId);
-
-            _eventsPublisher?.Publish(EventType.ConnectionClosing, @event);
-        }
-
-        public void LogAndPublish(ConnectionClosedEvent @event)
-        {
-            Logger?.LogInformation(Id_Message_ServerId, Id, "Closed", @event.ServerId);
-
-            _eventsPublisher?.Publish(EventType.ConnectionClosed, @event);
-        }
-
-        public void LogAndPublish(ConnectionOpeningEvent @event)
-        {
-            Logger?.LogInformation(Id_Message_ServerId, Id, "Opening", @event.ServerId);
-
-            _eventsPublisher?.Publish(EventType.ConnectionOpening, @event);
-        }
-
-        public void LogAndPublish(ConnectionOpenedEvent @event)
-        {
-            Logger?.LogInformation(Id_Message_ServerId, Id, "Opened", @event.ServerId);
-
-            _eventsPublisher?.Publish(EventType.ConnectionOpened, @event);
-        }
-
-        public void LogAndPublish(ConnectionOpeningFailedEvent @event)
-        {
-            Logger?.LogInformation(@event.Exception, Id_Message_ServerId, Id, "Opening failed", @event.ServerId);
-
-            _eventsPublisher?.Publish(EventType.ConnectionOpeningFailed, @event);
-        }
-
-        public void LogAndPublish(ConnectionReceivingMessageEvent @event)
-        {
-            Logger?.LogInformation(Id_Message_ServerId, Id, "Receiving", @event.ServerId);
-
-            _eventsPublisher?.Publish(EventType.ConnectionReceivingMessage, @event);
-        }
-
-        public void LogAndPublish(ConnectionReceivedMessageEvent @event)
-        {
-            Logger?.LogInformation(Id_Message_ServerId, Id, "Received", @event.ServerId);
-
-            _eventsPublisher?.Publish(EventType.ConnectionReceivedMessage, @event);
-        }
-
-        public void LogAndPublish(ConnectionReceivingMessageFailedEvent @event)
-        {
-            Logger?.LogInformation(@event.Exception, Id_Message_ServerId, Id, "Receiving failed", @event.ServerId);
-
-            _eventsPublisher?.Publish(EventType.ConnectionReceivingMessageFailed, @event);
-        }
-
-        public void LogAndPublish(ConnectionSendingMessagesEvent @event)
-        {
-            Logger?.LogInformation(Id_Message_ServerId, Id, "Sending", @event.ServerId);
-
-            _eventsPublisher?.Publish(EventType.ConnectionSendingMessages, @event);
-        }
-
-        public void LogAndPublish(ConnectionSentMessagesEvent @event)
-        {
-            Logger?.LogInformation(Id_Message_ServerId, Id, "Sent", @event.ServerId);
-
-            _eventsPublisher?.Publish(EventType.ConnectionSentMessages, @event);
-        }
-
-        public void LogAndPublish(ConnectionSendingMessagesFailedEvent @event)
-        {
-            Logger?.LogInformation(@event.Exception, Id_Message_ServerId, Id, "Sending failed", @event.ServerId);
-
-            _eventsPublisher?.Publish(EventType.ConnectionSendingMessagesFailed, @event);
-        }
-
-        #endregion
-
-        #region CMAP
-
-        public void LogAndPublish(ConnectionPoolCheckingOutConnectionEvent @event)
-        {
-            Logger?.LogInformation(Id_Message, Id, "Checking out connection");
-
-            _eventsPublisher?.Publish(EventType.ConnectionPoolCheckingOutConnection, @event);
-        }
-
-        public void LogAndPublish(ConnectionPoolCheckedOutConnectionEvent @event)
-        {
-            Logger?.LogInformation(Id_Message_ConnectionId, Id, "Checked out connection",
-                @event.ConnectionId);
-
-            _eventsPublisher?.Publish(EventType.ConnectionPoolCheckedOutConnection, @event);
-        }
-
-        public void LogAndPublish(ConnectionPoolCheckingOutConnectionFailedEvent @event)
-        {
-            Logger?.LogInformation(@event.Exception,
-                Id_Message_Reason,
-                Id,
-                "Checking out failed with",
-                @event.Reason);
-
-            _eventsPublisher?.Publish(EventType.ConnectionPoolCheckingOutConnectionFailed, @event);
-        }
-
-        public void LogAndPublish(ConnectionPoolCheckingInConnectionEvent @event)
-        {
-            Logger?.LogInformation(Id_Message_ConnectionId,
-                Id,
-                "Checking connection in",
-                @event.ConnectionId);
-
-            _eventsPublisher?.Publish(EventType.ConnectionPoolCheckingInConnection, @event);
-        }
-
-        public void LogAndPublish(ConnectionPoolCheckedInConnectionEvent @event)
-        {
-            Logger?.LogInformation(Id_Message_ConnectionId,
-                Id,
-                "Checked connection in",
-                @event.ConnectionId) ;
-
-            _eventsPublisher?.Publish(EventType.ConnectionPoolCheckedInConnection, @event);
-        }
-
-        public void LogAndPublish(ConnectionPoolAddingConnectionEvent @event)
-        {
-            Logger?.LogInformation(Id_Message, Id, "Adding connection");
-
-            _eventsPublisher?.Publish(EventType.ConnectionPoolAddingConnection, @event); ;
-        }
-
-        public void LogAndPublish(ConnectionPoolAddedConnectionEvent @event)
-        {
-            Logger?.LogInformation(Id_Message_ConnectionId,
-                Id,
-                "Connection added",
-                @event.ConnectionId);
-
-            _eventsPublisher?.Publish(EventType.ConnectionPoolAddedConnection, @event);
-        }
-
-        public void LogAndPublish(ConnectionPoolOpeningEvent @event)
-        {
-            Logger?.LogInformation(Id_Message, Id, "Opening");
-
-            _eventsPublisher?.Publish(EventType.ConnectionPoolOpening, @event);
-        }
-
-        public void LogAndPublish(ConnectionPoolOpenedEvent @event)
-        {
-            Logger?.LogInformation(Id_Message, Id, "Opened");
-
-            _eventsPublisher?.Publish(EventType.ConnectionPoolOpened, @event);
-        }
-
-        public void LogAndPublish(ConnectionPoolReadyEvent @event)
-        {
-            Logger?.LogInformation(Id_Message, Id, "Ready");
-
-            _eventsPublisher?.Publish(EventType.ConnectionPoolReady, @event);
-        }
-
-        public void LogAndPublish(ConnectionPoolClosingEvent @event)
-        {
-            Logger?.LogInformation(Id_Message, Id, "Closing");
-
-            _eventsPublisher?.Publish(EventType.ConnectionPoolClosing, @event);
-        }
-
-        public void LogAndPublish(ConnectionPoolClosedEvent @event)
-        {
-            Logger?.LogInformation(Id_Message, Id, "Closed");
-
-            _eventsPublisher?.Publish(EventType.ConnectionPoolClosed, @event);
-        }
-
-        public void LogAndPublish(ConnectionPoolClearingEvent @event)
-        {
-            Logger?.LogInformation(Id_Message, Id, "Clearing");
-
-            _eventsPublisher?.Publish(EventType.ConnectionPoolClearing, @event);
-        }
-
-        public void LogAndPublish(ConnectionPoolClearedEvent @event)
-        {
-            Logger?.LogInformation(Id_Message, Id, "Cleared");
-
-            _eventsPublisher?.Publish(EventType.ConnectionPoolCleared, @event);
-        }
-
-        public void LogAndPublish(ConnectionPoolRemovingConnectionEvent @event)
-        {
-            Logger?.LogInformation(Id_Message, Id, "Removing");
-
-            _eventsPublisher?.Publish(EventType.ConnectionPoolRemovingConnection, @event);
-        }
-
-        public void LogAndPublish(ConnectionPoolRemovedConnectionEvent @event)
-        {
-            Logger?.LogInformation(Id_Message, Id, "Removed");
-
-            _eventsPublisher?.Publish(EventType.ConnectionPoolRemovedConnection, @event);
-        }
-
-        public void LogAndPublish(ConnectionCreatedEvent @event)
-        {
-            Logger?.LogInformation(Id_Message_ConnectionId,
-                Id,
-                "Connection created",
-                @event.ConnectionId);
-
-            _eventsPublisher?.Publish(EventType.ConnectionCreated, @event);
-        }
-
-        #endregion
-
-        #region Cluster
-
-        public void LogAndPublish(ClusterDescriptionChangedEvent @event)
-        {
-            Logger?.LogInformation(Id_Message_Description,
-                Id,
-                "Description changed",
-                @event.NewDescription);
-
-            _eventsPublisher?.Publish(EventType.ClusterDescriptionChanged, @event);
-        }
-
-        public void LogAndPublish(ClusterSelectingServerEvent @event)
-        {
-            Logger?.LogInformation(Id_Message_OperationId,
-                Id,
-                "Selecting server",
-                @event.OperationId);
-
-            _eventsPublisher?.Publish(EventType.ClusterSelectingServer, @event);
-        }
-
-        public void LogAndPublish(ClusterSelectedServerEvent @event)
-        {
-            Logger?.LogInformation(Id_Message_OperationId,
-                Id,
-                "Selected server",
-                @event.OperationId);
-
-            _eventsPublisher?.Publish(EventType.ClusterSelectedServer, @event);
-        }
-
-        public void LogAndPublish(ClusterSelectingServerFailedEvent @event)
-        {
-            Logger?.LogInformation(@event.Exception,
-                Id_Message_OperationId,
-                Id,
-                "Selecting server failed",
-                @event.OperationId);
-
-            _eventsPublisher?.Publish(EventType.ClusterSelectingServerFailed, @event);
-        }
-
-        public void LogAndPublish(ClusterClosingEvent @event)
-        {
-            Logger?.LogInformation(Id_Message, Id, "Closing");
-
-            _eventsPublisher?.Publish(EventType.ClusterClosing, @event);
-        }
-
-        public void LogAndPublish(ClusterClosedEvent @event)
-        {
-            Logger?.LogInformation(Id_Message, Id, "Closed");
-
-            _eventsPublisher?.Publish(EventType.ClusterClosed, @event);
-        }
-
-        public void LogAndPublish(ClusterOpeningEvent @event)
-        {
-            Logger?.LogInformation(Id_Message, Id, "Opening");
-
-            _eventsPublisher?.Publish(EventType.ClusterOpening, @event);
-        }
-
-        public void LogAndPublish(ClusterOpenedEvent @event)
-        {
-            Logger?.LogInformation(Id_Message, Id, "Opened");
-
-            _eventsPublisher?.Publish(EventType.ClusterOpened, @event);
-        }
-
-        public void LogAndPublish(ClusterAddingServerEvent @event)
-        {
-            Logger?.LogInformation(Id_Message, Id, "Adding");
-
-            _eventsPublisher?.Publish(EventType.ClusterAddingServer, @event);
-        }
-
-        public void LogAndPublish(ClusterAddedServerEvent @event)
-        {
-            Logger?.LogInformation(Id_Message_ServerId, Id, "Added server", @event.ServerId);
-
-            _eventsPublisher?.Publish(EventType.ClusterAddedServer, @event);
-        }
-
-        public void LogAndPublish(ClusterRemovingServerEvent @event)
-        {
-            Logger?.LogInformation(Id_Message_ServerId, Id, "Removing server", @event.ServerId);
-
-            _eventsPublisher?.Publish(EventType.ClusterRemovingServer, @event);
-        }
-
-        public void LogAndPublish(ClusterRemovedServerEvent @event)
-        {
-            Logger?.LogInformation(Id_Message_ServerId_Reason_Duration,
-                Id,
-                "Removed server",
-                @event.ServerId,
-                @event.Reason,
-                @event.Duration);
-
-            _eventsPublisher?.Publish(EventType.ClusterRemovedServer, @event);
-        }
-
-        public void LogAndPublish(SdamInformationEvent @event)
-        {
-            Logger?.LogInformation(Id_Message_Information, Id, "SdamInformation", @event.Message);
-
-            try
+            if (_logger?.IsEnabled(template.LogLevel) == true)
             {
-                _eventsPublisher?.Publish(EventType.SdamInformation, @event);
+                var @params = template.GetParams(@event, arg);
+                Log(template.LogLevel, template.Template, exception: null, @params);
             }
-            catch (Exception publishException)
+
+            _eventsPublisher?.Publish(@event);
+        }
+
+        private void Log(LogLevel logLevel, string template, Exception exception, object[] @params)
+        {
+            switch (logLevel)
             {
-                Logger?.LogDebug(publishException, "Failed publishing SdamInformationEvent event");
+                case LogLevel.Trace: _logger.LogTrace(exception, template, @params); break;
+                case LogLevel.Debug: _logger.LogDebug(exception, template, @params); break;
+                case LogLevel.Information: _logger.LogInformation(exception, template, @params); break;
+                case LogLevel.Warning: _logger.LogWarning(exception, template, @params); break;
+                case LogLevel.Error: _logger.LogError(exception, template, @params); break;
+                case LogLevel.Critical: _logger.LogCritical(exception, template, @params); break;
+                default: throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, "Unsupported log level.");
             }
         }
 
-        public void LogAndPublish(Exception ex, SdamInformationEvent @event)
-        {
-            Logger?.LogInformation(ex, Id_Message_Information, Id, "SdamInformation", @event.Message);
+        //public void Log<TEvent>(TEvent @event, Action<TEvent> paramsExtractor) where TEvent : struct, IEvent
+        //{
+        //    if (Logger?.IsEnabled(__eventsVerbosity[(int)@event.Type]) == true)
+        //    {
+        //        var format = GetTemplate(@event);
+        //        var @params = GetParams(@event);
+        //    }
 
-            try
-            {
-                _eventsPublisher?.Publish(EventType.SdamInformation, @event);
-            }
-            catch (Exception publishException)
-            {
-                Logger?.LogDebug(publishException, "Failed publishing SdamInformationEvent event");
-            }
-        }
+        //    _eventsPublisher?.Publish(@event);
+        //}
 
-        #endregion
+        //public object[] GetParams2(CommandStartedEvent @event) => null;
 
-        #region SDAM
+        //#region Command
 
-        public void LogAndPublish(ServerHeartbeatStartedEvent @event)
-        {
-            Logger?.LogInformation(Id_Message_ConnectionId, Id, "Heartbeat started", @event.ConnectionId);
+        //public void LogAndPublish(CommandStartedEvent @event)
+        //{
+        //    if (_isDebugEnabled)
+        //    {
+        //        var (host, port) = @event.ConnectionId.ServerId.EndPoint.GetHostAndPort();
+        //        Logger.LogDebug(
+        //            GetTemplate(@event),
+        //            @event.ConnectionId.ServerId.ClusterId.Value,
+        //            @event.ConnectionId.LocalValue,
+        //            @event.RequestId,
+        //            @event.OperationId,
+        //            host,
+        //            port,
+        //            @event.ConnectionId.ServerValue,
+        //            @event.ServiceId,
+        //            "Command started",
+        //            @event.CommandName,
+        //            @event.DatabaseNamespace.DatabaseName,
+        //            @event.Command?.ToString());
+        //    }
 
-            _eventsPublisher?.Publish(EventType.ServerHeartbeatStarted, @event);
-        }
+        //    _eventsPublisher?.Publish(@event);
+        //}
 
-        public void LogAndPublish(ServerHeartbeatSucceededEvent @event)
-        {
-            Logger?.LogInformation(Id_Message_ConnectionId, Id, "Heartbeat succeeded", @event.ConnectionId);
+        //public void LogAndPublish(CommandSucceededEvent @event)
+        //{
+        //    if (_isDebugEnabled)
+        //    {
+        //        var (host, port) = @event.ConnectionId.ServerId.EndPoint.GetHostAndPort();
+        //        Logger.LogDebug(
+        //            GetTemplate(@event),
+        //            @event.ConnectionId.ServerId.ClusterId.Value,
+        //            @event.ConnectionId.LocalValue,
+        //            @event.RequestId,
+        //            @event.OperationId,
+        //            host,
+        //            port,
+        //            @event.ConnectionId.ServerValue,
+        //            @event.ServiceId,
+        //            "Command succeeded",
+        //            @event.CommandName,
+        //            @event.Duration.TotalMilliseconds,
+        //            @event.Reply?.ToString());
+        //    }
 
-            _eventsPublisher?.Publish(EventType.ServerHeartbeatSucceeded, @event);
-        }
+        //    _eventsPublisher?.Publish(@event);
+        //}
 
-        public void LogAndPublish(ServerHeartbeatFailedEvent @event)
-        {
-            Logger?.LogInformation(@event.Exception, Id_Message_ConnectionId, Id, "Heartbeat failed", @event.ConnectionId);
+        //public void LogAndPublish(CommandFailedEvent @event)
+        //{
+        //    if (_isDebugEnabled)
+        //    {
+        //        var (host, port) = @event.ConnectionId.ServerId.EndPoint.GetHostAndPort();
+        //        Logger.LogDebug(
+        //            @event.Failure,
+        //            GetTemplate(@event),
+        //            @event.ConnectionId.ServerId.ClusterId.Value,
+        //            @event.ConnectionId.LocalValue,
+        //            @event.RequestId,
+        //            @event.OperationId,
+        //            host,
+        //            port,
+        //            @event.ConnectionId.ServerValue,
+        //            @event.ServiceId,
+        //            "Command failed",
+        //            @event.CommandName,
+        //            @event.Duration.TotalMilliseconds,
+        //            @event.Failure.ToString());
+        //    }
 
-            _eventsPublisher?.Publish(EventType.ServerHeartbeatFailed, @event);
-        }
+        //    _eventsPublisher?.Publish(@event);
+        //}
 
-        public void LogAndPublish(SdamInformationEvent @event, Exception ex)
-        {
-            Logger?.LogInformation(ex, Id_Message_Information, Id, "SdamInformation", @event.Message);
+        //#endregion
 
-            try
-            {
-                _eventsPublisher?.Publish(EventType.SdamInformation, @event);
-            }
-            catch (Exception publishException)
-            {
-                // Ignore any exceptions thrown by the handler (note: event handlers aren't supposed to throw exceptions)
-                // Backward compatibility
-                Logger?.LogWarning(publishException, "Failed publishing event {Event}", @event);
-            }
-        }
+        //#region Connection
 
-        public void LogAndPublish(ServerOpeningEvent @event)
-        {
-            Logger?.LogInformation(Id_Message, Id, "Opening");
+        //public void LogAndPublish(ConnectionFailedEvent @event)
+        //{
+        //    if (_isDebugEnabled)
+        //    {
+        //        var (host, port) = @event.ServerId.EndPoint.GetHostAndPort();
+        //        Logger.LogDebug(
+        //            @event.Exception,
+        //            GetTemplate(@event),
+        //            @event.ServerId.ClusterId.Value,
+        //            @event.ConnectionId.LocalValue,
+        //            host,
+        //            port,
+        //            "Connection failed",
+        //            @event.Exception.ToString());
+        //    }
 
-            _eventsPublisher?.Publish(EventType.ServerOpening, @event);
-        }
+        //    _eventsPublisher?.Publish(@event);
+        //}
 
-        public void LogAndPublish(ServerOpenedEvent @event)
-        {
-            Logger?.LogInformation(Id_Message, Id, "Opened");
+        //public void LogAndPublish(ConnectionClosingEvent @event)
+        //{
+        //    if (_isDebugEnabled)
+        //    {
+        //        var (host, port) = @event.ServerId.EndPoint.GetHostAndPort();
+        //        Logger.LogDebug(
+        //            GetTemplate(@event),
+        //            @event.ServerId.ClusterId.Value,
+        //            @event.ConnectionId.LocalValue,
+        //            host,
+        //            port,
+        //            "Connection closing",
+        //            "Unknown");
+        //    }
 
-            _eventsPublisher?.Publish(EventType.ServerOpened, @event);
-        }
+        //    _eventsPublisher?.Publish(@event);
+        //}
 
-        public void LogAndPublish(ServerClosingEvent @event)
-        {
-            Logger?.LogInformation(Id_Message, Id, "Closing");
+        //public void LogAndPublish(ConnectionClosedEvent @event)
+        //{
+        //    if (_isDebugEnabled)
+        //    {
+        //        Logger.LogDebug(GetTemplate(@event), GetParams(@event.ConnectionId, "Unknown"));
+        //    }
 
-            _eventsPublisher?.Publish(EventType.ServerClosing, @event);
-        }
+        //    _eventsPublisher?.Publish(@event);
+        //}
 
-        public void LogAndPublish(ServerClosedEvent @event)
-        {
-            Logger?.LogInformation(Id_Message, Id, "Closed");
+        //public void LogAndPublish(ConnectionOpeningEvent @event)
+        //{
+        //    if (_isDebugEnabled)
+        //    {
+        //        var (host, port) = @event.ServerId.EndPoint.GetHostAndPort();
+        //        Logger.LogDebug(
+        //            GetTemplate(@event),
+        //            @event.ServerId.ClusterId.Value,
+        //            @event.ConnectionId.LocalValue,
+        //            host,
+        //            port,
+        //            "Connection opening");
+        //    }
 
-            _eventsPublisher?.Publish(EventType.ServerClosed, @event);
-        }
+        //    _eventsPublisher?.Publish(@event);
+        //}
 
-        public void LogAndPublish(ServerDescriptionChangedEvent @event)
-        {
-            Logger?.LogInformation(Id_Message_Description, Id, "Description changed", @event.NewDescription);
+        //public void LogAndPublish(ConnectionOpenedEvent @event)
+        //{
+        //    //LogDebug(@event.ConnectionId, me);
+        //    if (_isDebugEnabled)
+        //    {
+        //        var (host, port) = @event.ServerId.EndPoint.GetHostAndPort();
+        //        Logger.LogDebug(
+        //            GetTemplate(@event),
+        //            @event.ServerId.ClusterId.Value,
+        //            @event.ConnectionId.LocalValue,
+        //            host,
+        //            port,
+        //            "Connection ready");
+        //    }
 
-            _eventsPublisher?.Publish(EventType.ServerDescriptionChanged, @event);
-        }
+        //    _eventsPublisher?.Publish(@event);
+        //}
 
-        #endregion
+        //public void LogAndPublish(ConnectionOpeningFailedEvent @event)
+        //{
+        //    if (_isDebugEnabled)
+        //    {
+        //        var (host, port) = @event.ServerId.EndPoint.GetHostAndPort();
+        //        Logger.LogDebug(
+        //            GetTemplate(@event),
+        //            @event.ServerId.ClusterId.Value,
+        //            @event.ConnectionId.LocalValue,
+        //            host,
+        //            port,
+        //            "Connection opening failed");
+        //    }
+
+        //    Logger?.LogDebug(@event.Exception, Id_Message_ServerId, Id, "Opening failed", @event.ServerId);
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ConnectionReceivingMessageEvent @event)
+        //{
+        //    if (_isTraceEnabled)
+        //    {
+        //        var (host, port) = @event.ServerId.EndPoint.GetHostAndPort();
+        //        Logger.LogTrace(
+        //            GetTemplate(@event),
+        //            @event.ServerId.ClusterId.Value,
+        //            @event.ConnectionId.LocalValue,
+        //            host,
+        //            port,
+        //            "Receiving");
+        //    }
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ConnectionReceivedMessageEvent @event)
+        //{
+        //    Logger?.LogDebug(Id_Message_ServerId, Id, "Received", @event.ServerId);
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ConnectionReceivingMessageFailedEvent @event)
+        //{
+        //    Logger?.LogDebug(@event.Exception, Id_Message_ServerId, Id, "Receiving failed", @event.ServerId);
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ConnectionSendingMessagesEvent @event)
+        //{
+        //    Logger?.LogDebug(Id_Message_ServerId, Id, "Sending", @event.ServerId);
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ConnectionSentMessagesEvent @event)
+        //{
+        //    Logger?.LogDebug(Id_Message_ServerId, Id, "Sent", @event.ServerId);
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ConnectionSendingMessagesFailedEvent @event)
+        //{
+        //    Logger?.LogDebug(@event.Exception, Id_Message_ServerId, Id, "Sending failed", @event.ServerId);
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //#endregion
+
+        //#region CMAP
+
+        //public void LogAndPublish(ConnectionPoolCheckingOutConnectionEvent @event)
+        //{
+        //    if (_isDebugEnabled)
+        //    {
+        //        var (host, port) = @event.ServerId.EndPoint.GetHostAndPort();
+        //        Logger?.LogDebug(
+        //            GetTemplate(@event),
+        //            @event.ServerId.ClusterId.Value,
+        //            host,
+        //            port,
+        //            "Connection checkout started");
+        //    }
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ConnectionPoolCheckedOutConnectionEvent @event)
+        //{
+        //    if (_isDebugEnabled)
+        //    {
+        //        var (host, port) = @event.ServerId.EndPoint.GetHostAndPort();
+        //        Logger?.LogDebug(
+        //            GetTemplate(@event),
+        //            @event.ServerId.ClusterId.Value,
+        //            host,
+        //            port,
+        //            "Connection checked out",
+        //            @event.ConnectionId.LocalValue);
+        //    }
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ConnectionPoolCheckingOutConnectionFailedEvent @event)
+        //{
+        //    if (_isDebugEnabled)
+        //    {
+        //        var (host, port) = @event.ServerId.EndPoint.GetHostAndPort();
+        //        Logger?.LogDebug(
+        //            GetTemplate(@event),
+        //            @event.ServerId.ClusterId.Value,
+        //            host,
+        //            port,
+        //            "Connection checkout failed",
+        //            @event.Reason.ToString());
+        //    }
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ConnectionPoolCheckingInConnectionEvent @event)
+        //{
+        //    if (_isDebugEnabled)
+        //    {
+        //        var (host, port) = @event.ServerId.EndPoint.GetHostAndPort();
+        //        Logger?.LogDebug(
+        //            GetTemplate(@event),
+        //            @event.ServerId.ClusterId.Value,
+        //            host,
+        //            port,
+        //            "Connection checking in",
+        //            @event.ConnectionId.LocalValue);
+        //    }
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ConnectionPoolCheckedInConnectionEvent @event)
+        //{
+        //    if (_isDebugEnabled)
+        //    {
+        //        var (host, port) = @event.ServerId.EndPoint.GetHostAndPort();
+        //        Logger?.LogDebug(
+        //            GetTemplate(@event),
+        //            @event.ServerId.ClusterId.Value,
+        //            host,
+        //            port,
+        //            "Connection checked in",
+        //            @event.ConnectionId.LocalValue);
+        //    }
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ConnectionPoolAddingConnectionEvent @event)
+        //{
+        //    if (_isDebugEnabled)
+        //    {
+        //        var (host, port) = @event.ServerId.EndPoint.GetHostAndPort();
+        //        Logger?.LogDebug(
+        //            GetTemplate(@event),
+        //            @event.ServerId.ClusterId.Value,
+        //            host,
+        //            port,
+        //            "Connection adding");
+        //    }
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ConnectionPoolAddedConnectionEvent @event)
+        //{
+        //    if (_isDebugEnabled)
+        //    {
+        //        var (host, port) = @event.ServerId.EndPoint.GetHostAndPort();
+        //        Logger.LogDebug(
+        //            GetTemplate(@event),
+
+        //            @event.ServerId.ClusterId.Value,
+        //            @event.ConnectionId.LocalValue,
+        //            host,
+        //            port,
+        //            "Connection added");
+        //    }
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ConnectionPoolOpeningEvent @event, ConnectionSettings connectionSettings)
+        //{
+        //    if (_isDebugEnabled)
+        //    {
+        //        var (host, port) = @event.ServerId.EndPoint.GetHostAndPort();
+        //        var poolSettings = @event.ConnectionPoolSettings;
+
+        //        Logger?.LogDebug(
+        //            GetTemplate(@event),
+        //            @event.ServerId.ClusterId.Value,
+        //            host,
+        //            port,
+        //            "Connection pool creating",
+        //            connectionSettings?.MaxIdleTime,
+        //            poolSettings.WaitQueueTimeout.TotalMilliseconds,
+        //            poolSettings.MinConnections,
+        //            poolSettings.MaxConnections,
+        //            poolSettings.MaxConnecting);
+        //    }
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ConnectionPoolOpenedEvent @event, ConnectionSettings connectionSettings)
+        //{
+        //    if (_isDebugEnabled)
+        //    {
+        //        var (host, port) = @event.ServerId.EndPoint.GetHostAndPort();
+        //        var poolSettings = @event.ConnectionPoolSettings;
+
+        //        Logger?.LogDebug(
+        //            GetTemplate(@event),
+        //            @event.ServerId.ClusterId.Value,
+        //            host,
+        //            port,
+        //            "Connection pool created",
+        //            connectionSettings?.MaxIdleTime,
+        //            poolSettings.MinConnections,
+        //            poolSettings.MaxConnections,
+        //            poolSettings.MaxConnecting);
+        //    }
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ConnectionPoolReadyEvent @event)
+        //{
+        //    if (_isDebugEnabled)
+        //    {
+        //        var (host, port) = @event.ServerId.EndPoint.GetHostAndPort();
+        //        Logger.LogDebug(
+        //            GetTemplate(@event),
+        //            @event.ServerId.ClusterId.Value,
+        //            host,
+        //            port,
+        //            "Connection pool ready");
+        //    }
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ConnectionPoolClosingEvent @event)
+        //{
+        //    Logger?.LogDebug(Id_Message, Id, "Closing");
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ConnectionPoolClosedEvent @event)
+        //{
+        //    if (_isDebugEnabled)
+        //    {
+        //        var (host, port) = @event.ServerId.EndPoint.GetHostAndPort();
+        //        Logger.LogDebug(
+        //            GetTemplate(@event),
+        //            @event.ServerId.ClusterId.Value,
+        //            host,
+        //            port,
+        //            "Connection pool closed");
+        //    }
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ConnectionPoolClearingEvent @event)
+        //{
+        //    Logger?.LogDebug(Id_Message, Id, "Clearing");
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ConnectionPoolClearedEvent @event)
+        //{
+        //    var (host, port) = @event.ServerId.EndPoint.GetHostAndPort();
+        //    Logger?.LogDebug(
+        //        GetTemplate(@event),
+        //        @event.ServerId.ClusterId.Value,
+        //        host,
+        //        port,
+        //        "Connection pool cleared",
+        //        @event.ServiceId);
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ConnectionPoolRemovingConnectionEvent @event)
+        //{
+        //    Logger?.LogDebug(Id_Message, Id, "Removing");
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ConnectionPoolRemovedConnectionEvent @event)
+        //{
+        //    Logger?.LogDebug(Id_Message, Id, "Removed");
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ConnectionCreatedEvent @event)
+        //{
+        //    if (_isDebugEnabled)
+        //    {
+        //        var (host, port) = @event.ServerId.EndPoint.GetHostAndPort();
+        //        Logger?.LogDebug(
+        //            GetTemplate(@event),
+        //            @event.ServerId.ClusterId.Value,
+        //            @event.ConnectionId.LocalValue,
+        //            host,
+        //            port,
+        //            "Connection created");
+        //    }
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //#endregion
+
+        //#region Cluster
+
+        //public void LogAndPublish(ClusterDescriptionChangedEvent @event)
+        //{
+        //    Logger?.LogInformation(Id_Message_Description,
+        //        Id,
+        //        "Description changed",
+        //        @event.NewDescription);
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ClusterSelectingServerEvent @event)
+        //{
+        //    Logger?.LogInformation(Id_Message_OperationId,
+        //        Id,
+        //        "Selecting server",
+        //        @event.OperationId);
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ClusterSelectedServerEvent @event)
+        //{
+        //    Logger?.LogInformation(Id_Message_OperationId,
+        //        Id,
+        //        "Selected server",
+        //        @event.OperationId);
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ClusterSelectingServerFailedEvent @event)
+        //{
+        //    Logger?.LogInformation(@event.Exception,
+        //        Id_Message_OperationId,
+        //        Id,
+        //        "Selecting server failed",
+        //        @event.OperationId);
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ClusterClosingEvent @event)
+        //{
+        //    Logger?.LogInformation(Id_Message, Id, "Closing");
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ClusterClosedEvent @event)
+        //{
+        //    Logger?.LogInformation(Id_Message, Id, "Closed");
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ClusterOpeningEvent @event)
+        //{
+        //    Logger?.LogInformation(Id_Message, Id, "Opening");
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ClusterOpenedEvent @event)
+        //{
+        //    Logger?.LogInformation(Id_Message, Id, "Opened");
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ClusterAddingServerEvent @event)
+        //{
+        //    Logger?.LogInformation(Id_Message, Id, "Adding");
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ClusterAddedServerEvent @event)
+        //{
+        //    Logger?.LogInformation(Id_Message_ServerId, Id, "Added server", @event.ServerId);
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ClusterRemovingServerEvent @event)
+        //{
+        //    Logger?.LogInformation(Id_Message_ServerId, Id, "Removing server", @event.ServerId);
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ClusterRemovedServerEvent @event)
+        //{
+        //    Logger?.LogInformation(Id_Message_ServerId_Reason_Duration,
+        //        Id,
+        //        "Removed server",
+        //        @event.ServerId,
+        //        @event.Reason,
+        //        @event.Duration);
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(SdamInformationEvent @event)
+        //{
+        //    Logger?.LogInformation(Id_Message_Information, Id, "SdamInformation", @event.Message);
+
+        //    try
+        //    {
+        //        _eventsPublisher?.Publish(@event);
+        //    }
+        //    catch (Exception publishException)
+        //    {
+        //        Logger?.LogDebug(publishException, "Failed publishing SdamInformationEvent event");
+        //    }
+        //}
+
+        //public void LogAndPublish(Exception ex, SdamInformationEvent @event)
+        //{
+        //    Logger?.LogInformation(ex, Id_Message_Information, Id, "SdamInformation", @event.Message);
+
+        //    try
+        //    {
+        //        _eventsPublisher?.Publish(@event);
+        //    }
+        //    catch (Exception publishException)
+        //    {
+        //        Logger?.LogDebug(publishException, "Failed publishing SdamInformationEvent event");
+        //    }
+        //}
+
+        //#endregion
+
+        //#region SDAM
+
+        //public void LogAndPublish(ServerHeartbeatStartedEvent @event)
+        //{
+        //    Logger?.LogInformation(Id_Message_ConnectionId, Id, "Heartbeat started", @event.ConnectionId);
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ServerHeartbeatSucceededEvent @event)
+        //{
+        //    Logger?.LogInformation(Id_Message_ConnectionId, Id, "Heartbeat succeeded", @event.ConnectionId);
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ServerHeartbeatFailedEvent @event)
+        //{
+        //    Logger?.LogInformation(@event.Exception, Id_Message_ConnectionId, Id, "Heartbeat failed", @event.ConnectionId);
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(SdamInformationEvent @event, Exception ex)
+        //{
+        //    Logger?.LogInformation(ex, Id_Message_Information, Id, "SdamInformation", @event.Message);
+
+        //    try
+        //    {
+        //        _eventsPublisher?.Publish(@event);
+        //    }
+        //    catch (Exception publishException)
+        //    {
+        //        // Ignore any exceptions thrown by the handler (note: event handlers aren't supposed to throw exceptions)
+        //        // Backward compatibility
+        //        Logger?.LogWarning(publishException, "Failed publishing event {Event}", @event);
+        //    }
+        //}
+
+        //public void LogAndPublish(ServerOpeningEvent @event)
+        //{
+        //    Logger?.LogInformation(Id_Message, Id, "Opening");
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ServerOpenedEvent @event)
+        //{
+        //    Logger?.LogInformation(Id_Message, Id, "Opened");
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ServerClosingEvent @event)
+        //{
+        //    Logger?.LogInformation(Id_Message, Id, "Closing");
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ServerClosedEvent @event)
+        //{
+        //    Logger?.LogInformation(Id_Message, Id, "Closed");
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //public void LogAndPublish(ServerDescriptionChangedEvent @event)
+        //{
+        //    Logger?.LogInformation(Id_Message_Description, Id, "Description changed", @event.NewDescription);
+
+        //    _eventsPublisher?.Publish(@event);
+        //}
+
+        //#endregion
     }
 }

@@ -23,7 +23,7 @@ namespace MongoDB.Driver.Core.Events
     /// <summary>
     /// Occurs after a connection is checked out of the pool.
     /// </summary>
-    public struct ConnectionPoolCheckedOutConnectionEvent
+    public struct ConnectionPoolCheckedOutConnectionEvent : IEvent
     {
         private readonly ConnectionId _connectionId;
         private readonly TimeSpan _duration;
@@ -43,6 +43,8 @@ namespace MongoDB.Driver.Core.Events
             _operationId = operationId;
             _timestamp = DateTime.UtcNow;
         }
+
+        EventType IEvent.Type => EventType.ConnectionPoolCheckedOutConnection;
 
         /// <summary>
         /// Gets the cluster identifier.

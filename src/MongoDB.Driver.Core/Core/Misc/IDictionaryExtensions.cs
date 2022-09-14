@@ -13,17 +13,18 @@
 * limitations under the License.
 */
 
-using MongoDB.Driver.Core.Clusters;
-using MongoDB.Driver.Core.Connections;
-using MongoDB.Driver.Core.Misc;
-using MongoDB.Driver.Core.Servers;
+using System.Collections.Generic;
 
-namespace MongoDB.Driver.Core.Logging
+namespace MongoDB.Driver.Core
 {
-    internal static class LoggerIdFormatter
+    internal static class IDictionaryExtensions
     {
-        public static string FormatId(ConnectionId connectionId) => $"{connectionId.LocalValue}";
-        public static string FormatId(ServerId serverId) => $"{serverId.ClusterId.Value}_{EndPointHelper.ToString(serverId.EndPoint)}";
-        public static string FormatId(ClusterId clusterId) => clusterId.ToString();
+        public static void AddRange<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, IEnumerable<KeyValuePair<TKey, TValue>> values)
+        {
+            foreach (var p in values)
+            {
+                dictionary.Add(p);
+            }
+        }
     }
 }

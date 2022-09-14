@@ -21,7 +21,7 @@ namespace MongoDB.Driver.Core.Events
     /// <summary>
     /// Occurs after a cluster is closed.
     /// </summary>
-    public struct ClusterClosedEvent
+    public struct ClusterClosedEvent : IEvent
     {
         private readonly ClusterId _clusterId;
         private readonly TimeSpan _duration;
@@ -38,6 +38,8 @@ namespace MongoDB.Driver.Core.Events
             _duration = duration;
             _timestamp = DateTime.UtcNow;
         }
+
+        EventType IEvent.Type => EventType.ClusterClosed;
 
         /// <summary>
         /// Gets the cluster identifier.

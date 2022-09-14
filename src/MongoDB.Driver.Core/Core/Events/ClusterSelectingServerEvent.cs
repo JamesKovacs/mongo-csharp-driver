@@ -22,7 +22,7 @@ namespace MongoDB.Driver.Core.Events
     /// <summary>
     /// Occurs before a server is selected.
     /// </summary>
-    public struct ClusterSelectingServerEvent
+    public struct ClusterSelectingServerEvent : IEvent
     {
         private readonly ClusterDescription _clusterDescription;
         private readonly long? _operationId;
@@ -42,6 +42,8 @@ namespace MongoDB.Driver.Core.Events
             _operationId = operationId;
             _timestamp = DateTime.UtcNow;
         }
+
+        EventType IEvent.Type => EventType.ClusterSelectingServer;
 
         /// <summary>
         /// Gets the cluster identifier.

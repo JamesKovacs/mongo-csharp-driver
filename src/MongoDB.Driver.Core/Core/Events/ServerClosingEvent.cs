@@ -22,7 +22,7 @@ namespace MongoDB.Driver.Core.Events
     /// <summary>
     /// Occurs before a server is closed.
     /// </summary>
-    public struct ServerClosingEvent
+    public struct ServerClosingEvent : IEvent
     {
         private readonly ServerId _serverId;
         private readonly DateTime _timestamp;
@@ -36,6 +36,8 @@ namespace MongoDB.Driver.Core.Events
             _serverId = serverId;
             _timestamp = DateTime.UtcNow;
         }
+
+        EventType IEvent.Type => EventType.ServerClosing;
 
         /// <summary>
         /// Gets the cluster identifier.

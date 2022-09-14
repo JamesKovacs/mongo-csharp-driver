@@ -93,6 +93,9 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                         case "session":
                             session = _entityMap.GetSession(argument.Value.AsString);
                             break;
+                        case "filter":
+                            // TODO
+                            break;
                         default:
                             throw new FormatException($"Invalid ListDatabasesOperation argument name: '{argument.Name}'.");
                     }

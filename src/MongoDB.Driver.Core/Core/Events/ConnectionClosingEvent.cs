@@ -23,7 +23,7 @@ namespace MongoDB.Driver.Core.Events
     /// <summary>
     /// Occurs before a connection is closed.
     /// </summary>
-    public struct ConnectionClosingEvent
+    public struct ConnectionClosingEvent : IEvent
     {
         private readonly ConnectionId _connectionId;
         private readonly long? _operationId;
@@ -40,6 +40,8 @@ namespace MongoDB.Driver.Core.Events
             _operationId = operationId;
             _timestamp = DateTime.UtcNow;
         }
+
+        EventType IEvent.Type => EventType.ConnectionClosing;
 
         /// <summary>
         /// Gets the cluster identifier.

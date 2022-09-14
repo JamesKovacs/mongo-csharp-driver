@@ -23,7 +23,7 @@ namespace MongoDB.Driver.Core.Events
     /// <summary>
     /// Occurs before a connection is checked in to the pool.
     /// </summary>
-    public struct ConnectionPoolCheckingInConnectionEvent
+    public struct ConnectionPoolCheckingInConnectionEvent : IEvent
     {
         private readonly ConnectionId _connectionId;
         private readonly long? _operationId;
@@ -40,6 +40,8 @@ namespace MongoDB.Driver.Core.Events
             _operationId = operationId;
             _timestamp = DateTime.UtcNow;
         }
+
+        EventType IEvent.Type => EventType.ConnectionPoolCheckingInConnection;
 
         /// <summary>
         /// Gets the cluster identifier.

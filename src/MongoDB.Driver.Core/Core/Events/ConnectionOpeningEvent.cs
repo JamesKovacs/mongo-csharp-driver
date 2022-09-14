@@ -24,7 +24,7 @@ namespace MongoDB.Driver.Core.Events
     /// <summary>
     /// Occurs before a connection is opened.
     /// </summary>
-    public struct ConnectionOpeningEvent
+    public struct ConnectionOpeningEvent : IEvent
     {
         private readonly ConnectionId _connectionId;
         private readonly ConnectionSettings _connectionSettings;
@@ -44,6 +44,8 @@ namespace MongoDB.Driver.Core.Events
             _operationId = operationId;
             _timestamp = DateTime.UtcNow;
         }
+
+        EventType IEvent.Type => EventType.ConnectionOpening;
 
         /// <summary>
         /// Gets the cluster identifier.

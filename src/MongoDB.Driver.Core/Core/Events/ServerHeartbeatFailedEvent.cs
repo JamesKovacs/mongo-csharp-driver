@@ -23,7 +23,7 @@ namespace MongoDB.Driver.Core.Events
     /// <summary>
     /// Occurs when a heartbeat failed.
     /// </summary>
-    public struct ServerHeartbeatFailedEvent
+    public struct ServerHeartbeatFailedEvent : IEvent
     {
         private readonly bool _awaited;
         private readonly ConnectionId _connectionId;
@@ -43,6 +43,8 @@ namespace MongoDB.Driver.Core.Events
             _exception = exception;
             _timestamp = DateTime.UtcNow;
         }
+
+        EventType IEvent.Type => EventType.ServerHeartbeatFailed;
 
         /// <summary>
         /// Determines if this heartbeat event is for an awaitable hello.
