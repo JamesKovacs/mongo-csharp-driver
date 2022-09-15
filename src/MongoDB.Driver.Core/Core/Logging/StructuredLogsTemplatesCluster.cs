@@ -30,62 +30,62 @@ namespace MongoDB.Driver.Core.Logging
 
         private static void AddClusterTemplates()
         {
-            AddTemplate<ClusterDescriptionChangedEvent>(
+            AddTemplateProvider<ClusterDescriptionChangedEvent>(
                 LogLevel.Debug,
                 ClusterCommonParams(),
                 e => GetParams(e.ClusterId, "Description changed"));
 
-            AddTemplate<ClusterSelectingServerEvent>(
+            AddTemplateProvider<ClusterSelectingServerEvent>(
                 LogLevel.Debug,
                 ClusterCommonParams(),
                 e => GetParams(e.ClusterId, "Selecting server"));
 
-            AddTemplate<ClusterSelectedServerEvent>(
+            AddTemplateProvider<ClusterSelectedServerEvent>(
                 LogLevel.Debug,
                 ClusterCommonParams(),
                 e => GetParams(e.ClusterId, "Selected server"));
 
-            AddTemplate<ClusterSelectingServerFailedEvent>(
+            AddTemplateProvider<ClusterSelectingServerFailedEvent>(
                 LogLevel.Debug,
                 ClusterCommonParams(),
                 e => GetParams(e.ClusterId, "Selecting server failed"));
 
-            AddTemplate<ClusterClosingEvent>(
+            AddTemplateProvider<ClusterClosingEvent>(
                 LogLevel.Debug,
                 ClusterCommonParams(),
                 e => GetParams(e.ClusterId, "Cluster closing"));
 
-            AddTemplate<ClusterClosedEvent>(
+            AddTemplateProvider<ClusterClosedEvent>(
                 LogLevel.Debug,
                 ClusterCommonParams(),
                 e => GetParams(e.ClusterId, "Cluster closed"));
 
-            AddTemplate<ClusterOpeningEvent>(
+            AddTemplateProvider<ClusterOpeningEvent>(
                 LogLevel.Debug,
                 ClusterCommonParams(),
                 e => GetParams(e.ClusterId, "Cluster opening"));
 
-            AddTemplate<ClusterOpenedEvent>(
+            AddTemplateProvider<ClusterOpenedEvent>(
                 LogLevel.Debug,
                 ClusterCommonParams(),
                 e => GetParams(e.ClusterId, "Cluster opened"));
 
-            AddTemplate<ClusterAddingServerEvent>(
+            AddTemplateProvider<ClusterAddingServerEvent>(
                 LogLevel.Debug,
                 CmapCommonParams(),
                 e => GetParams(e.ClusterId, e.EndPoint, "Adding server"));
 
-            AddTemplate<ClusterAddedServerEvent>(
+            AddTemplateProvider<ClusterAddedServerEvent>(
                 LogLevel.Debug,
                 CmapCommonParams(),
                 e => GetParams(e.ServerId, "Added server"));
 
-            AddTemplate<ClusterRemovingServerEvent>(
+            AddTemplateProvider<ClusterRemovingServerEvent>(
                 LogLevel.Debug,
                 CmapCommonParams(),
                 e => GetParams(e.ServerId, "Removing server"));
 
-            AddTemplate<ClusterRemovedServerEvent>(
+            AddTemplateProvider<ClusterRemovedServerEvent>(
                 LogLevel.Debug,
                 CmapCommonParams(),
                 e => GetParams(e.ServerId, "Removed server"));

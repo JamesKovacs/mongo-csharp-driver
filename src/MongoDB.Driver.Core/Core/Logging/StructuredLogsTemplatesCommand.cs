@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using System.Linq;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver.Core.Events;
 
@@ -27,58 +28,65 @@ namespace MongoDB.Driver.Core.Logging
                 ServerHost,
                 ServerPort,
                 ServerConnectionId,
-                ServiceId,
                 RequestId,
                 OperationId,
                 Message,
                 CommandName
             };
 
-        private static string CommandCommonParams(params string[] @params) => Concat(__commandCommonParams, @params);
+
+        private static string[] CommandCommonParams(params string[] @params) => new[]
+        {
+            Concat(__commandCommonParams, @params),
+            Concat(__commandCommonParams, @params.Concat(new[] { ServiceId }).ToArray())
+        };
 
         private static void AddCommandTemplates()
         {
-            AddTemplate<CommandStartedEvent>(
+            AddTemplateProvider<CommandStartedEvent>(
                 LogLevel.Debug,
                 CommandCommonParams(DatabaseName, Command),
-                e => GetParams(
+                e => GetParamsOmitNull(
                     e.ConnectionId,
                     e.ConnectionId.ServerValue,
-                    e.ServiceId,
                     e.RequestId,
                     e.OperationId,
                     "Command started",
                     e.CommandName,
                     e.DatabaseNamespace.DatabaseName,
-                    e.Command?.ToString()));
+                    e.Command?.ToString(),
+                    ommitableParam: e.ServiceId),
+                (e, s) => e.ServiceId == null ? s.Templates[0] : s.Templates[1]);
 
-            AddTemplate<CommandSucceededEvent>(
+            AddTemplateProvider<CommandSucceededEvent>(
                 LogLevel.Debug,
                 CommandCommonParams(DurationMS, Reply),
-                e => GetParams(
+                e => GetParamsOmitNull(
                     e.ConnectionId,
                     e.ConnectionId.ServerValue,
-                    e.ServiceId,
                     e.RequestId,
                     e.OperationId,
                     "Command succeeded",
                     e.CommandName,
                     e.Duration.TotalMilliseconds,
-                    e.Reply?.ToString()));
+                    e.Reply?.ToString(),
+                    ommitableParam: e.ServiceId),
+                (e, s) => e.ServiceId == null ? s.Templates[0] : s.Templates[1]);
 
-            AddTemplate<CommandFailedEvent>(
+            AddTemplateProvider<CommandFailedEvent>(
                 LogLevel.Debug,
                 CommandCommonParams(DurationMS, Failure),
-                e => GetParams(
+                e => GetParamsOmitNull(
                     e.ConnectionId,
                     e.ConnectionId.ServerValue,
-                    e.ServiceId,
                     e.RequestId,
                     e.OperationId,
                     "Command failed",
                     e.CommandName,
                     e.Duration.TotalMilliseconds,
-                    e.Failure?.ToString()));
+                    e.Failure?.ToString(),
+                    ommitableParam: e.ServiceId),
+                (e, s) => e.ServiceId == null ? s.Templates[0] : s.Templates[1]);
         }
     }
 }

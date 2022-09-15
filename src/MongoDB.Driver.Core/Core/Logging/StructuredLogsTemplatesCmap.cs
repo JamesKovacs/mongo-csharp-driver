@@ -33,42 +33,42 @@ namespace MongoDB.Driver.Core.Logging
 
         private static void AddCmapTemplates()
         {
-            AddTemplate<ConnectionPoolAddingConnectionEvent>(
+            AddTemplateProvider<ConnectionPoolAddingConnectionEvent>(
                 LogLevel.Debug,
                 CmapCommonParams(),
                 e => GetParams(e.ServerId, "Connection adding"));
 
-            AddTemplate<ConnectionPoolCheckingInConnectionEvent>(
+            AddTemplateProvider<ConnectionPoolCheckingInConnectionEvent>(
                  LogLevel.Debug,
                  ConnectionCommonParams(),
                  e => GetParams(e.ConnectionId, "Connection checking in"));
 
-            AddTemplate<ConnectionPoolCheckedInConnectionEvent>(
+            AddTemplateProvider<ConnectionPoolCheckedInConnectionEvent>(
                 LogLevel.Debug,
                 ConnectionCommonParams(),
                 e => GetParams(e.ConnectionId, "Connection checked in"));
 
-            AddTemplate<ConnectionPoolCheckingOutConnectionEvent>(
+            AddTemplateProvider<ConnectionPoolCheckingOutConnectionEvent>(
                 LogLevel.Debug,
                 CmapCommonParams(),
                 e => GetParams(e.ServerId, "Connection checkout started"));
 
-            AddTemplate<ConnectionPoolCheckedOutConnectionEvent>(
+            AddTemplateProvider<ConnectionPoolCheckedOutConnectionEvent>(
                 LogLevel.Debug,
                 ConnectionCommonParams(),
                 e => GetParams(e.ConnectionId, "Connection checked out"));
 
-            AddTemplate<ConnectionPoolCheckingOutConnectionFailedEvent>(
+            AddTemplateProvider<ConnectionPoolCheckingOutConnectionFailedEvent>(
                 LogLevel.Debug,
                 CmapCommonParams(Reason),
                 e => GetParams(e.ServerId, "Connection checkout failed", e.Reason));
 
-            AddTemplate<ConnectionPoolRemovingConnectionEvent>(
+            AddTemplateProvider<ConnectionPoolRemovingConnectionEvent>(
                 LogLevel.Debug,
                 CmapCommonParams(),
                 e => GetParams(e.ServerId, "Connection removing"));
 
-            AddTemplate<ConnectionPoolRemovedConnectionEvent>(
+            AddTemplateProvider<ConnectionPoolRemovedConnectionEvent>(
                 LogLevel.Debug,
                 CmapCommonParams(),
                 e => GetParams(e.ServerId, "Connection removed"));
@@ -97,27 +97,27 @@ namespace MongoDB.Driver.Core.Logging
                     e.ConnectionPoolSettings.MaxConnections,
                     e.ConnectionPoolSettings.MaxConnecting));
 
-            AddTemplate<ConnectionPoolReadyEvent>(
+            AddTemplateProvider<ConnectionPoolReadyEvent>(
                 LogLevel.Debug,
                 CmapCommonParams(),
                 e => GetParams(e.ServerId, "Connection pool ready"));
 
-            AddTemplate<ConnectionPoolClearingEvent>(
+            AddTemplateProvider<ConnectionPoolClearingEvent>(
                 LogLevel.Debug,
                 CmapCommonParams(ServiceId),
                 e => GetParams(e.ServerId, "Connection pool clearing", e.ServiceId));
 
-            AddTemplate<ConnectionPoolClearedEvent>(
+            AddTemplateProvider<ConnectionPoolClearedEvent>(
                 LogLevel.Debug,
                 CmapCommonParams(ServiceId),
                 e => GetParams(e.ServerId, "Connection pool cleared", e.ServiceId));
 
-            AddTemplate<ConnectionPoolClosingEvent>(
+            AddTemplateProvider<ConnectionPoolClosingEvent>(
                 LogLevel.Debug,
                 CmapCommonParams(),
                 e => GetParams(e.ServerId, "Connection pool closing"));
 
-            AddTemplate<ConnectionPoolClosedEvent>(
+            AddTemplateProvider<ConnectionPoolClosedEvent>(
                 LogLevel.Debug,
                 CmapCommonParams(),
                 e => GetParams(e.ServerId, "Connection pool closed"));

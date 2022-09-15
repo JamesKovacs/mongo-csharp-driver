@@ -117,14 +117,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations.Matchers
             return true;
         }
 
-        private static BsonElement ToBsonElement(KeyValuePair<string, object> pair)
-        {
-            var v = pair.Value?.ToString() == "{ }" ? "{}" : pair.Value;
-
-            return new(MongoUtils.ToCamelCase(pair.Key), BsonValue.Create(v));
-        }
-
-        //private static BsonElement ToBsonElement(KeyValuePair<string, object> pair) =>
-        //     new(MongoUtils.ToCamelCase(pair.Key), BsonValue.Create(pair.Value));
+        private static BsonElement ToBsonElement(KeyValuePair<string, object> pair) =>
+             new(MongoUtils.ToCamelCase(pair.Key), BsonValue.Create(pair.Value));
     }
 }

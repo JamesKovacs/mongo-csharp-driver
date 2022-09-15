@@ -58,12 +58,12 @@ namespace MongoDB.Driver.Core.Logging
         public static readonly string ServerId_Message_Description = $"{{{ClusterId}}} {{{ServerHost}}} {{{ServerPort}}} {{{Message}}} {{{Description}}}";
         public static readonly string ClusterId_Message_SharedLibraryVersion = $"{{{ClusterId}}} {{{Message}}} {{{SharedLibraryVersion}}}";
 
-        private readonly static StructuredLogsTemplate[] __eventsTemplates;
+        private readonly static LogsTemplateProvider[] __eventsTemplates;
 
         static StructuredLogsTemplates()
         {
             var eventTypesCount = Enum.GetValues(typeof(EventType)).Length;
-            __eventsTemplates = new StructuredLogsTemplate[eventTypesCount];
+            __eventsTemplates = new LogsTemplateProvider[eventTypesCount];
 
             AddClusterTemplates();
             AddCmapTemplates();
@@ -72,7 +72,7 @@ namespace MongoDB.Driver.Core.Logging
             AddSdamTemplates();
         }
 
-        public static StructuredLogsTemplate GetTemplate(EventType eventType) => __eventsTemplates[(int)eventType];
+        public static LogsTemplateProvider GetTemplateProvider(EventType eventType) => __eventsTemplates[(int)eventType];
 
         public static object[] GetParams(ClusterId clusterId, object arg1)
         {
@@ -126,31 +126,39 @@ namespace MongoDB.Driver.Core.Logging
             return new object[] { connectionId.ServerId.ClusterId.Value, connectionId.LocalValue, host, port, arg1, arg2 };
         }
 
-        public static object[] GetParams(ConnectionId connectionId, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8)
+        public static object[] GetParamsOmitNull(ConnectionId connectionId, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object ommitableParam)
         {
             var (host, port) = connectionId.ServerId.EndPoint.GetHostAndPort();
 
-            return new object[] { connectionId.ServerId.ClusterId.Value, connectionId.LocalValue, host, port, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 };
+            if (ommitableParam == null)
+                return new object[] { connectionId.ServerId.ClusterId.Value, connectionId.LocalValue, host, port, arg1, arg2, arg3, arg4, arg5, arg6, arg7, };
+            else
+                return new object[] { connectionId.ServerId.ClusterId.Value, connectionId.LocalValue, host, port, arg1, arg2, arg3, arg4, arg5, arg6, arg7, ommitableParam };
         }
 
-        private static void AddTemplate<TEvent>(LogLevel logLevel, string template, Func<TEvent, object[]> extractor) where TEvent : struct, IEvent
+        private static void AddTemplateProvider<TEvent>(LogLevel logLevel, string template, Func<TEvent, object[]> extractor) where TEvent : struct, IEvent
         {
-            __eventsTemplates[(int)(new TEvent().Type)] = new StructuredLogsTemplate
-            {
-                LogLevel = logLevel,
-                Template = template,
-                ParametersExtractor = extractor
-            };
+            __eventsTemplates[(int)(new TEvent().Type)] = new LogsTemplateProvider(
+                logLevel,
+                new[] { template },
+                extractor);
+        }
+
+        private static void AddTemplateProvider<TEvent>(LogLevel logLevel, string[] templates, Func<TEvent, object[]> extractor, Func<TEvent, LogsTemplateProvider, string> templateExtractor) where TEvent : struct, IEvent
+        {
+            __eventsTemplates[(int)(new TEvent().Type)] = new LogsTemplateProvider(
+                logLevel,
+                templates,
+                extractor,
+                templateExtractor);
         }
 
         private static void AddTemplate<TEvent, TArg>(LogLevel logLevel, string template, Func<TEvent, TArg, object[]> extractor) where TEvent : struct, IEvent
         {
-            __eventsTemplates[(int)(new TEvent().Type)] = new StructuredLogsTemplate
-            {
-                LogLevel = logLevel,
-                Template = template,
-                ParametersExtractor = extractor
-            };
+            __eventsTemplates[(int)(new TEvent().Type)] = new LogsTemplateProvider(
+                logLevel,
+                new[] { template },
+                extractor);
         }
 
         private static string Concat(params string[] parameters) =>
@@ -159,11 +167,23 @@ namespace MongoDB.Driver.Core.Logging
         private static string Concat(string[] parameters, params string[] additionalParameters) =>
             string.Join(" ", parameters.Concat(additionalParameters).Select(p => $"{{{p}}}"));
 
-        public struct StructuredLogsTemplate
+        internal sealed class LogsTemplateProvider
         {
-            public LogLevel LogLevel { get; set; }
-            public string Template { get; set; }
-            public Delegate ParametersExtractor { get; set; }
+            public LogLevel LogLevel { get; }
+            public string[] Templates { get; }
+            public Delegate ParametersExtractor { get; }
+            public Delegate TemplateExtractor { get; }
+
+            public LogsTemplateProvider(LogLevel logLevel, string[] templates, Delegate parametersExtractor, Delegate templateExtractor = null)
+            {
+                LogLevel = logLevel;
+                Templates = templates;
+                ParametersExtractor = parametersExtractor;
+                TemplateExtractor = templateExtractor;
+            }
+
+            public string GetTemplate<TEvent>(TEvent @event) where TEvent : struct, IEvent =>
+                TemplateExtractor != null ? ((Func<TEvent, LogsTemplateProvider, string>)TemplateExtractor)(@event, this) : Templates.First();
 
             public object[] GetParams<TEvent>(TEvent @event) where TEvent : struct, IEvent =>
                 (ParametersExtractor as Func<TEvent, object[]>)(@event);

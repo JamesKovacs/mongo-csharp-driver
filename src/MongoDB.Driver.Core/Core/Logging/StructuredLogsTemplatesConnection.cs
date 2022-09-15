@@ -33,72 +33,72 @@ namespace MongoDB.Driver.Core.Logging
 
         private static void AddConnectionTemplates()
         {
-            AddTemplate<ConnectionPoolAddedConnectionEvent>(
+            AddTemplateProvider<ConnectionPoolAddedConnectionEvent>(
                 LogLevel.Debug,
                 ConnectionCommonParams(),
                 e => GetParams(e.ConnectionId, "Connection added"));
 
-            AddTemplate<ConnectionOpenedEvent>(
+            AddTemplateProvider<ConnectionOpenedEvent>(
                  LogLevel.Debug,
                  ConnectionCommonParams(),
                  e => GetParams(e.ConnectionId, "Connection ready"));
 
-            AddTemplate<ConnectionOpeningEvent>(
+            AddTemplateProvider<ConnectionOpeningEvent>(
                 LogLevel.Debug,
                 ConnectionCommonParams(),
                 e => GetParams(e.ConnectionId, "Connection added"));
 
-            AddTemplate<ConnectionOpeningFailedEvent>(
+            AddTemplateProvider<ConnectionOpeningFailedEvent>(
                  LogLevel.Debug,
                  ConnectionCommonParams(Reason),
                  e => GetParams(e.ConnectionId, "Connection opening failed", e.Exception?.ToString()));
 
-            AddTemplate<ConnectionCreatedEvent>(
+            AddTemplateProvider<ConnectionCreatedEvent>(
                 LogLevel.Debug,
                 ConnectionCommonParams(),
                 e => GetParams(e.ConnectionId, "Connection created"));
 
-            AddTemplate<ConnectionFailedEvent>(
+            AddTemplateProvider<ConnectionFailedEvent>(
                 LogLevel.Debug,
                 ConnectionCommonParams(Reason),
                 e => GetParams(e.ConnectionId, "Connection failed", e.Exception?.ToString()));
 
-            AddTemplate<ConnectionClosingEvent>(
+            AddTemplateProvider<ConnectionClosingEvent>(
                  LogLevel.Debug,
                  ConnectionCommonParams(Reason),
                  e => GetParams(e.ConnectionId, "Connection closing", "Unknown"));
 
-            AddTemplate<ConnectionClosedEvent>(
+            AddTemplateProvider<ConnectionClosedEvent>(
                 LogLevel.Debug,
                 ConnectionCommonParams(Reason),
                 e => GetParams(e.ConnectionId, "Connection closed", "Unknown"));
 
-            AddTemplate<ConnectionReceivedMessageEvent>(
+            AddTemplateProvider<ConnectionReceivedMessageEvent>(
                 LogLevel.Trace,
                 ConnectionCommonParams(),
                 e => GetParams(e.ConnectionId, "Received"));
 
-            AddTemplate<ConnectionReceivingMessageEvent>(
+            AddTemplateProvider<ConnectionReceivingMessageEvent>(
                  LogLevel.Trace,
                  ConnectionCommonParams(),
                  e => GetParams(e.ConnectionId, "Receiving"));
 
-            AddTemplate<ConnectionReceivingMessageFailedEvent>(
+            AddTemplateProvider<ConnectionReceivingMessageFailedEvent>(
                  LogLevel.Trace,
                  ConnectionCommonParams(Reason),
                  e => GetParams(e.ConnectionId, "Receiving failed", e.Exception?.ToString()));
 
-            AddTemplate<ConnectionSendingMessagesEvent>(
+            AddTemplateProvider<ConnectionSendingMessagesEvent>(
                  LogLevel.Trace,
                  ConnectionCommonParams(),
                  e => GetParams(e.ConnectionId, "Sending"));
 
-            AddTemplate<ConnectionSendingMessagesFailedEvent>(
+            AddTemplateProvider<ConnectionSendingMessagesFailedEvent>(
                  LogLevel.Trace,
                  ConnectionCommonParams(Reason),
                  e => GetParams(e.ConnectionId, "Sending failed", e.Exception?.ToString()));
 
-            AddTemplate<ConnectionSentMessagesEvent>(
+            AddTemplateProvider<ConnectionSentMessagesEvent>(
                  LogLevel.Trace,
                  ConnectionCommonParams(),
                  e => GetParams(e.ConnectionId, "Sent"));
