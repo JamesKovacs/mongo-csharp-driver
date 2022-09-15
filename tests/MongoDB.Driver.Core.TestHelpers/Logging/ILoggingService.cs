@@ -7,5 +7,4 @@ namespace MongoDB.Driver.Core.TestHelpers.Logging
         public ILoggerFactory LoggerFactory { get; }
         public LogEntry[] Logs { get; }
     }
-
 }

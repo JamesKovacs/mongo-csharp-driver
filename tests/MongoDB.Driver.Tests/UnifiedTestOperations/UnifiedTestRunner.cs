@@ -226,7 +226,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
 
         private void AssertLogs(BsonArray expectedLogs, UnifiedEntityMap entityMap)
         {
-            _logger?.LogDebug("Asserting events");
+            _logger?.LogDebug("Asserting logs");
 
             var actualLogs = _loggingService.Logs;
 
