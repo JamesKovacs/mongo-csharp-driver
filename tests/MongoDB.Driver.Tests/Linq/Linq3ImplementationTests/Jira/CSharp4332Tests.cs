@@ -15,6 +15,7 @@
 
 #if NET6_0_OR_GREATER // because tests use readonly record struct
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using FluentAssertions;
@@ -22,7 +23,6 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Serializers;
-using MongoDB.Bson.TestHelpers.XunitExtensions;
 using MongoDB.Driver.Linq;
 using Xunit;
 
@@ -30,42 +30,44 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Jira
 {
     public class CSharp4332Tests : Linq3IntegrationTest
     {
-        private static readonly Guid guid = Guid.Parse("0102030405060708090a0b0c0d0e0f10");
-        private static readonly InvoiceId invoiceId = new InvoiceId(guid);
-        private static readonly Guid? guidNullable = (Guid?)guid;
-        private static readonly InvoiceId? invoiceIdNullable = (InvoiceId?) invoiceId;
+        private static readonly (Expression<Func<Document, bool>> Predicate, string ExpectedFilter)[] __testCases;
 
-        // note: when adding or removing test cases be sure to adjust the Range of values for i below
-        private static readonly (Expression<Func<Document, bool>> Predicate, string ExpectedFilter)[] __testCases =
+        static CSharp4332Tests()
         {
-            (c => c.Guid == guid, "{ Guid : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
-            (c => c.GuidNullable == guid, "{ GuidNullable : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
-            (c => c.Guid == invoiceId, "{ Guid : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
-            (c => c.GuidNullable == invoiceId, "{ GuidNullable : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
-            (c => c.InvoiceId == invoiceId, "{ InvoiceId : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
-            (c => c.InvoiceIdNullable == invoiceId, "{ InvoiceIdNullable : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
+            var guid = Guid.Parse("0102030405060708090a0b0c0d0e0f10");
+            var invoiceId = new InvoiceId(guid);
+            var guidNullable = (Guid?)guid;
+            var invoiceIdNullable = (InvoiceId?)invoiceId;
 
-            (c => c.Guid == guidNullable, "{ Guid : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
-            (c => c.GuidNullable == guidNullable, "{ GuidNullable : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
-            (c => c.Guid == invoiceIdNullable, "{ Guid : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
-            (c => c.GuidNullable == invoiceIdNullable, "{ GuidNullable : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
-            (c => c.InvoiceId == invoiceIdNullable, "{ InvoiceId : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
-            (c => c.InvoiceIdNullable == invoiceIdNullable, "{ InvoiceIdNullable : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
+            __testCases = new (Expression<Func<Document, bool>> Predicate, string ExpectedFilter)[]
+            {
+                (c => c.Guid == guid, "{ Guid : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
+                (c => c.GuidNullable == guid, "{ GuidNullable : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
+                (c => c.Guid == invoiceId, "{ Guid : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
+                (c => c.GuidNullable == invoiceId, "{ GuidNullable : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
+                (c => c.InvoiceId == invoiceId, "{ InvoiceId : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
+                (c => c.InvoiceIdNullable == invoiceId, "{ InvoiceIdNullable : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
 
-            (c => c.InvoiceId == new InvoiceId(guidNullable.Value), "{ InvoiceId : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
-            (c => c.InvoiceIdNullable == (guidNullable.HasValue ? new InvoiceId(guidNullable.Value) : null), "{ InvoiceIdNullable : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
-            (c => c.InvoiceId == new InvoiceId(guid), "{ InvoiceId : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
-            (c => c.InvoiceIdNullable == new InvoiceId(guid), "{ InvoiceIdNullable : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
-        };
+                (c => c.Guid == guidNullable, "{ Guid : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
+                (c => c.GuidNullable == guidNullable, "{ GuidNullable : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
+                (c => c.Guid == invoiceIdNullable, "{ Guid : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
+                (c => c.GuidNullable == invoiceIdNullable, "{ GuidNullable : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
+                (c => c.InvoiceId == invoiceIdNullable, "{ InvoiceId : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
+                (c => c.InvoiceIdNullable == invoiceIdNullable, "{ InvoiceIdNullable : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
+
+                (c => c.InvoiceId == new InvoiceId(guidNullable.Value), "{ InvoiceId : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
+                (c => c.InvoiceIdNullable == (guidNullable.HasValue ? new InvoiceId(guidNullable.Value) : null), "{ InvoiceIdNullable : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
+                (c => c.InvoiceId == new InvoiceId(guid), "{ InvoiceId : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
+                (c => c.InvoiceIdNullable == new InvoiceId(guid), "{ InvoiceIdNullable : '01020304-0506-0708-090a-0b0c0d0e0f10' }"),
+            };
+        }
 
         [Theory]
-        [ParameterAttributeData]
-        public void Where_expression_should_work(
-            [Range(0, 15)] int i)
+        [MemberData(nameof(GetTestCases))]
+        public void Where_expression_should_work(string predicateAsString, string expectedFilter, int i)
         {
             var collection = CreateCollection();
             var predicate = __testCases[i].Predicate;
-            var expectedFilter = __testCases[i].ExpectedFilter;
 
             var queryable = collection.AsQueryable().Where(predicate);
 
@@ -77,9 +79,24 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Jira
             results.Single().Id.Should().Be(1);
         }
 
+        public static IEnumerable<object[]> GetTestCases()
+        {
+            for (var i = 0; i < __testCases.Length; i++)
+            {
+                var predicateAsString = __testCases[0].Predicate.ToString();
+                var expectedFilter = __testCases[i].ExpectedFilter;
+                yield return new object[] { predicateAsString, expectedFilter, i };
+            }
+        }
+
         private IMongoCollection<Document> CreateCollection()
         {
             var collection = GetCollection<Document>("C") ;
+
+            var guid = Guid.Parse("0102030405060708090a0b0c0d0e0f10");
+            var invoiceId = new InvoiceId(guid);
+            var guidNullable = (Guid?)guid;
+            var invoiceIdNullable = (InvoiceId?)invoiceId;
 
             CreateCollection(
                 collection,
