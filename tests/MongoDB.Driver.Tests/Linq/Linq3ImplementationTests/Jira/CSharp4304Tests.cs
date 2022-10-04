@@ -14,8 +14,7 @@
 */
 
 using System.Linq;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
+using FluentAssertions;
 using MongoDB.Driver.Linq;
 using Xunit;
 
@@ -39,7 +38,10 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Jira
                 "{ $unwind : '$_inner' }",
                 "{ $project : { _v : '$_inner', _id : 0 } }");
 
+            CreateParentCollection();
+            CreateChildCollection();
             var results = queryable.ToList();
+            results.OrderBy(r => r.Id).Select(r => r.Id).Should().Equal("11", "22");
         }
 
         private IMongoQueryable<TChild> GetChildrenQueryable<TChild>(IMongoDatabase db, string childCollectionName) where TChild : IEntity
@@ -56,6 +58,26 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Jira
                     (_, c) => c);
         }
 
+        private void CreateParentCollection()
+        {
+            var parentCollection = GetCollection<Parent>("Parent");
+
+            CreateCollection(
+                parentCollection,
+                new Parent { Id = "1", ChildId = "11" },
+                new Parent { Id = "2", ChildId = "22" });
+        }
+
+        private void CreateChildCollection()
+        {
+            var childCollection = GetCollection<Child>("Child");
+
+            CreateCollection(
+                childCollection,
+                new Child { Id = "11" },
+                new Child { Id = "22" });
+        }
+
         public interface IEntity
         {
             string Id { get; set; }
@@ -63,16 +85,12 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Jira
 
         public class Parent : IEntity
         {
-            [BsonId]
             public string Id { get; set; }
-
-            [BsonRepresentation(BsonType.ObjectId)]
             public string ChildId { get; set; }
         }
 
         public class Child : IEntity
         {
-            [BsonId]
             public string Id { get; set; }
         }
     }
