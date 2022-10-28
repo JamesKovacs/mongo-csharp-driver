@@ -33,7 +33,7 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Jira
                 .Where(x => x.Items.Select(e => e.GoodId).Contains(2));
 
             var stages = Translate(collection, queryable);
-            AssertStages(stages, "{ $match : { $expr : { $in : [2, '$Items.GoodId'] } } }");
+            AssertStages(stages, "{ $match : { 'Items.GoodId' : 2 } }");
 
             var results = queryable.ToList();
             results.Select(r => r.Id).Should().Equal(1);
@@ -49,7 +49,7 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Jira
                 .Where(x => x.Items.Select(e => e.GoodId).Any(e => e == 2));
 
             var stages = Translate(collection, queryable);
-            AssertStages(stages, "{ $match : { $expr : { $anyElementTrue : { $map : { input : '$Items.GoodId', as : 'e', in : { $eq : ['$$e', 2] } } } } } }");
+            AssertStages(stages, "{ $match : { 'Items.GoodId' : 2 } }");
 
             var results = queryable.ToList();
             results.Select(r => r.Id).Should().Equal(1);
