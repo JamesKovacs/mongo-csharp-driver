@@ -152,6 +152,11 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
             return new AstUnaryExpression(AstUnaryOperator.Avg, array);
         }
 
+        public static AstExpression Binary(AstBinaryOperator @operator, AstExpression arg1, AstExpression arg2)
+        {
+            return new AstBinaryExpression(@operator, arg1, arg2);
+        }
+
         public static AstExpression BinaryWindowExpression(AstBinaryWindowOperator @operator, AstExpression arg1, AstExpression arg2, AstWindow window)
         {
             return new AstBinaryWindowExpression(@operator, arg1, arg2, window);
@@ -832,6 +837,11 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Expressions
         public static AstExpression Trunc(AstExpression arg)
         {
             return new AstUnaryExpression(AstUnaryOperator.Trunc, arg);
+        }
+
+        public static AstExpression Unary(AstUnaryOperator @operator, AstExpression arg)
+        {
+            return new AstUnaryExpression(@operator, arg);
         }
 
         public static AstAccumulatorExpression UnaryAccumulator(AstUnaryAccumulatorOperator @operator, AstExpression arg)
