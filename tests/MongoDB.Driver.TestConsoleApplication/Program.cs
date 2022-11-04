@@ -1,45 +1,39 @@
-/* Copyright 2010-present MongoDB Inc.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
-
 using System;
 using System.IO;
 using MongoDB.Bson;
-using MongoDB.Driver.Core.Configuration;
-using MongoDB.Driver.Core.Events.Diagnostics;
+using Newtonsoft.Json;
 
-namespace MongoDB.Driver.TestConsoleApplication
+BsonDefaults.GuidRepresentationMode = GuidRepresentationMode.V3;
+
+var jsonSerializer = new JsonSerializer();
+var bson = new BsonDocument
 {
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            //FilterMeasuring.TestAsync().GetAwaiter().GetResult();
-            int numConcurrentWorkers = 50;
-            //new CoreApi().Run(numConcurrentWorkers, ConfigureCluster);
-            new CoreApiSync().Run(numConcurrentWorkers, ConfigureCluster);
+    // { "array", new BsonArray { 1, 2, 3 } },
+    // { "string", "Hello, world!" },
+    // { "null", BsonNull.Value },
+    // { "timestamp", BsonTimestamp.Create(42L)},
+    // { "binary", new BsonBinaryData(Guid.NewGuid(), GuidRepresentation.Standard) },
+    { "minKey", BsonMinKey.Value },
+    { "maxKey", BsonMaxKey.Value }
+};
+Console.WriteLine(bson.ToJson());
 
-            new Api().Run(numConcurrentWorkers, ConfigureCluster);
+using var stringWriter = new StringWriter();
+jsonSerializer.Serialize(stringWriter, bson);
+Console.WriteLine(stringWriter.ToString());
 
-            //new LegacyApi().Run(numConcurrentWorkers, ConfigureCluster);
-        }
+/*
+using var memory = new MemoryStream();
+using var writer = new BsonBinaryWriter(memory);
+var context = BsonSerializationContext.CreateRoot(writer);
+BsonDocumentSerializer.Instance.Serialize(context, new BsonSerializationArgs(), bson);
+memory.Seek(0, SeekOrigin.Begin);
+var raw = new RawBsonDocument(memory.GetBuffer());
+Console.WriteLine(raw.ToJson());
 
-        private static void ConfigureCluster(ClusterBuilder cb)
-        {
-#if NET472
-            cb.UsePerformanceCounters("test", true);
-#endif
-        }
-    }
+using (var stringWriter = new StringWriter())
+{
+    jsonSerializer.Serialize(stringWriter, raw);
+    Console.WriteLine(stringWriter.ToString());
 }
+*/

@@ -1281,7 +1281,7 @@ namespace MongoDB.Bson
         public virtual bool ToBoolean()
         {
             // some subclasses override as appropriate
-            return true; // everything else is true        
+            return true; // everything else is true
         }
 
         /// <summary>
@@ -1625,6 +1625,11 @@ namespace MongoDB.Bson
                 return this;
             }
 
+            // if (conversionType == typeof(string))
+            // {
+                // return BsonType == BsonType.Null ? null : ToString();
+            // }
+
             switch (BsonType)
             {
                 case BsonType.Boolean: return Convert.ChangeType(this.AsBoolean, conversionType, provider);
@@ -1633,6 +1638,7 @@ namespace MongoDB.Bson
                 case BsonType.Double: return Convert.ChangeType(this.AsDouble, conversionType, provider);
                 case BsonType.Int32: return Convert.ChangeType(this.AsInt32, conversionType, provider);
                 case BsonType.Int64: return Convert.ChangeType(this.AsInt64, conversionType, provider);
+                case BsonType.Null: return null;
                 case BsonType.ObjectId: return Convert.ChangeType(this.AsObjectId, conversionType, provider);
                 case BsonType.String: return Convert.ChangeType(this.AsString, conversionType, provider);
                 default: throw new InvalidCastException();
