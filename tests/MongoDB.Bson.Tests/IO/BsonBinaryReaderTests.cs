@@ -28,7 +28,7 @@ namespace MongoDB.Bson.Tests.IO
 {
     public class BsonBinaryReaderTests
     {
-        [SkippableFact]
+        [Fact]
         public void BsonBinaryReader_should_support_reading_more_than_2GB()
         {
             RequireEnvironment.Check().EnvironmentVariable("EXPLICIT");

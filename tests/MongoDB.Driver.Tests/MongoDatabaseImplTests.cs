@@ -897,7 +897,7 @@ namespace MongoDB.Driver
             op.RetryRequested.Should().BeTrue();
         }
 
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public void ListCollectionNames_should_return_expected_result(
             [Values(0, 1, 2, 10)] int numberOfCollections,

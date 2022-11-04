@@ -226,7 +226,7 @@ namespace MongoDB.Driver.Core.Bindings
             Mock.Get(subject.ServerSession).Verify(m => m.Dispose(), Times.Once);
         }
 
-        [SkippableFact]
+        [Fact]
         public void StartTransaction_should_throw_when_write_concern_is_unacknowledged()
         {
             RequireServer.Check().ClusterType(ClusterType.ReplicaSet).Supports(Feature.Transactions);

@@ -126,7 +126,7 @@ namespace MongoDB.Driver.Specifications.connection_monitoring_and_pooling
 
         #endregion
 
-        [SkippableTheory]
+        [Theory]
         [ClassData(typeof(TestCaseFactory))]
         public void RunTestDefinition(JsonDrivenTestCase testCase)
         {

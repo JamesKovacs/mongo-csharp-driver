@@ -57,7 +57,7 @@ namespace MongoDB.Driver.Tests.Operations
             action.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("databaseNamespace");
         }
 
-        [SkippableFact]
+        [Fact]
         public void Execute_should_return_expected_result()
         {
             RequireServer.Check();

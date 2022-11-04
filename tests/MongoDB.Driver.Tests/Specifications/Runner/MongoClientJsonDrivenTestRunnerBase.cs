@@ -37,6 +37,7 @@ using MongoDB.Driver.TestHelpers;
 using MongoDB.Driver.Tests.JsonDrivenTests;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace MongoDB.Driver.Tests.Specifications.Runner
 {
@@ -613,7 +614,7 @@ namespace MongoDB.Driver.Tests.Specifications.Runner
     {
 #pragma warning disable CS0618 // Type or member is obsolete
         public static void _connectionModeSwitch(this MongoClientSettings obj, ConnectionModeSwitch connectionModeSwitch)
-            => Reflector.SetFieldValue(obj, nameof(_connectionModeSwitch), connectionModeSwitch);
+            => Bson.TestHelpers.Reflector.SetFieldValue(obj, nameof(_connectionModeSwitch), connectionModeSwitch);
 #pragma warning restore CS0618 // Type or member is obsolete
     }
 }

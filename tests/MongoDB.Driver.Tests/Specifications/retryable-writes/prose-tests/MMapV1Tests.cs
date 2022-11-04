@@ -32,7 +32,7 @@ namespace MongoDB.Driver.Tests.Specifications.retryable_writes.prose_tests
         {
         }
 
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public void Write_operation_should_throw_when_retry_writes_is_true_and_storage_engine_is_MMMAPv1(
             [Values(false, true)] bool async)

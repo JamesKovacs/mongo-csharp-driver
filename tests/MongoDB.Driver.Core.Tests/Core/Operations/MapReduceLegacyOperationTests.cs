@@ -64,7 +64,7 @@ namespace MongoDB.Driver.Core.Operations
             result.Should().Be(expectedResult);
         }
 
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public void Execute_should_return_expected_results(
             [Values(false, true)]
@@ -90,7 +90,7 @@ namespace MongoDB.Driver.Core.Operations
             results.Should().BeEquivalentTo(new BsonArray(expectedResults));
         }
 
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public void Execute_should_send_session_id_when_supported(
             [Values(false, true)] bool async)

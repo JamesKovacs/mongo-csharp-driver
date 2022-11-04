@@ -71,7 +71,7 @@ namespace MongoDB.Driver.Core.Operations
             result.Should().BeSameAs(value);
         }
 
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public void Execute_should_return_expected_result(
             [Values(false, true)]
@@ -107,7 +107,7 @@ namespace MongoDB.Driver.Core.Operations
             });
         }
 
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public void Execute_should_send_session_id_when_supported(
             [Values(false, true)] bool async)

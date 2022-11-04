@@ -27,6 +27,7 @@ using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.TestHelpers.Logging;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace MongoDB.Driver.Specifications.connection_string
 {
@@ -39,7 +40,7 @@ namespace MongoDB.Driver.Specifications.connection_string
         }
 
         // public methods
-        [SkippableTheory]
+        [Theory]
         [ClassData(typeof(TestCaseFactory))]
         public void RunTestDefinition(JsonDrivenTestCase testCase)
         {

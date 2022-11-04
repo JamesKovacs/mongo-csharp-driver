@@ -128,7 +128,7 @@ namespace MongoDB.Driver.Core.Operations
             result.Should().Be(expectedResult);
         }
 
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public void Execute_should_return_expected_result(
             [Values(false, true)] bool async)
@@ -143,7 +143,7 @@ namespace MongoDB.Driver.Core.Operations
             list.Should().Contain(x => x["name"] == _databaseNamespace.DatabaseName);
         }
 
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public void Execute_should_return_the_expected_result_when_filter_is_used(
             [Values(false, true)] bool async)
@@ -162,7 +162,7 @@ namespace MongoDB.Driver.Core.Operations
             databases[0]["name"].AsString.Should().Be(_databaseNamespace.DatabaseName);
         }
 
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public void Execute_should_return_the_expected_result_when_nameOnly_is_used(
             [Values(false, true)] bool nameOnly,

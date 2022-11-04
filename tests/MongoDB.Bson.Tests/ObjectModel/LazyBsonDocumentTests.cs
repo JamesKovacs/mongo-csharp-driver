@@ -853,7 +853,7 @@ namespace MongoDB.Bson.Tests
             }
         }
 
-        [SkippableFact]
+        [Fact]
         public void TestLargeDocumentDeserialization()
         {
             RequireProcess.Check().Bits(64);

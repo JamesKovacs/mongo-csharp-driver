@@ -203,7 +203,7 @@ namespace MongoDB.Driver.Tests
             AssertLast(subject, expectedLookup);
         }
 
-        [SkippableFact]
+        [Fact]
         public void Lookup_expressive_should_generate_the_correct_lookup_when_using_BsonDocument()
         {
             RequireServer.Check();
@@ -219,7 +219,7 @@ namespace MongoDB.Driver.Tests
             AssertLast(subject, expectedLookup);
         }
 
-        [SkippableFact]
+        [Fact]
         public void Lookup_expressive_should_generate_the_correct_lookup_when_using_lambdas()
         {
             RequireServer.Check();

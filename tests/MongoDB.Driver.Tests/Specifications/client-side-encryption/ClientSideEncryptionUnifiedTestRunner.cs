@@ -35,7 +35,7 @@ namespace MongoDB.Driver.Tests.Specifications.client_side_encryption
         }
 
         // public methods
-        [SkippableTheory]
+        [Theory]
         [ClassData(typeof(TestCaseFactory))]
         public void Run(JsonDrivenTestCase testCase)
         {

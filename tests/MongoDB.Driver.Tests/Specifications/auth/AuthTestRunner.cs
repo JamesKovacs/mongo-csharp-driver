@@ -28,7 +28,7 @@ namespace MongoDB.Driver.Tests.Specifications.auth
 {
     public class AuthTestRunner
     {
-        [SkippableTheory]
+        [Theory]
         [ClassData(typeof(TestCaseFactory))]
         public void RunTestDefinition(JsonDrivenTestCase testCase)
         {

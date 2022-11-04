@@ -35,7 +35,7 @@ namespace MongoDB.Driver.Tests.Specifications.retryable_reads
 {
     public class RetryableReadsProseTests
     {
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public async Task PoolClearedError_read_retryablity_test([Values(true, false)] bool async)
         {

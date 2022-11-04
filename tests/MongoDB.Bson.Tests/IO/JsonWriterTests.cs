@@ -213,7 +213,7 @@ namespace MongoDB.Bson.Tests.IO
             }
         }
 
-        [SkippableFact]
+        [Fact]
         public void TestDoubleRoundTripOn64BitProcess()
         {
             RequireProcess.Check().Bits(64);

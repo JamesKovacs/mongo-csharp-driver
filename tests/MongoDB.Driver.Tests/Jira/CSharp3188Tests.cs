@@ -28,7 +28,7 @@ namespace MongoDB.Driver.Tests.Jira
 {
     public class CSharp3188Tests
     {
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public void Connection_timeout_should_throw_expected_exception([Values(false, true)] bool async)
         {

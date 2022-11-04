@@ -432,7 +432,7 @@ namespace MongoDB.Bson.Tests.IO
             action.ShouldThrow<InvalidOperationException>();
         }
 
-        [SkippableFact]
+        [Fact]
         public void ExpandCapacity_should_throw_when_expanded_capacity_exceeds_2GB()
         {
             RequireProcess.Check().Bits(64);

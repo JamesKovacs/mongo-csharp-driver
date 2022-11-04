@@ -272,7 +272,7 @@ namespace MongoDB.Driver.Core.Operations
             subject.GetResumeToken().Should().Be(expectedResult);
         }
 
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public void GetResumeToken_should_return_expected_results_when_batch_is_empty_or_fully_iterated(
             [Values(false, true)] bool async,
@@ -336,7 +336,7 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public void GetResumeToken_should_return_expected_results_when_batch_is_not_empty_and_has_not_been_iterated(
             [Values(false, true)] bool async)

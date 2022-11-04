@@ -48,6 +48,7 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 using Reflector = MongoDB.Bson.TestHelpers.Reflector;
+using SkipException = Xunit.SkipException;
 
 namespace MongoDB.Driver.Tests.Specifications.client_side_encryption.prose_tests
 {

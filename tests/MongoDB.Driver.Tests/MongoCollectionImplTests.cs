@@ -3721,7 +3721,7 @@ namespace MongoDB.Driver
             e.ParamName.Should().Be("pipeline");
         }
 
-        [SkippableFact]
+        [Fact]
         public void Watch_should_support_full_document_with_duplicate_elements()
         {
             RequireServer.Check().ClusterTypes(ClusterType.ReplicaSet, ClusterType.Sharded);

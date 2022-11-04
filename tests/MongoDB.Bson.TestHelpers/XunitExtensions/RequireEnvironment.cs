@@ -17,7 +17,7 @@ using System;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
-using Xunit;
+using Xunit.Sdk;
 
 namespace MongoDB.Bson.TestHelpers.XunitExtensions
 {

@@ -35,7 +35,7 @@ namespace MongoDB.Driver.Tests.Specifications.atlas_data_lake_testing
         {
         }
 
-        [SkippableTheory]
+        [Theory]
         [ClassData(typeof(TestCaseFactory))]
         public void Run(JsonDrivenTestCase testCase)
         {

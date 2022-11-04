@@ -34,7 +34,7 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
         }
 
         // public methods
-        [SkippableTheory]
+        [Theory]
         [ClassData(typeof(TestCaseFactory))]
         public void Run(JsonDrivenTestCase testCase)
         {

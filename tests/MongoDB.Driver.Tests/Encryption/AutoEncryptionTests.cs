@@ -47,7 +47,7 @@ namespace MongoDB.Driver.Tests.Encryption
         {
         }
 
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public void CryptClient_should_be_initialized([Values(false, true)] bool withAutoEncryption)
         {
@@ -68,7 +68,7 @@ namespace MongoDB.Driver.Tests.Encryption
             }
         }
 
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public async Task Mongocryptd_should_be_initialized_when_auto_encryption([Values(false, true)] bool withAutoEncryption, [Values(false, true)] bool async)
         {
@@ -107,7 +107,7 @@ namespace MongoDB.Driver.Tests.Encryption
             }
         }
 
-        [SkippableFact]
+        [Fact]
         public void Shared_library_should_be_loaded_when_CRYPT_SHARED_LIB_PATH_is_set()
         {
             RequireServer.Check().Supports(Feature.ClientSideEncryption);

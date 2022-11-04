@@ -32,7 +32,7 @@ namespace MongoDB.Driver.Tests.Jira.CSharp216
             _adminDatabase = LegacyTestConfiguration.Server.GetDatabase("admin");
         }
 
-        [SkippableFact]
+        [Fact]
         public void TestAmbiguousEvalArguments()
         {
             RequireServer.Check().Supports(Feature.Eval);
@@ -51,7 +51,7 @@ namespace MongoDB.Driver.Tests.Jira.CSharp216
 #pragma warning restore
         }
 
-        [SkippableFact]
+        [Fact]
         public void TestNoLock()
         {
             RequireServer.Check().Supports(Feature.Eval);

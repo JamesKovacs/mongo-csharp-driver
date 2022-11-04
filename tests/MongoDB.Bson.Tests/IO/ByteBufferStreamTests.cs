@@ -272,7 +272,7 @@ namespace MongoDB.Bson.Tests.IO
             action.ShouldThrow<ObjectDisposedException>().And.ObjectName.Should().Be("ByteBufferStream");
         }
 
-        [SkippableFact]
+        [Fact]
         public void PrepareToWrite_should_throw_when_stream_would_exceed_2GB()
         {
             RequireProcess.Check().Bits(64);

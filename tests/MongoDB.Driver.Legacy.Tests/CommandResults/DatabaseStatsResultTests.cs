@@ -35,7 +35,7 @@ namespace MongoDB.Driver.Tests.CommandResults
             _collection = LegacyTestConfiguration.Collection;
         }
 
-        [SkippableFact]
+        [Fact]
         public void Test()
         {
             RequireServer.Check().StorageEngine("mmapv1");

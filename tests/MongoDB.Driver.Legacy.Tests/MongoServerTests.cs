@@ -109,7 +109,7 @@ namespace MongoDB.Driver.Tests
             Assert.False(databaseNames.Contains(database.Name));
         }
 
-        [SkippableFact]
+        [Fact]
         public void TestDropDatabaseWriteConcern()
         {
             RequireServer.Check().ClusterType(ClusterType.ReplicaSet);
@@ -212,7 +212,7 @@ namespace MongoDB.Driver.Tests
             Assert.True(instance.IsPrimary);
         }
 
-        [SkippableFact]
+        [Fact]
         public void TestReconnect()
         {
             RequireEnvironment.Check().EnvironmentVariable("EXPLICIT");

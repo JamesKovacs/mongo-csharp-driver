@@ -62,7 +62,7 @@ namespace MongoDB.Driver.Tests
         /// Test that starting a new transaction on a pinned ClientSession unpins the
         /// session and normal server selection is performed for the next operation.
         /// </summary>
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public void SelectServer_loadbalancing_prose_test([Values(false, true)] bool async)
         {

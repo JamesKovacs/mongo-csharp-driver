@@ -1,4 +1,4 @@
-/* Copyright 2010-present MongoDB Inc.
+﻿/* Copyright 2010-present MongoDB Inc.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -13,12 +13,15 @@
 * limitations under the License.
 */
 
-using System.Runtime.InteropServices;
-using MongoDB.Bson.TestHelpers.XunitExtensions;
-using Xunit;
+using System;
 
-[assembly: ComVisible(false)]
+namespace MongoDB.Bson.TestHelpers.XunitExtensions
+{
+    public static class XunitExtensionsConstants
+    {
+        public const string TimeoutEnforcingXunitFramework = "MongoDB.Bson.TestHelpers.XunitExtensions.TimeoutEnforcing.TimeoutEnforcingXunitTestFramework";
+        public const string TimeoutEnforcingFrameworkAssembly = "MongoDB.Bson.TestHelpers";
 
-[assembly: CollectionBehavior(DisableTestParallelization = true)]
-
-[assembly: TestFramework(XunitExtensionsConstants.TimeoutEnforcingXunitFramework, XunitExtensionsConstants.TimeoutEnforcingFrameworkAssembly)]
+        public static readonly TimeSpan DefaultTestTimeout = TimeSpan.FromMinutes(3);
+    }
+}

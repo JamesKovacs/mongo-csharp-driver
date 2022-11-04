@@ -159,7 +159,7 @@ namespace MongoDB.Driver.Core.Operations
             result["maxTimeMS"].BsonType.Should().Be(BsonType.Int32);
         }
 
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public void Execute_should_return_expected_result(
             [Values(false, true)]
@@ -182,7 +182,7 @@ namespace MongoDB.Driver.Core.Operations
             result["results"].Should().NotBeNull();
         }
 
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public void Execute_should_send_session_id_when_supported(
             [Values(false, true)] bool async)
@@ -202,7 +202,7 @@ namespace MongoDB.Driver.Core.Operations
             VerifySessionIdWasSentWhenSupported(subject, "geoSearch", async);
         }
 
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public void Execute_should_throw_when_maxTime_is_exceeded(
             [Values(false, true)] bool async)

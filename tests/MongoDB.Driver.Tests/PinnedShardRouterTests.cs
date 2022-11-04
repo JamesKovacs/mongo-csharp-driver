@@ -56,7 +56,7 @@ namespace MongoDB.Driver.Tests
         /// Test that starting a new transaction on a pinned ClientSession unpins the
         /// session and normal server selection is performed for the next operation.
         /// </summary>
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public async void Test_Unpin_For_Next_Transaction([Values(false, true)] bool async)
         {
@@ -116,7 +116,7 @@ namespace MongoDB.Driver.Tests
         /// Test non-transaction operations using a pinned ClientSession unpins the
         /// session and normal server selection is performed.
         /// </summary>
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public async void Test_Unpin_For_Non_Transaction_Operation([Values(false, true)] bool async)
         {

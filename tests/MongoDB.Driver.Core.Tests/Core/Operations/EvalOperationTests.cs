@@ -160,7 +160,7 @@ namespace MongoDB.Driver.Core.Operations
             result.Should().Be(expectedResult);
         }
 
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public void Execute_should_return_expected_result(
             [Values(false, true)]
@@ -175,7 +175,7 @@ namespace MongoDB.Driver.Core.Operations
             result.Should().Be(1.0);
         }
 
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public void Execute_should_return_expected_result_when_args_are_provided(
             [Values(false, true)]
@@ -200,7 +200,7 @@ namespace MongoDB.Driver.Core.Operations
             // TODO: implement EvalOperation MaxTime test
         }
 
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public void Execute_should_return_expected_result_when_noLock_is_provided(
             [Values(false, true)]
@@ -230,7 +230,7 @@ namespace MongoDB.Driver.Core.Operations
             action.ShouldThrow<ArgumentNullException>();
         }
 
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public void Execute_should_throw_when_maxTime_is_exceeded(
             [Values(false, true)] bool async)

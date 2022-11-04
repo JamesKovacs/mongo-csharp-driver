@@ -33,7 +33,7 @@ namespace MongoDB.Driver.Tests
     public class AsyncCursorTests
     {
         //public methods
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public void Cursor_should_not_throw_exception_after_double_close([Values(false, true)] bool async)
         {
@@ -60,7 +60,7 @@ namespace MongoDB.Driver.Tests
             }
         }
 
-        [SkippableFact]
+        [Fact]
         public void KillCursor_should_actually_work()
         {
             RequireServer.Check();
@@ -91,7 +91,7 @@ namespace MongoDB.Driver.Tests
             }
         }
 
-        [SkippableFact]
+        [Fact]
         public void Tailable_cursor_should_be_able_to_be_cancelled_from_a_different_thread_with_expected_result()
         {
             RequireServer.Check();

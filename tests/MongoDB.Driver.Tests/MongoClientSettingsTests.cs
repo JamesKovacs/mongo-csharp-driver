@@ -1265,7 +1265,7 @@ namespace MongoDB.Driver.Tests
             settings.Servers.Should().HaveCount(2);
         }
 
-        [SkippableFact]
+        [Fact]
         public void TestSocketConfigurator()
         {
             RequireServer.Check();

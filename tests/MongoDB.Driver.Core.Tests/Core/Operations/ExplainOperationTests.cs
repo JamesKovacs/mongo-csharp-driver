@@ -108,7 +108,7 @@ namespace MongoDB.Driver.Core.Operations
             result.Should().Be(expectedResult);
         }
 
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public void Execute_should_not_throw_when_collection_does_not_exist(
             [Values(false, true)]

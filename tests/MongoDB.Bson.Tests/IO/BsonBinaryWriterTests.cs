@@ -53,7 +53,7 @@ namespace MongoDB.Bson.Tests.IO
             }
         }
 
-        [SkippableFact]
+        [Fact]
         public void BsonBinaryWriter_should_support_writing_more_than_2GB()
         {
             RequireProcess.Check().Bits(64);
@@ -78,7 +78,7 @@ namespace MongoDB.Bson.Tests.IO
             }
         }
 
-        [SkippableFact]
+        [Fact]
         public void BackpatchSize_should_throw_when_size_is_larger_than_2GB()
         {
             RequireProcess.Check().Bits(64);

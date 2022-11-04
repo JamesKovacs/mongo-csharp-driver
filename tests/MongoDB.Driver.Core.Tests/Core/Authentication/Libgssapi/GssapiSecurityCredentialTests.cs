@@ -40,7 +40,7 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication.Libgssapi
             }
         }
 
-        [SkippableFact]
+        [Fact]
         public void Should_acquire_gssapi_security_credential_with_username_and_password()
         {
             RequireEnvironment.Check().EnvironmentVariable("GSSAPI_TESTS_ENABLED");
@@ -50,7 +50,7 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication.Libgssapi
             credential.Should().NotBeNull();
         }
 
-        [SkippableFact]
+        [Fact]
         public void Should_acquire_gssapi_security_credential_with_username_only()
         {
             RequireEnvironment.Check().EnvironmentVariable("GSSAPI_TESTS_ENABLED");
@@ -59,7 +59,7 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication.Libgssapi
             credential.Should().NotBeNull();
         }
 
-        [SkippableFact]
+        [Fact]
         public void Should_fail_to_acquire_gssapi_security_credential_with_username_and_bad_password()
         {
             RequireEnvironment.Check().EnvironmentVariable("GSSAPI_TESTS_ENABLED");

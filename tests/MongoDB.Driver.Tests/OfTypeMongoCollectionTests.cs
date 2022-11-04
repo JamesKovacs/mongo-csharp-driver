@@ -1130,7 +1130,7 @@ namespace MongoDB.Driver.Tests
             });
         }
 
-        [SkippableTheory]
+        [Theory]
         [ParameterAttributeData]
         public void UpdateOne_should_match_document_of_right_type(
             [Values(false, true)] bool upsert,

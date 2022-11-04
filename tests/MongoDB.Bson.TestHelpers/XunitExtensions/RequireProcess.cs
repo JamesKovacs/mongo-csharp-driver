@@ -14,7 +14,7 @@
 */
 
 using System;
-using Xunit;
+using Xunit.Sdk;
 
 namespace MongoDB.Bson.TestHelpers.XunitExtensions
 {

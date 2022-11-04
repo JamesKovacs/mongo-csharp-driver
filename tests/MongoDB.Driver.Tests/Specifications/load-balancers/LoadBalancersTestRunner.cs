@@ -37,7 +37,7 @@ namespace MongoDB.Driver.Tests.Specifications.load_balancers
         }
 
         // public methods
-        [SkippableTheory]
+        [Theory]
         [ClassData(typeof(TestCaseFactory))]
         public void Run(JsonDrivenTestCase testCase)
         {

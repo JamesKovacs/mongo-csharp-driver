@@ -61,7 +61,7 @@ namespace MongoDB.Driver.Tests.Linq
             return true;
         }
 
-        [SkippableFact]
+        [Fact]
         public void TestWhereEEqualsA()
         {
             RequireEnvironment.Check().EnvironmentVariable("MONO"); // Does not pass on Mono 3.2.5. Excluding for now.

@@ -1,4 +1,4 @@
-﻿/* Copyright 2021-present MongoDB Inc.
+﻿/* Copyright 2010-present MongoDB Inc.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -21,21 +21,21 @@ using System.Threading;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace MongoDB.Driver.Core.TestHelpers.XunitExtensions.TimeoutEnforcing
+namespace MongoDB.Bson.TestHelpers.XunitExtensions.TimeoutEnforcing
 {
     [DebuggerStepThrough]
-    internal sealed class TimeoutEnforcingXunitTestCaseRunner : XunitTestCaseRunner
+    internal sealed class TimeoutEnforcingXunitTheoryTestCaseRunner : XunitTheoryTestCaseRunner
     {
-        public TimeoutEnforcingXunitTestCaseRunner(
+        public TimeoutEnforcingXunitTheoryTestCaseRunner(
             IXunitTestCase testCase,
             string displayName,
             string skipReason,
             object[] constructorArguments,
-            object[] testMethodArguments,
+            IMessageSink messageSink,
             IMessageBus messageBus,
             ExceptionAggregator aggregator,
             CancellationTokenSource cancellationTokenSource)
-           : base(testCase, displayName, skipReason, constructorArguments, testMethodArguments, messageBus, aggregator, cancellationTokenSource)
+           : base(testCase, displayName, skipReason, constructorArguments, messageSink, messageBus, aggregator, cancellationTokenSource)
         {
         }
 

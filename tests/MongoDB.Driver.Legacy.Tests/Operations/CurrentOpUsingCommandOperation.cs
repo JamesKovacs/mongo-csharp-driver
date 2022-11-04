@@ -72,7 +72,7 @@ namespace MongoDB.Driver.Tests.Operations
             result.ResultSerializer.Should().BeSameAs(BsonDocumentSerializer.Instance);
         }
 
-        [SkippableFact]
+        [Fact]
         public void Execute_should_return_expected_result()
         {
             RequireServer.Check();
