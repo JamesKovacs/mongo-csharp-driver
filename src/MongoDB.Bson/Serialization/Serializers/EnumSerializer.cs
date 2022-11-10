@@ -65,6 +65,12 @@ namespace MongoDB.Bson.Serialization.Serializers
                 throw new BsonSerializationException(message);
             }
 
+            if (representation == 0)
+            {
+                var underlyingType = Enum.GetUnderlyingType(typeof(TEnum));
+                representation =  (underlyingType == typeof(long) || underlyingType == typeof(ulong)) ? BsonType.Int64 : BsonType.Int32;
+            }
+
             _representation = representation;
             _underlyingTypeCode = Type.GetTypeCode(Enum.GetUnderlyingType(typeof(TEnum)));
         }
@@ -128,16 +134,6 @@ namespace MongoDB.Bson.Serialization.Serializers
 
             switch (_representation)
             {
-                case 0:
-                    if (_underlyingTypeCode == TypeCode.Int64 || _underlyingTypeCode == TypeCode.UInt64)
-                    {
-                        goto case BsonType.Int64;
-                    }
-                    else
-                    {
-                        goto case BsonType.Int32;
-                    }
-
                 case BsonType.Int32:
                     bsonWriter.WriteInt32(ConvertEnumToInt32(value));
                     break;
@@ -162,6 +158,12 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// <returns>The reconfigured serializer.</returns>
         public EnumSerializer<TEnum> WithRepresentation(BsonType representation)
         {
+            if (representation == 0)
+            {
+                var underlyingType = Enum.GetUnderlyingType(typeof(TEnum));
+                representation = (underlyingType == typeof(long) || underlyingType == typeof(ulong)) ? BsonType.Int64 : BsonType.Int32;
+            }
+
             if (representation == _representation)
             {
                 return this;
