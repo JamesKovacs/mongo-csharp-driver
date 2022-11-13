@@ -232,12 +232,11 @@ namespace MongoDB.Bson.Serialization
                 }
                 else if (typeInfo.IsInterface)
                 {
-                    var listDefinition = typeof(List<>);
-                    var listType = listDefinition.MakeGenericType(itemType);
+                    var listType = typeof(List<>).MakeGenericType(itemType);
                     if (typeInfo.IsAssignableFrom(listType))
                     {
-                        var serializerDefinition = typeof(ImpliedImplementationInterfaceSerializer<,>);
-                        return CreateGenericSerializer(serializerDefinition, new[] { type, listType }, serializerRegistry);
+                        var serializerDefinition = typeof(IEnumerableListSerializer<,>);
+                        return CreateGenericSerializer(serializerDefinition, new[] { type, itemType }, serializerRegistry);
                     }
                 }
 
