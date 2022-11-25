@@ -54,7 +54,6 @@
     <PackageReference Include="FluentAssertions" Version="4.12.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.6.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
-    <PackageReference Include="Moq" Version="4.9.0" />
     <PackageReference Include="xunit" Version="2.4.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
     <PackageReference Include="JunitXml.TestLogger" Version="2.1.81" />
@@ -65,17 +64,6 @@
     <ProjectReference Include="..\..\src\MongoDB.Driver.Core\MongoDB.Driver.Core.csproj" />
     <ProjectReference Include="..\MongoDB.Bson.TestHelpers\MongoDB.Bson.TestHelpers.csproj" />
     <ProjectReference Include="..\MongoDB.Driver.Core.TestHelpers\MongoDB.Driver.Core.TestHelpers.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource LinkBase="Specifications\connection-monitoring-and-pooling\tests\cmap-format" Include="..\..\specifications\connection-monitoring-and-pooling\tests\cmap-format\*.json" />
-    <EmbeddedResource LinkBase="Specifications\connection-string" Include="..\..\specifications\connection-string\**\*.json" />
-    <EmbeddedResource LinkBase="Specifications\initial-dns-seedlist-discovery" Include="..\..\specifications\initial-dns-seedlist-discovery\**\*.json" />
-    <EmbeddedResource LinkBase="Specifications\max-staleness" Include="..\..\specifications\max-staleness\**\*.json" />
-    <EmbeddedResource LinkBase="Specifications\read-write-concern" Include="..\..\specifications\read-write-concern\**\*.json" />
-    <EmbeddedResource LinkBase="Specifications\server-discovery-and-monitoring" Include="..\..\specifications\server-discovery-and-monitoring\**\*.json" />
-    <EmbeddedResource LinkBase="Specifications\server-selection" Include="..\..\specifications\server-selection\**\*.json" />
-    <EmbeddedResource LinkBase="Specifications\uri-options" Include="..\..\specifications\uri-options\**\*.json" />
   </ItemGroup>
 
   <ItemGroup>
