@@ -13,15 +13,10 @@
 * limitations under the License.
 */
 
-using System;
-
-namespace MongoDB.Bson.TestHelpers.XunitExtensions
+namespace MongoDB.TestHelpers.XunitExtensions
 {
-    public static class XunitExtensionsConstants
+    internal interface IValueGeneratorAttribute
     {
-        public const string TimeoutEnforcingXunitFramework = "MongoDB.Bson.TestHelpers.XunitExtensions.TimeoutEnforcing.TimeoutEnforcingXunitTestFramework";
-        public const string TimeoutEnforcingFrameworkAssembly = "MongoDB.Bson.TestHelpers";
-
-        public static readonly TimeSpan DefaultTestTimeout = TimeSpan.FromMinutes(3);
+        object[] GenerateValues();
     }
 }

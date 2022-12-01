@@ -26,7 +26,7 @@ using MongoDB.Driver.Core;
 using MongoDB.Driver.GeoJsonObjectModel;
 using FluentAssertions;
 using Xunit;
-using MongoDB.Bson.TestHelpers.XunitExtensions;
+using MongoDB.TestHelpers.XunitExtensions;
 using MongoDB.Driver.Core.TestHelpers.XunitExtensions;
 using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Misc;

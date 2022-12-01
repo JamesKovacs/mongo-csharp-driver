@@ -15,7 +15,7 @@
 
 using System;
 
-namespace MongoDB.Bson.TestHelpers.XunitExtensions.TimeoutEnforcing
+namespace MongoDB.TestHelpers.XunitExtensions.TimeoutEnforcing
 {
     public interface ITestExceptionHandler
     {

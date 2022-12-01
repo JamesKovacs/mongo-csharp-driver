@@ -12,7 +12,7 @@
     <StandardTargetFrameworks Condition="'$(IsWindows)'=='true'">$(StandardTargetFrameworks);net472</StandardTargetFrameworks>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <LangVersion>10</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -39,7 +39,6 @@
   <PropertyGroup Condition="'$(IsOSX)'=='true'">
     <DefineConstants>$(DefineConstants);MACOS</DefineConstants>
   </PropertyGroup>
-
 
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="4.12.0" />

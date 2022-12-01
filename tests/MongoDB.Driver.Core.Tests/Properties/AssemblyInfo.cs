@@ -14,7 +14,7 @@
 */
 
 using System.Runtime.InteropServices;
-using MongoDB.Bson.TestHelpers.XunitExtensions;
+using MongoDB.TestHelpers.XunitExtensions;
 using Xunit;
 
 [assembly: ComVisible(false)]

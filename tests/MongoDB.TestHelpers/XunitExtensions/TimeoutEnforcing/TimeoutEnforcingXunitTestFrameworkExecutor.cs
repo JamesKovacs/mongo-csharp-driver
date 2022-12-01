@@ -19,7 +19,7 @@ using System.Reflection;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace MongoDB.Bson.TestHelpers.XunitExtensions.TimeoutEnforcing
+namespace MongoDB.TestHelpers.XunitExtensions.TimeoutEnforcing
 {
     [DebuggerStepThrough]
     internal sealed class TimeoutEnforcingXunitTestFrameworkExecutor : XunitTestFrameworkExecutor

@@ -1,4 +1,4 @@
-﻿/* Copyright 2016-present MongoDB Inc.
+﻿/* Copyright 2010-present MongoDB Inc.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -14,20 +14,14 @@
 */
 
 using System;
-using Xunit.Sdk;
 
-namespace MongoDB.Bson.TestHelpers.XunitExtensions
+namespace MongoDB.TestHelpers.XunitExtensions
 {
-    public class AssertionException : XunitException
+    public static class XunitExtensionsConstants
     {
-        public AssertionException(string userMessage)
-            : base(userMessage)
-        {
-        }
+        public const string TimeoutEnforcingXunitFramework = "MongoDB.TestHelpers.XunitExtensions.TimeoutEnforcing.TimeoutEnforcingXunitTestFramework";
+        public const string TimeoutEnforcingFrameworkAssembly = "MongoDB.TestHelpers";
 
-        public AssertionException(string userMessage, Exception innerException)
-            : base(userMessage, innerException)
-        {
-        }
+        public static readonly TimeSpan DefaultTestTimeout = TimeSpan.FromMinutes(3);
     }
 }

@@ -21,21 +21,21 @@ using System.Threading;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace MongoDB.Bson.TestHelpers.XunitExtensions.TimeoutEnforcing
+namespace MongoDB.TestHelpers.XunitExtensions.TimeoutEnforcing
 {
     [DebuggerStepThrough]
-    internal sealed class TimeoutEnforcingXunitTestCaseRunner : XunitTestCaseRunner
+    internal sealed class TimeoutEnforcingXunitTheoryTestCaseRunner : XunitTheoryTestCaseRunner
     {
-        public TimeoutEnforcingXunitTestCaseRunner(
+        public TimeoutEnforcingXunitTheoryTestCaseRunner(
             IXunitTestCase testCase,
             string displayName,
             string skipReason,
             object[] constructorArguments,
-            object[] testMethodArguments,
+            IMessageSink messageSink,
             IMessageBus messageBus,
             ExceptionAggregator aggregator,
             CancellationTokenSource cancellationTokenSource)
-           : base(testCase, displayName, skipReason, constructorArguments, testMethodArguments, messageBus, aggregator, cancellationTokenSource)
+           : base(testCase, displayName, skipReason, constructorArguments, messageSink, messageBus, aggregator, cancellationTokenSource)
         {
         }
 
