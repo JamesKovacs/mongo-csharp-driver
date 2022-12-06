@@ -37,6 +37,11 @@ namespace MongoDB.Driver.Linq
         IBsonSerializer CollectionDocumentSerializer { get; }
 
         /// <summary>
+        /// Gets the pipeline input serializer (NoPipeLineInputSerializer for LINQ queries on databases).
+        /// </summary>
+        IBsonSerializer PipelineInputSerializer { get; }
+
+        /// <summary>
         /// Gets the execution model.
         /// </summary>
         /// <param name="expression">The expression.</param>

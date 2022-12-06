@@ -27,7 +27,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.ExtensionMethods
                 constantExpression.Value is IQueryable queryable &&
                 queryable.Provider is MongoQueryProvider queryProvider)
             {
-                return (queryProvider.CollectionNamespace.CollectionName, queryProvider.CollectionDocumentSerializer);
+                return (queryProvider.CollectionNamespace.CollectionName, queryProvider.PipelineInputSerializer);
             }
 
             var message = $"Expression inner must be a MongoDB queryable representing a collection: {innerExpression} in {containerExpression}.";

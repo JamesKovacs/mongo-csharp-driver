@@ -44,6 +44,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation
         public abstract IBsonSerializer CollectionDocumentSerializer { get; }
         public abstract CollectionNamespace CollectionNamespace { get; }
         public AggregateOptions Options => _options;
+        public abstract IBsonSerializer PipelineInputSerializer { get; }
         public IClientSessionHandle Session => _session;
 
         // public methods
@@ -87,6 +88,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation
         public override CollectionNamespace CollectionNamespace => _collection.CollectionNamespace;
         public override IBsonSerializer CollectionDocumentSerializer => _collection.DocumentSerializer;
         public IMongoDatabase Database => _database;
+        public override IBsonSerializer PipelineInputSerializer => _collection == null ? NoPipelineInputSerializer.Instance : _collection.DocumentSerializer;
 
         // public methods
         public override IQueryable CreateQuery(Expression expression)

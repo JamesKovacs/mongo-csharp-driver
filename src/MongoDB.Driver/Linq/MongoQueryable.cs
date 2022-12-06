@@ -21,6 +21,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson.Serialization;
+using MongoDB.Driver.Core.Misc;
 
 namespace MongoDB.Driver.Linq
 {
@@ -551,6 +552,53 @@ namespace MongoDB.Driver.Linq
         public static IMongoQueryable<TSource> Distinct<TSource>(this IMongoQueryable<TSource> source)
         {
             return (IMongoQueryable<TSource>)Queryable.Distinct(source);
+        }
+
+        /// <summary>
+        /// Injects a sequence of documents at the beginning of a pipeline.
+        /// </summary>
+        /// <typeparam name="TDocument"> The type of the documents.</typeparam>
+        /// <param name="source">An IMongoQueryable with no other input.</param>
+        /// <param name="documents">The documents.</param>
+        /// <returns>
+        /// An <see cref="IMongoQueryable{TDocument}"/> whose elements are the documents.
+        /// </returns>
+        public static IMongoQueryable<TDocument> Documents<TDocument>(this IMongoQueryable<NoPipelineInput> source, params TDocument[] documents)
+        {
+            Ensure.IsNotNull(source, nameof(source));
+            Ensure.IsNotNull(documents, nameof(documents));
+
+            return (IMongoQueryable<TDocument>)source.Provider.CreateQuery<TDocument>(
+                Expression.Call(
+                    null,
+                    GetMethodInfo(Documents, source, documents),
+                    Expression.Convert(source.Expression, typeof(IMongoQueryable<NoPipelineInput>)),
+                    Expression.Constant(documents, typeof(TDocument[]))));
+        }
+
+        /// <summary>
+        /// Injects a sequence of documents at the beginning of a pipeline.
+        /// </summary>
+        /// <typeparam name="TDocument"> The type of the documents.</typeparam>
+        /// <param name="source">An IMongoQueryable with no other input.</param>
+        /// <param name="documents">The documents.</param>
+        /// <param name="documentSerializer">The document serializer.</param>
+        /// <returns>
+        /// An <see cref="IMongoQueryable{TDocument}"/> whose elements are the documents.
+        /// </returns>
+        public static IMongoQueryable<TDocument> Documents<TDocument>(this IMongoQueryable<NoPipelineInput> source, IEnumerable<TDocument> documents, IBsonSerializer<TDocument> documentSerializer)
+        {
+            Ensure.IsNotNull(source, nameof(source));
+            Ensure.IsNotNull(documents, nameof(documents));
+            Ensure.IsNotNull(documentSerializer, nameof(documentSerializer));
+
+            return (IMongoQueryable<TDocument>)source.Provider.CreateQuery<TDocument>(
+                Expression.Call(
+                    null,
+                    GetMethodInfo(Documents, source, documents, documentSerializer),
+                    Expression.Convert(source.Expression, typeof(IMongoQueryable<NoPipelineInput>)),
+                    Expression.Constant(documents, typeof(IEnumerable<TDocument>)),
+                    Expression.Constant(documentSerializer, typeof(IBsonSerializer<TDocument>))));
         }
 
         /// <summary>
