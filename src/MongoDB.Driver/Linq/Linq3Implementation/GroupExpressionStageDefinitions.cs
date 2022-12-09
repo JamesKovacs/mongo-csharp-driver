@@ -123,7 +123,6 @@ namespace MongoDB.Driver.Linq.Linq3Implementation
                 }
 
                 public CollectionNamespace CollectionNamespace => throw new NotImplementedException();
-                public IBsonSerializer CollectionDocumentSerializer => _inputSerializer;
                 public IBsonSerializer PipelineInputSerializer => _inputSerializer;
 
                 public IQueryable CreateQuery(Expression expression) => throw new NotImplementedException();

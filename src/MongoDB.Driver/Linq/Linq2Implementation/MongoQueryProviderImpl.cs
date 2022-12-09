@@ -43,8 +43,6 @@ namespace MongoDB.Driver.Linq.Linq2Implementation
 
         public CollectionNamespace CollectionNamespace => _collection.CollectionNamespace;
 
-        public IBsonSerializer CollectionDocumentSerializer => _collection.DocumentSerializer;
-
         public IBsonSerializer PipelineInputSerializer => _collection.DocumentSerializer;
 
         public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
