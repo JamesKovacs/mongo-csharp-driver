@@ -45,7 +45,7 @@ namespace MongoDB.Driver.Search
            new()
            {
                 { "query", _query.Render() },
-                { "tokenOrder", _tokenOrder.ToCamelCase(), _tokenOrder == AutocompleteTokenOrder.Sequential },
+                { "tokenOrder", _tokenOrder.ToCamelCase(), _tokenOrder != AutocompleteTokenOrder.Any },
                 { "fuzzy", () => _fuzzy.Render(), _fuzzy != null },
            };
     }

@@ -13,7 +13,7 @@ namespace MongoDB.Driver.Search
         public static SearchRange<TValue> Empty { get; } = new(default, default, default, default);
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Range{TValue}"/> class.
+        /// Initializes a new instance of the <see cref="SearchRange{TValue}"/> class.
         /// </summary>
         /// <param name="min">The lower bound of the range.</param>
         /// <param name="max">The upper bound of the range</param>
