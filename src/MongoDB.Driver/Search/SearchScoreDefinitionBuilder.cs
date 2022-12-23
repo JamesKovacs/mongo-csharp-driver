@@ -24,7 +24,7 @@ namespace MongoDB.Driver.Search
     /// A builder for a score modifier.
     /// </summary>
     /// <typeparam name="TDocument">The type of the document.</typeparam>
-    public sealed class ScoreDefinitionBuilder<TDocument>
+    public sealed class SearchScoreDefinitionBuilder<TDocument>
     {
         /// <summary>
         /// Creates a score modifier that multiplies a result's base score by a given number.
@@ -33,8 +33,8 @@ namespace MongoDB.Driver.Search
         /// <returns>
         /// A boost score modifier.
         /// </returns>
-        public ScoreDefinition<TDocument> Boost(double value) =>
-            new BoostValueScoreDefinition<TDocument>(value);
+        public SearchScoreDefinition<TDocument> Boost(double value) =>
+            new BoostValueSearchScoreDefinition<TDocument>(value);
 
         /// <summary>
         /// Creates a score modifier that multiples a result's base score by the value of a numeric
@@ -49,8 +49,8 @@ namespace MongoDB.Driver.Search
         /// <returns>
         /// A boost score modifier.
         /// </returns>
-        public ScoreDefinition<TDocument> Boost(PathDefinition<TDocument> path, double undefined = 0) =>
-            new BoostPathScoreDefinition<TDocument>(path, undefined);
+        public SearchScoreDefinition<TDocument> Boost(SearchPathDefinition<TDocument> path, double undefined = 0) =>
+            new BoostPathSearchScoreDefinition<TDocument>(path, undefined);
 
         /// <summary>
         /// Creates a score modifier that multiplies a result's base score by the value of a numeric
@@ -65,7 +65,7 @@ namespace MongoDB.Driver.Search
         /// <returns>
         /// A boost score modifier.
         /// </returns>
-        public ScoreDefinition<TDocument> Boost(Expression<Func<TDocument, double>> path, double undefined = 0) =>
+        public SearchScoreDefinition<TDocument> Boost(Expression<Func<TDocument, double>> path, double undefined = 0) =>
             Boost(new ExpressionFieldDefinition<TDocument>(path), undefined);
 
         /// <summary>
@@ -75,8 +75,8 @@ namespace MongoDB.Driver.Search
         /// <returns>
         /// A constant score modifier.
         /// </returns>
-        public ScoreDefinition<TDocument> Constant(double value) =>
-            new ConstantScoreDefinition<TDocument>(value);
+        public SearchScoreDefinition<TDocument> Constant(double value) =>
+            new ConstantSearchScoreDefinition<TDocument>(value);
 
         /// <summary>
         /// Creates a score modifier that computes the final score through an expression.
@@ -85,15 +85,15 @@ namespace MongoDB.Driver.Search
         /// <returns>
         /// A function score modifier.
         /// </returns>
-        public ScoreDefinition<TDocument> Function(ScoreFunction<TDocument> function) =>
-            new FunctionScoreDefinition<TDocument>(function);
+        public SearchScoreDefinition<TDocument> Function(SearchScoreFunction<TDocument> function) =>
+            new FunctionSearchScoreDefinition<TDocument>(function);
     }
 
-    internal sealed class BoostValueScoreDefinition<TDocument> : ScoreDefinition<TDocument>
+    internal sealed class BoostValueSearchScoreDefinition<TDocument> : SearchScoreDefinition<TDocument>
     {
         private readonly double _value;
 
-        public BoostValueScoreDefinition(double value)
+        public BoostValueSearchScoreDefinition(double value)
         {
             _value = Ensure.IsGreaterThanZero(value, nameof(value));
         }
@@ -102,12 +102,12 @@ namespace MongoDB.Driver.Search
             new("boost",  new BsonDocument("value", _value));
     }
 
-    internal sealed class BoostPathScoreDefinition<TDocument> : ScoreDefinition<TDocument>
+    internal sealed class BoostPathSearchScoreDefinition<TDocument> : SearchScoreDefinition<TDocument>
     {
-        private readonly PathDefinition<TDocument> _path;
+        private readonly SearchPathDefinition<TDocument> _path;
         private readonly double _undefined;
 
-        public BoostPathScoreDefinition(PathDefinition<TDocument> path, double undefined)
+        public BoostPathSearchScoreDefinition(SearchPathDefinition<TDocument> path, double undefined)
         {
             _path = Ensure.IsNotNull(path, nameof(path));
             _undefined = undefined;
@@ -121,11 +121,11 @@ namespace MongoDB.Driver.Search
             });
     }
 
-    internal sealed class ConstantScoreDefinition<TDocument> : ScoreDefinition<TDocument>
+    internal sealed class ConstantSearchScoreDefinition<TDocument> : SearchScoreDefinition<TDocument>
     {
         private readonly double _value;
 
-        public ConstantScoreDefinition(double value)
+        public ConstantSearchScoreDefinition(double value)
         {
             _value = Ensure.IsGreaterThanZero(value, nameof(value));
         }
@@ -134,11 +134,11 @@ namespace MongoDB.Driver.Search
             new("constant", new BsonDocument("value", _value));
     }
 
-    internal sealed class FunctionScoreDefinition<TDocument> : ScoreDefinition<TDocument>
+    internal sealed class FunctionSearchScoreDefinition<TDocument> : SearchScoreDefinition<TDocument>
     {
-        private readonly ScoreFunction<TDocument> _function;
+        private readonly SearchScoreFunction<TDocument> _function;
 
-        public FunctionScoreDefinition(ScoreFunction<TDocument> function)
+        public FunctionSearchScoreDefinition(SearchScoreFunction<TDocument> function)
         {
             _function = Ensure.IsNotNull(function, nameof(function));
         }

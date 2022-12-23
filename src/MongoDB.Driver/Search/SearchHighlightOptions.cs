@@ -22,20 +22,20 @@ namespace MongoDB.Driver.Search
     /// Options for highlighting.
     /// </summary>
     /// <typeparam name="TDocument">The type of the document.</typeparam>
-    public sealed class HighlightOptions<TDocument>
+    public sealed class SearchHighlightOptions<TDocument>
     {
-        private PathDefinition<TDocument> _path;
+        private SearchPathDefinition<TDocument> _path;
         private int? _maxCharsToExamine;
         private int? _maxNumPassages;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="HighlightOptions{TValue}"/> class.
+        /// Initializes a new instance of the <see cref="SearchHighlightOptions{TValue}"/> class.
         /// </summary>
         /// <param name="path">The document field to search.</param>
         /// <param name="maxCharsToExamine">maximum number of characters to examine.</param>
         /// <param name="maxNumPassages">The number of high-scoring passages.</param>
-        public HighlightOptions(PathDefinition<TDocument> path, int? maxCharsToExamine = null, int? maxNumPassages = null)
+        public SearchHighlightOptions(SearchPathDefinition<TDocument> path, int? maxCharsToExamine = null, int? maxNumPassages = null)
         {
             _path = Ensure.IsNotNull(path, nameof(path));
             _maxCharsToExamine = maxCharsToExamine;
@@ -45,7 +45,7 @@ namespace MongoDB.Driver.Search
         /// <summary>
         /// Gets or sets the document field to search.
         /// </summary>
-        public PathDefinition<TDocument> Path
+        public SearchPathDefinition<TDocument> Path
         {
             get => _path;
             set => _path = Ensure.IsNotNull(value, nameof(value));

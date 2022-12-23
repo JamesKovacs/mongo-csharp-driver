@@ -189,7 +189,7 @@ namespace MongoDB.Driver.Tests
         {
             var pipeline = new EmptyPipelineDefinition<BsonDocument>();
             var builder = new SearchDefinitionBuilder<BsonDocument>();
-            var result = pipeline.Search(builder.Text("foo", "bar"), new HighlightOptions<BsonDocument>("foo"));
+            var result = pipeline.Search(builder.Text("foo", "bar"), new SearchHighlightOptions<BsonDocument>("foo"));
             var stages = RenderStages(result, BsonDocumentSerializer.Instance);
             stages[0].Should().BeEquivalentTo(
                 BsonDocument.Parse("{ $search: { text: { query: 'foo', path: 'bar' }, highlight: { path: 'foo' } } }"));

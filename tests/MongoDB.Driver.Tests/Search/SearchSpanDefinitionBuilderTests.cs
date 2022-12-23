@@ -22,7 +22,7 @@ using Xunit;
 
 namespace MongoDB.Driver.Tests.Search
 {
-    public class SpanDefinitionBuilderTests
+    public class SearchSpanDefinitionBuilderTests
     {
         [Fact]
         public void First()
@@ -54,7 +54,7 @@ namespace MongoDB.Driver.Tests.Search
 
             AssertRendered(
                 subject.Near(
-                    new List<SpanDefinition<BsonDocument>>()
+                    new List<SearchSpanDefinition<BsonDocument>>()
                     {
                         subject.Term("foo", "x"),
                         subject.Term("bar", "x")
@@ -71,7 +71,7 @@ namespace MongoDB.Driver.Tests.Search
 
             AssertRendered(
                 subject.Near(
-                    new List<SpanDefinition<Person>>()
+                    new List<SearchSpanDefinition<Person>>()
                     {
                         subject.Term("born", x => x.Biography),
                         subject.Term("school", x => x.Biography)
@@ -81,7 +81,7 @@ namespace MongoDB.Driver.Tests.Search
                 "{ near: { clauses: [{ term: { query: 'born', path: 'bio' } }, { term: { query: 'school', path: 'bio' } }], slop: 5, inOrder: true } }");
             AssertRendered(
                 subject.Near(
-                    new List<SpanDefinition<Person>>()
+                    new List<SearchSpanDefinition<Person>>()
                     {
                         subject.Term("born", "Biography"),
                         subject.Term("school", "Biography")
@@ -149,10 +149,10 @@ namespace MongoDB.Driver.Tests.Search
                 "{ subtract: { include: { term: { query: 'engineer', path: 'bio' } }, exclude: { term: { query: 'train', path: 'bio' } } } }");
         }
 
-        private void AssertRendered<TDocument>(SpanDefinition<TDocument> span, string expected) =>
+        private void AssertRendered<TDocument>(SearchSpanDefinition<TDocument> span, string expected) =>
             AssertRendered(span, BsonDocument.Parse(expected));
 
-        private void AssertRendered<TDocument>(SpanDefinition<TDocument> span, BsonDocument expected)
+        private void AssertRendered<TDocument>(SearchSpanDefinition<TDocument> span, BsonDocument expected)
         {
             var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<TDocument>();
             var renderedSpan = span.Render(documentSerializer, BsonSerializer.SerializerRegistry);
@@ -160,8 +160,8 @@ namespace MongoDB.Driver.Tests.Search
             renderedSpan.Should().BeEquivalentTo(expected);
         }
 
-        private SpanDefinitionBuilder<TDocument> CreateSubject<TDocument>() =>
-            new SpanDefinitionBuilder<TDocument>();
+        private SearchSpanDefinitionBuilder<TDocument> CreateSubject<TDocument>() =>
+            new SearchSpanDefinitionBuilder<TDocument>();
 
         private class Person
         {

@@ -21,7 +21,7 @@ using Xunit;
 
 namespace MongoDB.Driver.Tests.Search
 {
-    public class ScoreDefinitionBuilderTests
+    public class SearchScoreDefinitionBuilderTests
     {
         [Fact]
         public void Boost()
@@ -67,16 +67,16 @@ namespace MongoDB.Driver.Tests.Search
         {
             var subject = CreateSubject<BsonDocument>();
 
-            var functionBuilder = new ScoreFunctionBuilder<BsonDocument>();
+            var functionBuilder = new SearchScoreFunctionBuilder<BsonDocument>();
             AssertRendered(
                 subject.Function(functionBuilder.Path("x")),
                 "{ function: { path: 'x' } }");
         }
 
-        private void AssertRendered<TDocument>(ScoreDefinition<TDocument> score, string expected) =>
+        private void AssertRendered<TDocument>(SearchScoreDefinition<TDocument> score, string expected) =>
             AssertRendered(score, BsonDocument.Parse(expected));
 
-        private void AssertRendered<TDocument>(ScoreDefinition<TDocument> score, BsonDocument expected)
+        private void AssertRendered<TDocument>(SearchScoreDefinition<TDocument> score, BsonDocument expected)
         {
             var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<TDocument>();
             var renderedQuery = score.Render(documentSerializer, BsonSerializer.SerializerRegistry);
@@ -84,8 +84,8 @@ namespace MongoDB.Driver.Tests.Search
             renderedQuery.Should().BeEquivalentTo(expected);
         }
 
-        private ScoreDefinitionBuilder<TDocument> CreateSubject<TDocument>() =>
-            new ScoreDefinitionBuilder<TDocument>();
+        private SearchScoreDefinitionBuilder<TDocument> CreateSubject<TDocument>() =>
+            new SearchScoreDefinitionBuilder<TDocument>();
 
         private class Person
         {

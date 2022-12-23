@@ -12,22 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+
 namespace MongoDB.Driver.Search
 {
     /// <summary>
-    /// The order in which to search for tokens in an autocomplete search definition.
+    /// Base class for search score functions.
     /// </summary>
-    public enum AutocompleteTokenOrder
+    /// <typeparam name="TDocument">The type of the document.</typeparam>
+    public abstract class SearchScoreFunction<TDocument>
     {
         /// <summary>
-        /// Indicates that tokens in the query can appear in any order in the documents.
+        /// Renders the score function to a <see cref="BsonDocument"/>.
         /// </summary>
-        Any,
-        
-        /// <summary>
-        /// Indicates that tokens in the query must appear adjacent to each other or in the order
-        /// specified in the query in the documents.
-        /// </summary>
-        Sequential
+        /// <param name="documentSerializer">The document serializer.</param>
+        /// <param name="serializerRegistry">The serializer registry.</param>
+        /// <returns>A <see cref="BsonDocument"/>.</returns>
+        public abstract BsonDocument Render(IBsonSerializer<TDocument> documentSerializer, IBsonSerializerRegistry serializerRegistry);
     }
 }

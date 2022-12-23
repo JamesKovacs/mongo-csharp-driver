@@ -24,16 +24,16 @@ namespace MongoDB.Driver.Search
 {
     internal sealed class AutocompleteSearchDefinition<TDocument> : OperatorSearchDefinition<TDocument>
     {
-        private readonly QueryDefinition _query;
-        private readonly AutocompleteTokenOrder _tokenOrder;
-        private readonly FuzzyOptions _fuzzy;
+        private readonly SearchQueryDefinition _query;
+        private readonly SearchAutocompleteTokenOrder _tokenOrder;
+        private readonly SearchFuzzyOptions _fuzzy;
 
         public AutocompleteSearchDefinition(
-            QueryDefinition query,
-            PathDefinition<TDocument> path,
-            AutocompleteTokenOrder tokenOrder,
-            FuzzyOptions fuzzy,
-            ScoreDefinition<TDocument> score)
+            SearchQueryDefinition query,
+            SearchPathDefinition<TDocument> path,
+            SearchAutocompleteTokenOrder tokenOrder,
+            SearchFuzzyOptions fuzzy,
+            SearchScoreDefinition<TDocument> score)
             : base(OperatorType.Autocomplete, path, score)
         {
             _query = Ensure.IsNotNull(query, nameof(query));
@@ -45,7 +45,7 @@ namespace MongoDB.Driver.Search
            new()
            {
                 { "query", _query.Render() },
-                { "tokenOrder", _tokenOrder.ToCamelCase(), _tokenOrder != AutocompleteTokenOrder.Any },
+                { "tokenOrder", _tokenOrder.ToCamelCase(), _tokenOrder != SearchAutocompleteTokenOrder.Any },
                 { "fuzzy", () => _fuzzy.Render(), _fuzzy != null },
            };
     }
@@ -65,9 +65,7 @@ namespace MongoDB.Driver.Search
             List<SearchDefinition<TDocument>> filter,
             int minimumShouldMatch) : base(OperatorType.Compound)
         {
-            // This constructor should always be called from a fluent interface that
-            // ensures that the parameters are not null and copies the lists, so there is
-            // no need to do any of that here.
+            // This constructor should always be called from a fluent interface that ensures validates the lists contents.
             _must = must;
             _mustNot = mustNot;
             _should = should;
@@ -95,7 +93,7 @@ namespace MongoDB.Driver.Search
     {
         private readonly BsonValue _value;
 
-        public EqualsSearchDefinition(FieldDefinition<TDocument> path, BsonValue value, ScoreDefinition<TDocument> score)
+        public EqualsSearchDefinition(FieldDefinition<TDocument> path, BsonValue value, SearchScoreDefinition<TDocument> score)
             : base(OperatorType.Equals, path, score)
         {
             _value = value;
@@ -140,9 +138,9 @@ namespace MongoDB.Driver.Search
 
         public GeoShapeSearchDefinition(
             GeoJsonGeometry<TCoordinates> geometry,
-            PathDefinition<TDocument> path,
+            SearchPathDefinition<TDocument> path,
             GeoShapeRelation relation,
-            ScoreDefinition<TDocument> score)
+            SearchScoreDefinition<TDocument> score)
             : base(OperatorType.GeoShape, path, score)
         {
             _geometry = Ensure.IsNotNull(geometry, nameof(geometry));
@@ -164,8 +162,8 @@ namespace MongoDB.Driver.Search
 
         public GeoWithinSearchDefinition(
             GeoWithin<TCoordinates> geoWithinQuery,
-            PathDefinition<TDocument> path,
-            ScoreDefinition<TDocument> score)
+            SearchPathDefinition<TDocument> path,
+            SearchScoreDefinition<TDocument> score)
             : base(OperatorType.GeoWithin, path, score)
         {
             _geoWithinQuery = Ensure.IsNotNull(geoWithinQuery, nameof(geoWithinQuery));
@@ -194,10 +192,10 @@ namespace MongoDB.Driver.Search
         private readonly BsonValue _pivot;
 
         public NearSearchDefinition(
-            PathDefinition<TDocument> path,
+            SearchPathDefinition<TDocument> path,
             BsonValue origin,
             BsonValue pivot,
-            ScoreDefinition<TDocument> score = null)
+            SearchScoreDefinition<TDocument> score = null)
             : base(OperatorType.Near, path, score)
         {
             _origin = origin;
@@ -214,14 +212,14 @@ namespace MongoDB.Driver.Search
 
     internal sealed class PhraseSearchDefinition<TDocument> : OperatorSearchDefinition<TDocument>
     {
-        private readonly QueryDefinition _query;
+        private readonly SearchQueryDefinition _query;
         private readonly int? _slop;
 
         public PhraseSearchDefinition(
-            QueryDefinition query,
-            PathDefinition<TDocument> path,
+            SearchQueryDefinition query,
+            SearchPathDefinition<TDocument> path,
             int? slop,
-            ScoreDefinition<TDocument> score)
+            SearchScoreDefinition<TDocument> score)
             : base(OperatorType.Phrase, path, score)
         {
             _query = Ensure.IsNotNull(query, nameof(query));
@@ -241,7 +239,7 @@ namespace MongoDB.Driver.Search
         private readonly FieldDefinition<TDocument> _defaultPath;
         private readonly string _query;
 
-        public QueryStringSearchDefinition(FieldDefinition<TDocument> defaultPath, string query, ScoreDefinition<TDocument> score)
+        public QueryStringSearchDefinition(FieldDefinition<TDocument> defaultPath, string query, SearchScoreDefinition<TDocument> score)
             : base(OperatorType.QueryString, score)
         {
             _defaultPath = Ensure.IsNotNull(defaultPath, nameof(defaultPath));
@@ -263,8 +261,8 @@ namespace MongoDB.Driver.Search
 
         public RangeSearchDefinition(
             SearchRange<TField> range,
-            PathDefinition<TDocument> path,
-            ScoreDefinition<TDocument> score)
+            SearchPathDefinition<TDocument> path,
+            SearchScoreDefinition<TDocument> score)
              : base(OperatorType.Range, path, score)
         {
             _range = range;
@@ -295,14 +293,14 @@ namespace MongoDB.Driver.Search
 
     internal sealed class RegexSearchDefinition<TDocument> : OperatorSearchDefinition<TDocument>
     {
-        private readonly QueryDefinition _query;
+        private readonly SearchQueryDefinition _query;
         private readonly bool _allowAnalyzedField;
 
         public RegexSearchDefinition(
-            QueryDefinition query,
-            PathDefinition<TDocument> path,
+            SearchQueryDefinition query,
+            SearchPathDefinition<TDocument> path,
             bool allowAnalyzedField,
-            ScoreDefinition<TDocument> score) : base(OperatorType.Regex, path, score)
+            SearchScoreDefinition<TDocument> score) : base(OperatorType.Regex, path, score)
         {
             _query = Ensure.IsNotNull(query, nameof(query));
             _allowAnalyzedField = allowAnalyzedField;
@@ -318,9 +316,9 @@ namespace MongoDB.Driver.Search
 
     internal sealed class SpanSearchDefinition<TDocument> : OperatorSearchDefinition<TDocument>
     {
-        private readonly SpanDefinition<TDocument> _clause;
+        private readonly SearchSpanDefinition<TDocument> _clause;
 
-        public SpanSearchDefinition(SpanDefinition<TDocument> clause) : base(OperatorType.Span)
+        public SpanSearchDefinition(SearchSpanDefinition<TDocument> clause) : base(OperatorType.Span)
         {
             _clause = Ensure.IsNotNull(clause, nameof(clause));
         }
@@ -331,14 +329,14 @@ namespace MongoDB.Driver.Search
 
     internal sealed class TextSearchDefinition<TDocument> : OperatorSearchDefinition<TDocument>
     {
-        private readonly QueryDefinition _query;
-        private readonly FuzzyOptions _fuzzy;
+        private readonly SearchQueryDefinition _query;
+        private readonly SearchFuzzyOptions _fuzzy;
 
         public TextSearchDefinition(
-            QueryDefinition query,
-            PathDefinition<TDocument> path,
-            FuzzyOptions fuzzy,
-            ScoreDefinition<TDocument> score)
+            SearchQueryDefinition query,
+            SearchPathDefinition<TDocument> path,
+            SearchFuzzyOptions fuzzy,
+            SearchScoreDefinition<TDocument> score)
             : base(OperatorType.Text, path, score)
         {
             _query = Ensure.IsNotNull(query, nameof(query));
@@ -355,14 +353,14 @@ namespace MongoDB.Driver.Search
 
     internal sealed class WildcardSearchDefinition<TDocument> : OperatorSearchDefinition<TDocument>
     {
-        private readonly QueryDefinition _query;
+        private readonly SearchQueryDefinition _query;
         private readonly bool _allowAnalyzedField;
 
         public WildcardSearchDefinition(
-            QueryDefinition query,
-            PathDefinition<TDocument> path,
+            SearchQueryDefinition query,
+            SearchPathDefinition<TDocument> path,
             bool allowAnalyzedField,
-            ScoreDefinition<TDocument> score)
+            SearchScoreDefinition<TDocument> score)
             : base(OperatorType.Wildcard, path, score)
         {
             _query = Ensure.IsNotNull(query, nameof(query));

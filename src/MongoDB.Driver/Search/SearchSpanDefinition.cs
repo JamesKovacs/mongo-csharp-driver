@@ -21,7 +21,7 @@ namespace MongoDB.Driver.Search
     /// Base class for span clauses.
     /// </summary>
     /// <typeparam name="TDocument"></typeparam>
-    public abstract class SpanDefinition<TDocument>
+    public abstract class SearchSpanDefinition<TDocument>
     {
         private protected enum ClauseType
         {
@@ -34,7 +34,7 @@ namespace MongoDB.Driver.Search
 
         private readonly ClauseType _clauseType;
 
-        private protected SpanDefinition(ClauseType clauseType) => _clauseType = clauseType;
+        private protected SearchSpanDefinition(ClauseType clauseType) => _clauseType = clauseType;
 
         private protected virtual BsonDocument RenderClause(IBsonSerializer<TDocument> documentSerializer, IBsonSerializerRegistry serializerRegistry) => new();
 

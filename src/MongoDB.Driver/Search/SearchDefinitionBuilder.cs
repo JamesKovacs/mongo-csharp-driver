@@ -37,12 +37,12 @@ namespace MongoDB.Driver.Search
         /// <param name="score">The score modifier.</param>
         /// <returns>An autocomplete search definition.</returns>
         public SearchDefinition<TDocument> Autocomplete(
-            QueryDefinition query,
-            PathDefinition<TDocument> path,
-            AutocompleteTokenOrder tokenOrder = AutocompleteTokenOrder.Any,
-            FuzzyOptions fuzzy = null,
-            ScoreDefinition<TDocument> score = null) =>
-            new AutocompleteSearchDefinition<TDocument>(query, path, tokenOrder, fuzzy, score);
+            SearchQueryDefinition query,
+            SearchPathDefinition<TDocument> path,
+            SearchAutocompleteTokenOrder tokenOrder = SearchAutocompleteTokenOrder.Any,
+            SearchFuzzyOptions fuzzy = null,
+            SearchScoreDefinition<TDocument> score = null) =>
+                new AutocompleteSearchDefinition<TDocument>(query, path, tokenOrder, fuzzy, score);
 
         /// <summary>
         /// Creates a search definition that performs a search for a word or phrase that contains
@@ -56,18 +56,18 @@ namespace MongoDB.Driver.Search
         /// <param name="score">The score modifier.</param>
         /// <returns>An autocomplete search definition.</returns>
         public SearchDefinition<TDocument> Autocomplete<TField>(
-            QueryDefinition query,
+            SearchQueryDefinition query,
             Expression<Func<TDocument, TField>> path,
-            AutocompleteTokenOrder tokenOrder = AutocompleteTokenOrder.Any,
-            FuzzyOptions fuzzy = null,
-            ScoreDefinition<TDocument> score = null)
-            => Autocomplete(query, new ExpressionFieldDefinition<TDocument>(path), tokenOrder, fuzzy, score);
+            SearchAutocompleteTokenOrder tokenOrder = SearchAutocompleteTokenOrder.Any,
+            SearchFuzzyOptions fuzzy = null,
+            SearchScoreDefinition<TDocument> score = null) =>
+                Autocomplete(query, new ExpressionFieldDefinition<TDocument>(path), tokenOrder, fuzzy, score);
 
         /// <summary>
         /// Creates a search definition that combines two or more operators into a single query.
         /// </summary>
         /// <returns></returns>
-        public CompoundFluent<TDocument> Compound() => new CompoundFluentImpl<TDocument>();
+        public CompoundSearchDefinitionFluent<TDocument> Compound() => new CompoundSearchDefinitionFluent<TDocument>();
 
         /// <summary>
         /// Creates a search definition that queries for documents where an indexed field is equal
@@ -80,8 +80,8 @@ namespace MongoDB.Driver.Search
         public SearchDefinition<TDocument> Equals(
             FieldDefinition<TDocument, bool> path,
             bool value,
-            ScoreDefinition<TDocument> score = null) =>
-            new EqualsSearchDefinition<TDocument>(path, value, score);
+            SearchScoreDefinition<TDocument> score = null) =>
+                new EqualsSearchDefinition<TDocument>(path, value, score);
 
         /// <summary>
         /// Creates a search definition that queries for documents where an indexed field is equal
@@ -94,8 +94,8 @@ namespace MongoDB.Driver.Search
         public SearchDefinition<TDocument> Equals(
             FieldDefinition<TDocument, ObjectId> path,
             ObjectId value,
-            ScoreDefinition<TDocument> score = null) =>
-            new EqualsSearchDefinition<TDocument>(path, value, score);
+            SearchScoreDefinition<TDocument> score = null) =>
+                new EqualsSearchDefinition<TDocument>(path, value, score);
 
         /// <summary>
         /// Creates a search definition that queries for documents where an indexed field is equal
@@ -108,8 +108,8 @@ namespace MongoDB.Driver.Search
         public SearchDefinition<TDocument> Equals(
             Expression<Func<TDocument, bool>> path,
             bool value,
-            ScoreDefinition<TDocument> score = null) =>
-            Equals(new ExpressionFieldDefinition<TDocument, bool>(path), value, score);
+            SearchScoreDefinition<TDocument> score = null) =>
+                Equals(new ExpressionFieldDefinition<TDocument, bool>(path), value, score);
 
         /// <summary>
         /// Creates a search definition that queries for documents where an indexed field is equal
@@ -122,8 +122,8 @@ namespace MongoDB.Driver.Search
         public SearchDefinition<TDocument> Equals(
             Expression<Func<TDocument, ObjectId>> path,
             ObjectId value,
-            ScoreDefinition<TDocument> score = null) =>
-            Equals(new ExpressionFieldDefinition<TDocument, ObjectId>(path), value, score);
+            SearchScoreDefinition<TDocument> score = null) =>
+                Equals(new ExpressionFieldDefinition<TDocument, ObjectId>(path), value, score);
 
         /// <summary>
         /// Creates a search definition that tests if a path to a specified indexed field name
@@ -154,7 +154,7 @@ namespace MongoDB.Driver.Search
         public SearchDefinition<TDocument> Facet(
             SearchDefinition<TDocument> @operator,
             IEnumerable<SearchFacet<TDocument>> facets) =>
-            new FacetSearchDefinition<TDocument>(@operator, facets);
+                new FacetSearchDefinition<TDocument>(@operator, facets);
 
         /// <summary>
         /// Creates a search definition that groups results by values or ranges in the specified
@@ -166,7 +166,7 @@ namespace MongoDB.Driver.Search
         public SearchDefinition<TDocument> Facet(
             SearchDefinition<TDocument> @operator,
             params SearchFacet<TDocument>[] facets) =>
-            Facet(@operator, (IEnumerable<SearchFacet<TDocument>>)facets);
+                Facet(@operator, (IEnumerable<SearchFacet<TDocument>>)facets);
 
         /// <summary>
         /// Creates a search definition that queries for shapes with a given geometry.
@@ -184,11 +184,11 @@ namespace MongoDB.Driver.Search
         /// <returns>A geo shape search definition.</returns>
         public SearchDefinition<TDocument> GeoShape<TCoordinates>(
             GeoJsonGeometry<TCoordinates> geometry,
-            PathDefinition<TDocument> path,
+            SearchPathDefinition<TDocument> path,
             GeoShapeRelation relation,
-            ScoreDefinition<TDocument> score = null)
+            SearchScoreDefinition<TDocument> score = null)
             where TCoordinates : GeoJsonCoordinates =>
-            new GeoShapeSearchDefinition<TDocument, TCoordinates>(geometry, path, relation, score);
+                new GeoShapeSearchDefinition<TDocument, TCoordinates>(geometry, path, relation, score);
 
         /// <summary>
         /// Creates a search definition that queries for shapes with a given geometry.
@@ -209,13 +209,13 @@ namespace MongoDB.Driver.Search
             GeoJsonGeometry<TCoordinates> geometry,
             Expression<Func<TDocument, TField>> path,
             GeoShapeRelation relation,
-            ScoreDefinition<TDocument> score = null)
+            SearchScoreDefinition<TDocument> score = null)
             where TCoordinates : GeoJsonCoordinates =>
-            GeoShape(
-                geometry,
-                new ExpressionFieldDefinition<TDocument>(path),
-                relation,
-                score);
+                GeoShape(
+                    geometry,
+                    new ExpressionFieldDefinition<TDocument>(path),
+                    relation,
+                    score);
 
         /// <summary>
         /// Creates a search definition that queries for geographic points within a given
@@ -230,10 +230,10 @@ namespace MongoDB.Driver.Search
         /// <returns>A geo within search definition.</returns>
         public SearchDefinition<TDocument> GeoWithin<TCoordinates>(
             GeoJsonGeometry<TCoordinates> geometry,
-            PathDefinition<TDocument> path,
-            ScoreDefinition<TDocument> score = null)
+            SearchPathDefinition<TDocument> path,
+            SearchScoreDefinition<TDocument> score = null)
             where TCoordinates : GeoJsonCoordinates =>
-            GeoWithin(new GeoWithinGeometry<TCoordinates>(geometry), path, score);
+                GeoWithin(new GeoWithinGeometry<TCoordinates>(geometry), path, score);
 
         /// <summary>
         /// Creates a search definition that queries for geographic points within a given
@@ -250,9 +250,9 @@ namespace MongoDB.Driver.Search
         public SearchDefinition<TDocument> GeoWithin<TCoordinates, TField>(
             GeoJsonGeometry<TCoordinates> geometry,
             Expression<Func<TDocument, TField>> path,
-            ScoreDefinition<TDocument> score = null)
+            SearchScoreDefinition<TDocument> score = null)
             where TCoordinates : GeoJsonCoordinates =>
-            GeoWithin(new GeoWithinGeometry<TCoordinates>(geometry), path, score);
+                GeoWithin(new GeoWithinGeometry<TCoordinates>(geometry), path, score);
 
         /// <summary>
         /// Creates a search definition that queries for geographic points within a given geo object.
@@ -266,9 +266,9 @@ namespace MongoDB.Driver.Search
         public SearchDefinition<TDocument> GeoWithin<TCoordinates, TField>(
             GeoWithin<TCoordinates> geoWithinQuery,
             Expression<Func<TDocument, TField>> path,
-            ScoreDefinition<TDocument> score = null)
+            SearchScoreDefinition<TDocument> score = null)
             where TCoordinates : GeoJsonCoordinates =>
-            GeoWithin(geoWithinQuery, new ExpressionFieldDefinition<TDocument>(path), score);
+                GeoWithin(geoWithinQuery, new ExpressionFieldDefinition<TDocument>(path), score);
 
         /// <summary>
         /// Creates a search definition that queries for geographic points within a given geo object.
@@ -280,10 +280,10 @@ namespace MongoDB.Driver.Search
         /// <returns>A geo within search definition.</returns>
         public SearchDefinition<TDocument> GeoWithin<TCoordinates>(
             GeoWithin<TCoordinates> geoWithinQuery,
-            PathDefinition<TDocument> path,
-            ScoreDefinition<TDocument> score = null)
+            SearchPathDefinition<TDocument> path,
+            SearchScoreDefinition<TDocument> score = null)
             where TCoordinates : GeoJsonCoordinates =>
-            new GeoWithinSearchDefinition<TDocument, TCoordinates>(geoWithinQuery, path, score);
+                new GeoWithinSearchDefinition<TDocument, TCoordinates>(geoWithinQuery, path, score);
 
         /// <summary>
         /// Creates a search definition that returns documents similar to the input documents.
@@ -314,11 +314,11 @@ namespace MongoDB.Driver.Search
         /// <param name="score">The score modifier.</param>
         /// <returns>A near search definition.</returns>
         public SearchDefinition<TDocument> Near(
-            PathDefinition<TDocument> path,
+            SearchPathDefinition<TDocument> path,
             double origin,
             double pivot,
-            ScoreDefinition<TDocument> score = null) =>
-            new NearSearchDefinition<TDocument>(path, origin, pivot, score);
+            SearchScoreDefinition<TDocument> score = null) =>
+                new NearSearchDefinition<TDocument>(path, origin, pivot, score);
 
         /// <summary>
         /// Creates a search definition that supports querying and scoring numeric and date values.
@@ -333,8 +333,8 @@ namespace MongoDB.Driver.Search
             Expression<Func<TDocument, TField>> path,
             double origin,
             double pivot,
-            ScoreDefinition<TDocument> score = null) =>
-            Near(new ExpressionFieldDefinition<TDocument>(path), origin, pivot, score);
+            SearchScoreDefinition<TDocument> score = null) =>
+                Near(new ExpressionFieldDefinition<TDocument>(path), origin, pivot, score);
 
         /// <summary>
         /// Creates a search definition that supports querying and scoring numeric and date values.
@@ -345,11 +345,11 @@ namespace MongoDB.Driver.Search
         /// <param name="score">The score modifier.</param>
         /// <returns>A near search definition.</returns>
         public SearchDefinition<TDocument> Near(
-            PathDefinition<TDocument> path,
+            SearchPathDefinition<TDocument> path,
             int origin,
             int pivot,
-            ScoreDefinition<TDocument> score = null) =>
-            new NearSearchDefinition<TDocument>(path, new BsonInt32(origin), new BsonInt32(pivot), score);
+            SearchScoreDefinition<TDocument> score = null) =>
+                new NearSearchDefinition<TDocument>(path, new BsonInt32(origin), new BsonInt32(pivot), score);
 
         /// <summary>
         /// Creates a search definition that supports querying and scoring numeric and date values.
@@ -364,8 +364,8 @@ namespace MongoDB.Driver.Search
             Expression<Func<TDocument, TField>> path,
             int origin,
             int pivot,
-            ScoreDefinition<TDocument> score = null) =>
-            Near(new ExpressionFieldDefinition<TDocument>(path), origin, pivot, score);
+            SearchScoreDefinition<TDocument> score = null) =>
+                Near(new ExpressionFieldDefinition<TDocument>(path), origin, pivot, score);
 
         /// <summary>
         /// Creates a search definition that supports querying and scoring numeric and date values.
@@ -376,11 +376,11 @@ namespace MongoDB.Driver.Search
         /// <param name="score">The score modifier.</param>
         /// <returns>A near search definition.</returns>
         public SearchDefinition<TDocument> Near(
-            PathDefinition<TDocument> path,
+            SearchPathDefinition<TDocument> path,
             long origin,
             long pivot,
-            ScoreDefinition<TDocument> score = null) =>
-            new NearSearchDefinition<TDocument>(path, new BsonInt64(origin), new BsonInt64(pivot), score);
+            SearchScoreDefinition<TDocument> score = null) =>
+                new NearSearchDefinition<TDocument>(path, new BsonInt64(origin), new BsonInt64(pivot), score);
 
         /// <summary>
         /// Creates a search definition that supports querying and scoring numeric and date values.
@@ -395,8 +395,8 @@ namespace MongoDB.Driver.Search
             Expression<Func<TDocument, TField>> path,
             long origin,
             long pivot,
-            ScoreDefinition<TDocument> score = null) =>
-            Near(new ExpressionFieldDefinition<TDocument>(path), origin, pivot, score);
+            SearchScoreDefinition<TDocument> score = null) =>
+                Near(new ExpressionFieldDefinition<TDocument>(path), origin, pivot, score);
 
         /// <summary>
         /// Creates a search definition that supports querying and scoring numeric and date values.
@@ -407,11 +407,11 @@ namespace MongoDB.Driver.Search
         /// <param name="score">The score modifier.</param>
         /// <returns>A near search definition.</returns>
         public SearchDefinition<TDocument> Near(
-            PathDefinition<TDocument> path,
+            SearchPathDefinition<TDocument> path,
             DateTime origin,
             long pivot,
-            ScoreDefinition<TDocument> score = null) =>
-            new NearSearchDefinition<TDocument>(path, new BsonDateTime(origin), new BsonInt64(pivot), score);
+            SearchScoreDefinition<TDocument> score = null) =>
+                new NearSearchDefinition<TDocument>(path, new BsonDateTime(origin), new BsonInt64(pivot), score);
 
         /// <summary>
         /// Creates a search definition that supports querying and scoring numeric and date values.
@@ -426,8 +426,8 @@ namespace MongoDB.Driver.Search
             Expression<Func<TDocument, TField>> path,
             DateTime origin,
             long pivot,
-            ScoreDefinition<TDocument> score = null) =>
-            Near(new ExpressionFieldDefinition<TDocument>(path), origin, pivot, score);
+            SearchScoreDefinition<TDocument> score = null) =>
+                Near(new ExpressionFieldDefinition<TDocument>(path), origin, pivot, score);
 
         /// <summary>
         /// Creates a search definition that supports querying and scoring numeric and date values.
@@ -439,12 +439,12 @@ namespace MongoDB.Driver.Search
         /// <param name="score">The score modifier.</param>
         /// <returns>A near search definition.</returns>
         public SearchDefinition<TDocument> Near<TCoordinates>(
-            PathDefinition<TDocument> path,
+            SearchPathDefinition<TDocument> path,
             GeoJsonPoint<TCoordinates> origin,
             double pivot,
-            ScoreDefinition<TDocument> score = null)
+            SearchScoreDefinition<TDocument> score = null)
             where TCoordinates : GeoJsonCoordinates =>
-            new NearSearchDefinition<TDocument>(path, origin.ToBsonDocument(), pivot, score);
+                new NearSearchDefinition<TDocument>(path, origin.ToBsonDocument(), pivot, score);
 
         /// <summary>
         /// Creates a search definition that supports querying and scoring numeric and date values.
@@ -460,9 +460,9 @@ namespace MongoDB.Driver.Search
             Expression<Func<TDocument, TField>> path,
             GeoJsonPoint<TCoordinates> origin,
             double pivot,
-            ScoreDefinition<TDocument> score = null)
+            SearchScoreDefinition<TDocument> score = null)
             where TCoordinates : GeoJsonCoordinates =>
-            Near(new ExpressionFieldDefinition<TDocument>(path), origin, pivot, score);
+                Near(new ExpressionFieldDefinition<TDocument>(path), origin, pivot, score);
 
         /// <summary>
         /// Creates a search definition that performs search for documents containing an ordered
@@ -474,11 +474,11 @@ namespace MongoDB.Driver.Search
         /// <param name="score">The score modifier.</param>
         /// <returns>A phrase search definition.</returns>
         public SearchDefinition<TDocument> Phrase(
-            QueryDefinition query,
-            PathDefinition<TDocument> path,
+            SearchQueryDefinition query,
+            SearchPathDefinition<TDocument> path,
             int? slop = null,
-            ScoreDefinition<TDocument> score = null) =>
-            new PhraseSearchDefinition<TDocument>(query, path, slop, score);
+            SearchScoreDefinition<TDocument> score = null) =>
+                new PhraseSearchDefinition<TDocument>(query, path, slop, score);
 
         /// <summary>
         /// Creates a search definition that performs search for documents containing an ordered
@@ -491,11 +491,11 @@ namespace MongoDB.Driver.Search
         /// <param name="score">The score modifier.</param>
         /// <returns>A phrase search definition.</returns>
         public SearchDefinition<TDocument> Phrase<TField>(
-            QueryDefinition query,
+            SearchQueryDefinition query,
             Expression<Func<TDocument, TField>> path,
             int? slop = null,
-            ScoreDefinition<TDocument> score = null) =>
-            Phrase(query, new ExpressionFieldDefinition<TDocument>(path), slop, score);
+            SearchScoreDefinition<TDocument> score = null) =>
+                Phrase(query, new ExpressionFieldDefinition<TDocument>(path), slop, score);
 
         /// <summary>
         /// Creates a search definition that queries a combination of indexed fields and values.
@@ -507,8 +507,8 @@ namespace MongoDB.Driver.Search
         public SearchDefinition<TDocument> QueryString(
             FieldDefinition<TDocument> defaultPath,
             string query,
-            ScoreDefinition<TDocument> score = null) =>
-            new QueryStringSearchDefinition<TDocument>(defaultPath, query, score);
+            SearchScoreDefinition<TDocument> score = null) =>
+                new QueryStringSearchDefinition<TDocument>(defaultPath, query, score);
 
         /// <summary>
         /// Creates a search definition that queries a combination of indexed fields and values.
@@ -521,8 +521,8 @@ namespace MongoDB.Driver.Search
         public SearchDefinition<TDocument> QueryString<TField>(
             Expression<Func<TDocument, TField>> defaultPath,
             string query,
-            ScoreDefinition<TDocument> score = null) =>
-            QueryString(new ExpressionFieldDefinition<TDocument>(defaultPath), query, score);
+            SearchScoreDefinition<TDocument> score = null) =>
+                QueryString(new ExpressionFieldDefinition<TDocument>(defaultPath), query, score);
 
         /// <summary>
         /// Creates a search definition that queries for documents where a floating-point
@@ -532,7 +532,7 @@ namespace MongoDB.Driver.Search
         public SearchDefinition<TDocument> Range<TField>(
             SearchRange<TField> range,
             Expression<Func<TDocument, TField>> path,
-            ScoreDefinition<TDocument> score = null)
+            SearchScoreDefinition<TDocument> score = null)
             where TField : struct, IComparable<TField> =>
             Range(range, new ExpressionFieldDefinition<TDocument>(path), score);
 
@@ -543,10 +543,10 @@ namespace MongoDB.Driver.Search
         /// <returns>A fluent range interface.</returns>
         public SearchDefinition<TDocument> Range<TField>(
             SearchRange<TField> range,
-            PathDefinition<TDocument> path,
-            ScoreDefinition<TDocument> score = null)
+            SearchPathDefinition<TDocument> path,
+            SearchScoreDefinition<TDocument> score = null)
             where TField : struct, IComparable<TField> =>
-            new RangeSearchDefinition<TDocument, TField>(range, path, score);
+                new RangeSearchDefinition<TDocument, TField>(range, path, score);
 
         /// <summary>
         /// Creates a search definition that interprets the query as a regular expression.
@@ -559,13 +559,11 @@ namespace MongoDB.Driver.Search
         /// <param name="score">The score modifier.</param>
         /// <returns>A regular expression search definition.</returns>
         public SearchDefinition<TDocument> Regex(
-            QueryDefinition query,
-            PathDefinition<TDocument> path,
+            SearchQueryDefinition query,
+            SearchPathDefinition<TDocument> path,
             bool allowAnalyzedField = false,
-            ScoreDefinition<TDocument> score = null)
-        {
-            return new RegexSearchDefinition<TDocument>(query, path, allowAnalyzedField, score);
-        }
+            SearchScoreDefinition<TDocument> score = null) =>
+                new RegexSearchDefinition<TDocument>(query, path, allowAnalyzedField, score);
 
         /// <summary>
         /// Creates a search definition that interprets the query as a regular expression.
@@ -579,11 +577,11 @@ namespace MongoDB.Driver.Search
         /// <param name="score">The score modifier.</param>
         /// <returns>A regular expression search definition.</returns>
         public SearchDefinition<TDocument> Regex<TField>(
-            QueryDefinition query,
+            SearchQueryDefinition query,
             Expression<Func<TDocument, TField>> path,
             bool allowAnalyzedField = false,
-            ScoreDefinition<TDocument> score = null) =>
-            Regex(query, new ExpressionFieldDefinition<TDocument>(path), allowAnalyzedField, score);
+            SearchScoreDefinition<TDocument> score = null) =>
+                Regex(query, new ExpressionFieldDefinition<TDocument>(path), allowAnalyzedField, score);
 
         /// <summary>
         /// Creates a search definition that finds text search matches within regions of a text
@@ -591,7 +589,7 @@ namespace MongoDB.Driver.Search
         /// </summary>
         /// <param name="clause">The span clause.</param>
         /// <returns>A span search definition.</returns>
-        public SearchDefinition<TDocument> Span(SpanDefinition<TDocument> clause) =>
+        public SearchDefinition<TDocument> Span(SearchSpanDefinition<TDocument> clause) =>
             new SpanSearchDefinition<TDocument>(clause);
 
         /// <summary>
@@ -604,11 +602,11 @@ namespace MongoDB.Driver.Search
         /// <param name="score">The score modifier.</param>
         /// <returns>A text search definition.</returns>
         public SearchDefinition<TDocument> Text(
-            QueryDefinition query,
-            PathDefinition<TDocument> path,
-            FuzzyOptions fuzzy = null,
-            ScoreDefinition<TDocument> score = null) =>
-            new TextSearchDefinition<TDocument>(query, path, fuzzy, score);
+            SearchQueryDefinition query,
+            SearchPathDefinition<TDocument> path,
+            SearchFuzzyOptions fuzzy = null,
+            SearchScoreDefinition<TDocument> score = null) =>
+                new TextSearchDefinition<TDocument>(query, path, fuzzy, score);
 
         /// <summary>
         /// Creates a search definition that performs full-text search using the analyzer specified
@@ -621,11 +619,11 @@ namespace MongoDB.Driver.Search
         /// <param name="score">The score modifier.</param>
         /// <returns>A text search definition.</returns>
         public SearchDefinition<TDocument> Text<TField>(
-            QueryDefinition query,
+            SearchQueryDefinition query,
             Expression<Func<TDocument, TField>> path,
-            FuzzyOptions fuzzy = null,
-            ScoreDefinition<TDocument> score = null) =>
-            Text(query, new ExpressionFieldDefinition<TDocument>(path), fuzzy, score);
+            SearchFuzzyOptions fuzzy = null,
+            SearchScoreDefinition<TDocument> score = null) =>
+                Text(query, new ExpressionFieldDefinition<TDocument>(path), fuzzy, score);
 
         /// <summary>
         /// Creates a search definition that uses special characters in the search string that can
@@ -639,11 +637,11 @@ namespace MongoDB.Driver.Search
         /// <param name="score">The score modifier.</param>
         /// <returns>A wildcard search definition.</returns>
         public SearchDefinition<TDocument> Wildcard(
-            QueryDefinition query,
-            PathDefinition<TDocument> path,
+            SearchQueryDefinition query,
+            SearchPathDefinition<TDocument> path,
             bool allowAnalyzedField = false,
-            ScoreDefinition<TDocument> score = null) =>
-            new WildcardSearchDefinition<TDocument>(query, path, allowAnalyzedField, score);
+            SearchScoreDefinition<TDocument> score = null) =>
+                new WildcardSearchDefinition<TDocument>(query, path, allowAnalyzedField, score);
 
         /// <summary>
         /// Creates a search definition that uses special characters in the search string that can
@@ -658,10 +656,10 @@ namespace MongoDB.Driver.Search
         /// <param name="score">The score modifier.</param>
         /// <returns>A wildcard search definition.</returns>
         public SearchDefinition<TDocument> Wildcard<TField>(
-            QueryDefinition query,
+            SearchQueryDefinition query,
             Expression<Func<TDocument, TField>> path,
             bool allowAnalyzedField = false,
-            ScoreDefinition<TDocument> score = null) =>
-            Wildcard(query, new ExpressionFieldDefinition<TDocument>(path), allowAnalyzedField, score);
+            SearchScoreDefinition<TDocument> score = null) =>
+                Wildcard(query, new ExpressionFieldDefinition<TDocument>(path), allowAnalyzedField, score);
     }
 }

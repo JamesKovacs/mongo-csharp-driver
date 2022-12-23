@@ -20,7 +20,7 @@ namespace MongoDB.Driver.Search
     /// <summary>
     /// Options for fuzzy search.
     /// </summary>
-    public sealed class FuzzyOptions
+    public sealed class SearchFuzzyOptions
     {
         private int? _maxEdits;
         private int? _prefixLength;

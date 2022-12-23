@@ -26,7 +26,7 @@ namespace MongoDB.Driver.Search
     /// A builder for a score function.
     /// </summary>
     /// <typeparam name="TDocument">The type of the document.</typeparam>
-    public sealed class ScoreFunctionBuilder<TDocument>
+    public sealed class SearchScoreFunctionBuilder<TDocument>
     {
         /// <summary>
         /// Creates a function that incorporates an indexed numeric field value into the score.
@@ -37,8 +37,8 @@ namespace MongoDB.Driver.Search
         /// missing in the document.
         /// </param>
         /// <returns>A path score function.</returns>
-        public ScoreFunction<TDocument> Path(PathDefinition<TDocument> path, double undefined = 0) =>
-            new PathScoreFunction<TDocument>(path, undefined);
+        public SearchScoreFunction<TDocument> Path(SearchPathDefinition<TDocument> path, double undefined = 0) =>
+            new PathSearchScoreFunction<TDocument>(path, undefined);
 
         /// <summary>
         /// Creates a function that incorporates an indexed numeric field value into the score.
@@ -49,7 +49,7 @@ namespace MongoDB.Driver.Search
         /// missing in the document.
         /// </param>
         /// <returns>A path score function.</returns>
-        public ScoreFunction<TDocument> Path(Expression<Func<TDocument, double>> path, double undefined = 0) =>
+        public SearchScoreFunction<TDocument> Path(Expression<Func<TDocument, double>> path, double undefined = 0) =>
             Path(new ExpressionFieldDefinition<TDocument>(path), undefined);
 
         /// <summary>
@@ -57,47 +57,47 @@ namespace MongoDB.Driver.Search
         /// assigns documents based on relevance.
         /// </summary>
         /// <returns>A relevance score function.</returns>
-        public ScoreFunction<TDocument> Relevance() => new RelevanceScoreFunction<TDocument>();
+        public SearchScoreFunction<TDocument> Relevance() => new RelevanceSearchScoreFunction<TDocument>();
 
         /// <summary>
         /// Creates a function that represents a constant number.
         /// </summary>
         /// <param name="value">Number that indicates a fixed value.</param>
         /// <returns>A constant score function.</returns>
-        public ScoreFunction<TDocument> Constant(double value) =>
-            new ConstantScoreFunction<TDocument>(value);
+        public SearchScoreFunction<TDocument> Constant(double value) =>
+            new ConstantSearchScoreFunction<TDocument>(value);
 
         /// <summary>
         /// Creates a function that adds a series of numbers.
         /// </summary>
         /// <param name="operands">An array of expressions, which can have negative values.</param>
         /// <returns>An addition score function.</returns>
-        public ScoreFunction<TDocument> Add(IEnumerable<ScoreFunction<TDocument>> operands) =>
-            new ArithmeticScoreFunction<TDocument>("add", operands);
+        public SearchScoreFunction<TDocument> Add(IEnumerable<SearchScoreFunction<TDocument>> operands) =>
+            new ArithmeticSearchScoreFunction<TDocument>("add", operands);
 
         /// <summary>
         /// Creates a function that adds a series of numbers.
         /// </summary>
         /// <param name="operands">An array of expressions, which can have negative values.</param>
         /// <returns>An addition score function.</returns>
-        public ScoreFunction<TDocument> Add(params ScoreFunction<TDocument>[] operands) =>
-            Add((IEnumerable<ScoreFunction<TDocument>>)operands);
+        public SearchScoreFunction<TDocument> Add(params SearchScoreFunction<TDocument>[] operands) =>
+            Add((IEnumerable<SearchScoreFunction<TDocument>>)operands);
 
         /// <summary>
         /// Creates a function that multiplies a series of numbers.
         /// </summary>
         /// <param name="operands">An array of expressions, which can have negative values.</param>
         /// <returns>A multiplication score function.</returns>
-        public ScoreFunction<TDocument> Multiply(IEnumerable<ScoreFunction<TDocument>> operands) =>
-            new ArithmeticScoreFunction<TDocument>("multiply", operands);
+        public SearchScoreFunction<TDocument> Multiply(IEnumerable<SearchScoreFunction<TDocument>> operands) =>
+            new ArithmeticSearchScoreFunction<TDocument>("multiply", operands);
 
         /// <summary>
         /// Creates a function that multiplies a series of numbers.
         /// </summary>
         /// <param name="operands">An array of expressions, which can have negative values.</param>
         /// <returns>A mulitplication score function.</returns>
-        public ScoreFunction<TDocument> Multiply(params ScoreFunction<TDocument>[] operands) =>
-            Multiply((IEnumerable<ScoreFunction<TDocument>>)operands);
+        public SearchScoreFunction<TDocument> Multiply(params SearchScoreFunction<TDocument>[] operands) =>
+            Multiply((IEnumerable<SearchScoreFunction<TDocument>>)operands);
 
         /// <summary>
         /// Creates a function that decays, or reduces by multiplying, the final scores of the
@@ -117,13 +117,13 @@ namespace MongoDB.Driver.Search
         /// The number of use to determine the distance from <paramref name="origin"/>.
         /// </param>
         /// <returns>A Guassian score function.</returns>
-        public ScoreFunction<TDocument> Gauss(
-            PathDefinition<TDocument> path,
+        public SearchScoreFunction<TDocument> Gauss(
+            SearchPathDefinition<TDocument> path,
             double origin,
             double scale,
             double decay = 0.5,
             double offset = 0)
-            => new GaussScoreFunction<TDocument>(path, origin, scale, decay, offset);
+            => new GaussSearchScoreFunction<TDocument>(path, origin, scale, decay, offset);
 
         /// <summary>
         /// Creates a function that decays, or reduces by multiplying, the final scores of the
@@ -143,7 +143,7 @@ namespace MongoDB.Driver.Search
         /// The number of use to determine the distance from <paramref name="origin"/>.
         /// </param>
         /// <returns>A Guassian score function.</returns>
-        public ScoreFunction<TDocument> Gauss(
+        public SearchScoreFunction<TDocument> Gauss(
             Expression<Func<TDocument, double>> path,
             double origin,
             double scale,
@@ -156,24 +156,24 @@ namespace MongoDB.Driver.Search
         /// </summary>
         /// <param name="operand">The number.</param>
         /// <returns>A logarithmic score function.</returns>
-        public ScoreFunction<TDocument> Log(ScoreFunction<TDocument> operand) =>
-            new UnaryScoreFunction<TDocument>("log", operand);
+        public SearchScoreFunction<TDocument> Log(SearchScoreFunction<TDocument> operand) =>
+            new UnarySearchScoreFunction<TDocument>("log", operand);
 
         /// <summary>
         /// Creates a function that adds 1 to a number and then calculates its base-10 logarithm.
         /// </summary>
         /// <param name="operand">The number.</param>
         /// <returns>A logarithmic score function.</returns>
-        public ScoreFunction<TDocument> Log1p(ScoreFunction<TDocument> operand) =>
-            new UnaryScoreFunction<TDocument>("log1p", operand);
+        public SearchScoreFunction<TDocument> Log1p(SearchScoreFunction<TDocument> operand) =>
+            new UnarySearchScoreFunction<TDocument>("log1p", operand);
     }
 
-    internal sealed class PathScoreFunction<TDocument> : ScoreFunction<TDocument>
+    internal sealed class PathSearchScoreFunction<TDocument> : SearchScoreFunction<TDocument>
     {
-        private readonly PathDefinition<TDocument> _path;
+        private readonly SearchPathDefinition<TDocument> _path;
         private readonly double _undefined;
 
-        public PathScoreFunction(PathDefinition<TDocument> path, double undefined)
+        public PathSearchScoreFunction(SearchPathDefinition<TDocument> path, double undefined)
         {
             _path = Ensure.IsNotNull(path, nameof(path));
             _undefined = undefined;
@@ -192,17 +192,17 @@ namespace MongoDB.Driver.Search
         }
     }
 
-    internal sealed class RelevanceScoreFunction<TDocument> : ScoreFunction<TDocument>
+    internal sealed class RelevanceSearchScoreFunction<TDocument> : SearchScoreFunction<TDocument>
     {
         public override BsonDocument Render(IBsonSerializer<TDocument> documentSerializer, IBsonSerializerRegistry serializerRegister) =>
             new("score", "relevance");
     }
 
-    internal sealed class ConstantScoreFunction<TDocument> : ScoreFunction<TDocument>
+    internal sealed class ConstantSearchScoreFunction<TDocument> : SearchScoreFunction<TDocument>
     {
         private readonly double _value;
 
-        public ConstantScoreFunction(double value)
+        public ConstantSearchScoreFunction(double value)
         {
             _value = value;
         }
@@ -211,12 +211,12 @@ namespace MongoDB.Driver.Search
             new("constant", _value);
     }
 
-    internal sealed class ArithmeticScoreFunction<TDocument> : ScoreFunction<TDocument>
+    internal sealed class ArithmeticSearchScoreFunction<TDocument> : SearchScoreFunction<TDocument>
     {
         private readonly string _operatorName;
-        private readonly IEnumerable<ScoreFunction<TDocument>> _operands;
+        private readonly IEnumerable<SearchScoreFunction<TDocument>> _operands;
 
-        public ArithmeticScoreFunction(string operatorName, IEnumerable<ScoreFunction<TDocument>> operands)
+        public ArithmeticSearchScoreFunction(string operatorName, IEnumerable<SearchScoreFunction<TDocument>> operands)
         {
             _operatorName = operatorName;
             _operands = Ensure.IsNotNull(operands, nameof(operands));
@@ -226,16 +226,16 @@ namespace MongoDB.Driver.Search
             new(_operatorName, new BsonArray(_operands.Select(o => o.Render(documentSerializer, serializerRegister))));
     }
 
-    internal sealed class GaussScoreFunction<TDocument> : ScoreFunction<TDocument>
+    internal sealed class GaussSearchScoreFunction<TDocument> : SearchScoreFunction<TDocument>
     {
-        private readonly PathDefinition<TDocument> _path;
+        private readonly SearchPathDefinition<TDocument> _path;
         private readonly double _origin;
         private readonly double _scale;
         private readonly double _decay;
         private readonly double _offset;
 
-        public GaussScoreFunction(
-            PathDefinition<TDocument> path,
+        public GaussSearchScoreFunction(
+            SearchPathDefinition<TDocument> path,
             double origin,
             double scale,
             double decay,
@@ -259,12 +259,12 @@ namespace MongoDB.Driver.Search
             });
     }
 
-    internal sealed class UnaryScoreFunction<TDocument> : ScoreFunction<TDocument>
+    internal sealed class UnarySearchScoreFunction<TDocument> : SearchScoreFunction<TDocument>
     {
         private readonly string _operatorName;
-        private readonly ScoreFunction<TDocument> _operand;
+        private readonly SearchScoreFunction<TDocument> _operand;
 
-        public UnaryScoreFunction(string operatorName, ScoreFunction<TDocument> operand)
+        public UnarySearchScoreFunction(string operatorName, SearchScoreFunction<TDocument> operand)
         {
             _operatorName = operatorName;
             _operand = Ensure.IsNotNull(operand, nameof(operand));

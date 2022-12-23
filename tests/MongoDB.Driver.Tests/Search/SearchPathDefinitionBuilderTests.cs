@@ -22,7 +22,7 @@ using Xunit;
 
 namespace MongoDB.Driver.Tests.Search
 {
-    public class PathDefinitionBuilderTests
+    public class SearchPathDefinitionBuilderTests
     {
         [Fact]
         public void Single()
@@ -121,10 +121,10 @@ namespace MongoDB.Driver.Tests.Search
                 "{ wildcard: '*' }");
         }
 
-        private void AssertRendered<TDocument>(PathDefinition<TDocument> path, string expected) =>
+        private void AssertRendered<TDocument>(SearchPathDefinition<TDocument> path, string expected) =>
             AssertRendered(path, BsonDocument.Parse(expected));
 
-        private void AssertRendered<TDocument>(PathDefinition<TDocument> path, BsonValue expected)
+        private void AssertRendered<TDocument>(SearchPathDefinition<TDocument> path, BsonValue expected)
         {
             var documentSerializer = BsonSerializer.SerializerRegistry.GetSerializer<TDocument>();
             var renderedPath = path.Render(documentSerializer, BsonSerializer.SerializerRegistry);
@@ -132,8 +132,8 @@ namespace MongoDB.Driver.Tests.Search
             renderedPath.Should().Be(expected);
         }
 
-        private PathDefinitionBuilder<TDocument> CreateSubject<TDocument>() =>
-            new PathDefinitionBuilder<TDocument>();
+        private SearchPathDefinitionBuilder<TDocument> CreateSubject<TDocument>() =>
+            new SearchPathDefinitionBuilder<TDocument>();
 
         private class Person
         {

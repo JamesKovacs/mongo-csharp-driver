@@ -128,21 +128,22 @@ namespace MongoDB.Driver.Search
             Wildcard
         }
 
-        private readonly PathDefinition<TDocument> _path;
-        private readonly ScoreDefinition<TDocument> _score;
+        // _path and _score used by many but not all subclasses
+        private readonly SearchPathDefinition<TDocument> _path;
+        private readonly SearchScoreDefinition<TDocument> _score;
         private readonly OperatorType _operatorType;
 
         private protected OperatorSearchDefinition(OperatorType operatorType) : this(operatorType, null)
         {
         }
 
-        private protected OperatorSearchDefinition(OperatorType operatorType, ScoreDefinition<TDocument> score)
+        private protected OperatorSearchDefinition(OperatorType operatorType, SearchScoreDefinition<TDocument> score)
         {
             _operatorType = operatorType;
             _score = score;
         }
 
-        private protected OperatorSearchDefinition(OperatorType operatorType, PathDefinition<TDocument> path, ScoreDefinition<TDocument> score)
+        private protected OperatorSearchDefinition(OperatorType operatorType, SearchPathDefinition<TDocument> path, SearchScoreDefinition<TDocument> score)
         {
             _operatorType = operatorType;
             _path = Ensure.IsNotNull(path, nameof(path));

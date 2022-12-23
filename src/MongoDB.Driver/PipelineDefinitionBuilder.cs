@@ -1183,7 +1183,7 @@ namespace MongoDB.Driver
         public static PipelineDefinition<TInput, TOutput> Search<TInput, TOutput>(
             this PipelineDefinition<TInput, TOutput> pipeline,
             SearchDefinition<TOutput> searchDefinition,
-            HighlightOptions<TOutput> highlight = null,
+            SearchHighlightOptions<TOutput> highlight = null,
             string indexName = null,
             SearchCountOptions count = null,
             bool returnStoredSource = false)

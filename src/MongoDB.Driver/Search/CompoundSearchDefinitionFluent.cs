@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using MongoDB.Driver.Core.Misc;
 
 namespace MongoDB.Driver.Search
 {
@@ -20,21 +21,28 @@ namespace MongoDB.Driver.Search
     /// Fluent interface for compound search definitions.
     /// </summary>
     /// <typeparam name="TDocument">The type of the document.</typeparam>
-    public abstract class CompoundFluent<TDocument>
+    public sealed class CompoundSearchDefinitionFluent<TDocument>
     {
-        /// <summary>
-        /// Adds clauses which must match to produce results.
-        /// </summary>
-        /// <param name="clauses">The clauses.</param>
-        /// <returns>The compound fluent interface.</returns>
-        public abstract CompoundFluent<TDocument> Must(IEnumerable<SearchDefinition<TDocument>> clauses);
+        private List<SearchDefinition<TDocument>> _must;
+        private List<SearchDefinition<TDocument>> _mustNot;
+        private List<SearchDefinition<TDocument>> _should;
+        private List<SearchDefinition<TDocument>> _filter;
+        private int _minimumShouldMatch = 0;
 
         /// <summary>
         /// Adds clauses which must match to produce results.
         /// </summary>
         /// <param name="clauses">The clauses.</param>
         /// <returns>The compound fluent interface.</returns>
-        public CompoundFluent<TDocument> Must(params SearchDefinition<TDocument>[] clauses) =>
+        public CompoundSearchDefinitionFluent<TDocument> Must(IEnumerable<SearchDefinition<TDocument>> clauses) =>
+             AddClauses(ref _must, clauses);
+
+        /// <summary>
+        /// Adds clauses which must match to produce results.
+        /// </summary>
+        /// <param name="clauses">The clauses.</param>
+        /// <returns>The compound fluent interface.</returns>
+        public CompoundSearchDefinitionFluent<TDocument> Must(params SearchDefinition<TDocument>[] clauses) =>
             Must((IEnumerable<SearchDefinition<TDocument>>)clauses);
 
         /// <summary>
@@ -43,7 +51,8 @@ namespace MongoDB.Driver.Search
         /// </summary>
         /// <param name="clauses">The clauses.</param>
         /// <returns>The compound fluent interface.</returns>
-        public abstract CompoundFluent<TDocument> MustNot(IEnumerable<SearchDefinition<TDocument>> clauses);
+        public CompoundSearchDefinitionFluent<TDocument> MustNot(IEnumerable<SearchDefinition<TDocument>> clauses) =>
+            AddClauses(ref _mustNot, clauses);
 
         /// <summary>
         /// Adds clauses which must not match for a document to be included in the
@@ -51,7 +60,7 @@ namespace MongoDB.Driver.Search
         /// </summary>
         /// <param name="clauses">The clauses.</param>
         /// <returns>The compound fluent interface.</returns>
-        public CompoundFluent<TDocument> MustNot(params SearchDefinition<TDocument>[] clauses) =>
+        public CompoundSearchDefinitionFluent<TDocument> MustNot(params SearchDefinition<TDocument>[] clauses) =>
             MustNot((IEnumerable<SearchDefinition<TDocument>>)clauses);
 
         /// <summary>
@@ -60,7 +69,8 @@ namespace MongoDB.Driver.Search
         /// </summary>
         /// <param name="clauses">The clauses.</param>
         /// <returns>The compound fluent interface.</returns>
-        public abstract CompoundFluent<TDocument> Should(IEnumerable<SearchDefinition<TDocument>> clauses);
+        public CompoundSearchDefinitionFluent<TDocument> Should(IEnumerable<SearchDefinition<TDocument>> clauses) =>
+            AddClauses(ref _should, clauses);
 
         /// <summary>
         /// Adds clauses which cause documents in the result set to be scored higher if
@@ -68,7 +78,7 @@ namespace MongoDB.Driver.Search
         /// </summary>
         /// <param name="clauses">The clauses.</param>
         /// <returns>The compound fluent interface.</returns>
-        public CompoundFluent<TDocument> Should(params SearchDefinition<TDocument>[] clauses) =>
+        public CompoundSearchDefinitionFluent<TDocument> Should(params SearchDefinition<TDocument>[] clauses) =>
             Should((IEnumerable<SearchDefinition<TDocument>>)clauses);
 
         /// <summary>
@@ -77,7 +87,8 @@ namespace MongoDB.Driver.Search
         /// </summary>
         /// <param name="clauses">The clauses.</param>
         /// <returns>The compound fluent interface.</returns>
-        public abstract CompoundFluent<TDocument> Filter(IEnumerable<SearchDefinition<TDocument>> clauses);
+        public CompoundSearchDefinitionFluent<TDocument> Filter(IEnumerable<SearchDefinition<TDocument>> clauses) =>
+             AddClauses(ref _filter, clauses);
 
         /// <summary>
         /// Adds clauses which must all match for a document to be included in the
@@ -85,7 +96,7 @@ namespace MongoDB.Driver.Search
         /// </summary>
         /// <param name="clauses">The clauses.</param>
         /// <returns>The compound fluent interface.</returns>
-        public CompoundFluent<TDocument> Filter(params SearchDefinition<TDocument>[] clauses) =>
+        public CompoundSearchDefinitionFluent<TDocument> Filter(params SearchDefinition<TDocument>[] clauses) =>
             Filter((IEnumerable<SearchDefinition<TDocument>>)clauses);
 
         /// <summary>
@@ -94,21 +105,34 @@ namespace MongoDB.Driver.Search
         /// </summary>
         /// <param name="minimumShouldMatch">The value to set.</param>
         /// <returns>The compound fluent interface.</returns>
-        public abstract CompoundFluent<TDocument> MinimumShouldMatch(int minimumShouldMatch);
+        public CompoundSearchDefinitionFluent<TDocument> MinimumShouldMatch(int minimumShouldMatch)
+        {
+            _minimumShouldMatch = minimumShouldMatch;
+            return this;
+        }
 
         /// <summary>
         /// Constructs a search definition from the fluent interface.
         /// </summary>
         /// <returns>A compound search definition.</returns>
-        public abstract SearchDefinition<TDocument> ToSearchDefinition();
+        public SearchDefinition<TDocument> ToSearchDefinition() =>
+            new CompoundSearchDefinition<TDocument>(_must, _mustNot, _should, _filter, _minimumShouldMatch);
 
         /// <summary>
-        /// Performs an implicit conversion from a <see cref="CompoundFluent{TDocument}"/>
+        /// Performs an implicit conversion from a <see cref="CompoundSearchDefinitionFluent{TDocument}"/>
         /// to a <see cref="SearchDefinition{TDocument}"/>.
         /// </summary>
         /// <param name="compound">The compound fluent interface.</param>
         /// <returns>The result of the conversion.</returns>
-        public static implicit operator SearchDefinition<TDocument>(CompoundFluent<TDocument> compound) =>
+        public static implicit operator SearchDefinition<TDocument>(CompoundSearchDefinitionFluent<TDocument> compound) =>
             compound.ToSearchDefinition();
+
+        private CompoundSearchDefinitionFluent<TDocument> AddClauses(ref List<SearchDefinition<TDocument>> clauses, IEnumerable<SearchDefinition<TDocument>> newClauses)
+        {
+            clauses ??= new();
+            clauses.AddRange(Ensure.IsNotNull(newClauses, nameof(newClauses)));
+
+            return this;
+        }
     }
 }

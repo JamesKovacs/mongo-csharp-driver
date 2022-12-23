@@ -368,7 +368,7 @@ namespace MongoDB.Driver
         /// <returns>The fluent aggregate interface.</returns>
         IAggregateFluent<TResult> Search(
             SearchDefinition<TResult> searchDefinition,
-            HighlightOptions<TResult> highlight = null,
+            SearchHighlightOptions<TResult> highlight = null,
             string indexName = null,
             SearchCountOptions count = null,
             bool returnStoredSource = false);

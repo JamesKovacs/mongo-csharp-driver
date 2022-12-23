@@ -37,7 +37,7 @@ namespace MongoDB.Driver.Search
         /// The maximum number of facet categories to return in the results.
         /// </param>
         /// <returns>A string search facet.</returns>
-        public SearchFacet<TDocument> String(string name, PathDefinition<TDocument> path, int? numBuckets = null) =>
+        public SearchFacet<TDocument> String(string name, SearchPathDefinition<TDocument> path, int? numBuckets = null) =>
             new StringSearchFacet<TDocument>(name, path, numBuckets);
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace MongoDB.Driver.Search
         /// <returns>A number search facet.</returns>
         public SearchFacet<TDocument> Number(
             string name,
-            PathDefinition<TDocument> path,
+            SearchPathDefinition<TDocument> path,
             IEnumerable<BsonValue> boundaries,
             string @default = null) =>
             new NumberSearchFacet<TDocument>(name, path, boundaries, @default);
@@ -87,7 +87,7 @@ namespace MongoDB.Driver.Search
         /// <returns>A number search facet.</returns>
         public SearchFacet<TDocument> Number(
             string name,
-            PathDefinition<TDocument> path,
+            SearchPathDefinition<TDocument> path,
             params BsonValue[] boundaries) =>
             Number(name, path, (IEnumerable<BsonValue>)boundaries);
 
@@ -145,7 +145,7 @@ namespace MongoDB.Driver.Search
         /// <returns>A date search facet.</returns>
         public SearchFacet<TDocument> Date(
             string name,
-            PathDefinition<TDocument> path,
+            SearchPathDefinition<TDocument> path,
             IEnumerable<DateTime> boundaries,
             string @default = null) =>
             new DateSearchFacet<TDocument>(name, path, boundaries, @default);
@@ -161,7 +161,7 @@ namespace MongoDB.Driver.Search
         /// <returns>A date search facet.</returns>
         public SearchFacet<TDocument> Date(
             string name,
-            PathDefinition<TDocument> path,
+            SearchPathDefinition<TDocument> path,
             params DateTime[] boundaries) =>
             Date(name, path, (IEnumerable<DateTime>)boundaries);
 
@@ -205,10 +205,10 @@ namespace MongoDB.Driver.Search
 
     internal sealed class StringSearchFacet<TDocument> : SearchFacet<TDocument>
     {
-        private readonly PathDefinition<TDocument> _path;
+        private readonly SearchPathDefinition<TDocument> _path;
         private readonly int? _numBuckets;
 
-        public StringSearchFacet(string name, PathDefinition<TDocument> path, int? numBuckets = null)
+        public StringSearchFacet(string name, SearchPathDefinition<TDocument> path, int? numBuckets = null)
             : base(name)
         {
             _path = Ensure.IsNotNull(path, nameof(path));
@@ -226,11 +226,11 @@ namespace MongoDB.Driver.Search
 
     internal sealed class NumberSearchFacet<TDocument> : SearchFacet<TDocument>
     {
-        private readonly PathDefinition<TDocument> _path;
+        private readonly SearchPathDefinition<TDocument> _path;
         private readonly IEnumerable<BsonValue> _boundaries;
         private readonly string _default;
 
-        public NumberSearchFacet(string name, PathDefinition<TDocument> path, IEnumerable<BsonValue> boundaries, string @default)
+        public NumberSearchFacet(string name, SearchPathDefinition<TDocument> path, IEnumerable<BsonValue> boundaries, string @default)
             : base(name)
         {
             _path = Ensure.IsNotNull(path, nameof(path));
@@ -250,11 +250,11 @@ namespace MongoDB.Driver.Search
 
     internal sealed class DateSearchFacet<TDocument> : SearchFacet<TDocument>
     {
-        private readonly PathDefinition<TDocument> _path;
+        private readonly SearchPathDefinition<TDocument> _path;
         private readonly IEnumerable<DateTime> _boundaries;
         private readonly string _default;
 
-        public DateSearchFacet(string name, PathDefinition<TDocument> path, IEnumerable<DateTime> boundaries, string @default)
+        public DateSearchFacet(string name, SearchPathDefinition<TDocument> path, IEnumerable<DateTime> boundaries, string @default)
             : base(name)
         {
             _path = Ensure.IsNotNull(path, nameof(path));

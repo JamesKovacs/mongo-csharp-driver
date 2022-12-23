@@ -88,7 +88,7 @@ namespace MongoDB.Driver.Linq
                     GetMethodInfo(AppendStage, source, stage, resultSerializer),
                     Expression.Convert(source.Expression, typeof(IMongoQueryable<TSource>)),
                     Expression.Constant(stage),
-                    Expression.Constant(resultSerializer, typeof(IBsonSerializer<TSource>))));
+                    Expression.Constant(resultSerializer, typeof(IBsonSerializer<TResult>))));
         }
 
         /// <summary>
@@ -941,7 +941,7 @@ namespace MongoDB.Driver.Linq
         public static IMongoQueryable<TSource> Search<TSource>(
             this IMongoQueryable<TSource> source,
             SearchDefinition<TSource> searchDefinition,
-            HighlightOptions<TSource> highlight = null,
+            SearchHighlightOptions<TSource> highlight = null,
             string indexName = null,
             SearchCountOptions count = null,
             bool returnStoredSource = false)
@@ -949,6 +949,26 @@ namespace MongoDB.Driver.Linq
             return AppendStage(
                 source,
                 PipelineStageDefinitionBuilder.Search(searchDefinition, highlight, indexName, count, returnStoredSource));
+        }
+
+        /// <summary>
+        /// Appends a $searchMeta stage to the LINQ pipeline
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of <paramref name="source" />.</typeparam>
+        /// <param name="source">A sequence of values.</param>
+        /// <param name="searchDefinition">The search definition.</param>
+        /// <param name="indexName">The index name.</param>
+        /// <param name="count">The count options.</param>
+        /// <returns>The fluent aggregate interface.</returns>
+        public static IMongoQueryable<SearchMetaResult> SearchMeta<TSource>(
+            this IMongoQueryable<TSource> source,
+            SearchDefinition<TSource> searchDefinition,
+            string indexName = null,
+            SearchCountOptions count = null)
+        {
+            return AppendStage(
+                source,
+                PipelineStageDefinitionBuilder.SearchMeta(searchDefinition, indexName, count));
         }
 
         /// <summary>

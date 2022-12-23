@@ -26,15 +26,15 @@ namespace MongoDB.Driver.Search
     /// A builder for a search path.
     /// </summary>
     /// <typeparam name="TDocument">The type of the document.</typeparam>
-    public sealed class PathDefinitionBuilder<TDocument>
+    public sealed class SearchPathDefinitionBuilder<TDocument>
     {
         /// <summary>
         /// Creates a search path for a single field.
         /// </summary>
         /// <param name="field">The field definition.</param>
         /// <returns>A single-field search path.</returns>
-        public PathDefinition<TDocument> Single(FieldDefinition<TDocument> field) =>
-            new SinglePathDefinition<TDocument>(field);
+        public SearchPathDefinition<TDocument> Single(FieldDefinition<TDocument> field) =>
+            new SingleSearchPathDefinition<TDocument>(field);
 
         /// <summary>
         /// Creates a search path for a single field.
@@ -42,7 +42,7 @@ namespace MongoDB.Driver.Search
         /// <typeparam name="TField">The type of the field.</typeparam>
         /// <param name="field">The field definition.</param>
         /// <returns>A single-field search path.</returns>
-        public PathDefinition<TDocument> Single<TField>(Expression<Func<TDocument, TField>> field) =>
+        public SearchPathDefinition<TDocument> Single<TField>(Expression<Func<TDocument, TField>> field) =>
             Single(new ExpressionFieldDefinition<TDocument>(field));
 
         /// <summary>
@@ -50,15 +50,15 @@ namespace MongoDB.Driver.Search
         /// </summary>
         /// <param name="fields">The collection of field definitions.</param>
         /// <returns>A multi-field search path.</returns>
-        public PathDefinition<TDocument> Multi(IEnumerable<FieldDefinition<TDocument>> fields) =>
-            new MultiPathDefinition<TDocument>(fields);
+        public SearchPathDefinition<TDocument> Multi(IEnumerable<FieldDefinition<TDocument>> fields) =>
+            new MultiSearchPathDefinition<TDocument>(fields);
 
         /// <summary>
         /// Creates a search path for multiple fields.
         /// </summary>
         /// <param name="fields">The array of field definitions.</param>
         /// <returns>A multi-field search path.</returns>
-        public PathDefinition<TDocument> Multi(params FieldDefinition<TDocument>[] fields) =>
+        public SearchPathDefinition<TDocument> Multi(params FieldDefinition<TDocument>[] fields) =>
             Multi((IEnumerable<FieldDefinition<TDocument>>)fields);
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace MongoDB.Driver.Search
         /// <typeparam name="TField">The type of the fields.</typeparam>
         /// <param name="fields">The array of field definitions.</param>
         /// <returns>A multi-field search path.</returns>
-        public PathDefinition<TDocument> Multi<TField>(params Expression<Func<TDocument, TField>>[] fields) =>
+        public SearchPathDefinition<TDocument> Multi<TField>(params Expression<Func<TDocument, TField>>[] fields) =>
             Multi(fields.Select(x => new ExpressionFieldDefinition<TDocument>(x)));
 
         /// <summary>
@@ -76,8 +76,8 @@ namespace MongoDB.Driver.Search
         /// <param name="field">The field definition</param>
         /// <param name="analyzerName">The name of the analyzer.</param>
         /// <returns>An analyzer search path.</returns>
-        public PathDefinition<TDocument> Analyzer(FieldDefinition<TDocument> field, string analyzerName) =>
-            new AnalyzerPathDefinition<TDocument>(field, analyzerName);
+        public SearchPathDefinition<TDocument> Analyzer(FieldDefinition<TDocument> field, string analyzerName) =>
+            new AnalyzerSearchPathDefinition<TDocument>(field, analyzerName);
 
         /// <summary>
         /// Creates a search path that searches using the specified analyzer.
@@ -86,7 +86,7 @@ namespace MongoDB.Driver.Search
         /// <param name="field">The field definition</param>
         /// <param name="analyzerName">The name of the analyzer.</param>
         /// <returns>An analyzer search path.</returns>
-        public PathDefinition<TDocument> Analyzer<TField>(Expression<Func<TDocument, TField>> field, string analyzerName) =>
+        public SearchPathDefinition<TDocument> Analyzer<TField>(Expression<Func<TDocument, TField>> field, string analyzerName) =>
             Analyzer(new ExpressionFieldDefinition<TDocument>(field), analyzerName);
 
         /// <summary>
@@ -97,15 +97,15 @@ namespace MongoDB.Driver.Search
         /// The wildcard string that the field name must match.
         /// </param>
         /// <returns>A wildcard search path.</returns>
-        public PathDefinition<TDocument> Wildcard(string query) =>
-            new WildcardPathDefinition<TDocument>(query);
+        public SearchPathDefinition<TDocument> Wildcard(string query) =>
+            new WildcardSearchPathDefinition<TDocument>(query);
     }
 
-    internal sealed class SinglePathDefinition<TDocument> : PathDefinition<TDocument>
+    internal sealed class SingleSearchPathDefinition<TDocument> : SearchPathDefinition<TDocument>
     {
         private readonly FieldDefinition<TDocument> _field;
 
-        public SinglePathDefinition(FieldDefinition<TDocument> field)
+        public SingleSearchPathDefinition(FieldDefinition<TDocument> field)
         {
             _field = Ensure.IsNotNull(field, nameof(field));
         }
@@ -117,11 +117,11 @@ namespace MongoDB.Driver.Search
         }
     }
 
-    internal sealed class MultiPathDefinition<TDocument> : PathDefinition<TDocument>
+    internal sealed class MultiSearchPathDefinition<TDocument> : SearchPathDefinition<TDocument>
     {
         private readonly IEnumerable<FieldDefinition<TDocument>> _fields;
 
-        public MultiPathDefinition(IEnumerable<FieldDefinition<TDocument>> fields)
+        public MultiSearchPathDefinition(IEnumerable<FieldDefinition<TDocument>> fields)
         {
             _fields = Ensure.IsNotNull(fields, nameof(fields));
         }
@@ -130,12 +130,12 @@ namespace MongoDB.Driver.Search
             new BsonArray(_fields.Select(field => field.Render(documentSerializer, serializerRegistry).FieldName));
     }
 
-    internal sealed class AnalyzerPathDefinition<TDocument> : PathDefinition<TDocument>
+    internal sealed class AnalyzerSearchPathDefinition<TDocument> : SearchPathDefinition<TDocument>
     {
         private readonly FieldDefinition<TDocument> _field;
         private readonly string _analyzerName;
 
-        public AnalyzerPathDefinition(FieldDefinition<TDocument> field, string analyzerName)
+        public AnalyzerSearchPathDefinition(FieldDefinition<TDocument> field, string analyzerName)
         {
             _field = Ensure.IsNotNull(field, nameof(field));
             _analyzerName = Ensure.IsNotNull(analyzerName, nameof(analyzerName));
@@ -148,11 +148,11 @@ namespace MongoDB.Driver.Search
         };
     }
 
-    internal sealed class WildcardPathDefinition<TDocument> : PathDefinition<TDocument>
+    internal sealed class WildcardSearchPathDefinition<TDocument> : SearchPathDefinition<TDocument>
     {
         private readonly string _query;
 
-        public WildcardPathDefinition(string query)
+        public WildcardSearchPathDefinition(string query)
         {
             _query = Ensure.IsNotNull(query, nameof(query));
         }

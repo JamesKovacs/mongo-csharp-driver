@@ -40,21 +40,21 @@ namespace MongoDB.Driver
 
         // Search builders
         /// <summary>Gets a <see cref="SearchFacetBuilder{TDocument}"/>.</summary>
-        public static SearchFacetBuilder<TDocument> Facet { get; } = new SearchFacetBuilder<TDocument>();
+        public static SearchFacetBuilder<TDocument> SearchFacet { get; } = new SearchFacetBuilder<TDocument>();
 
-        /// <summary>Gets a <see cref="PathDefinition{TDocument}"/>.</summary>
-        public static PathDefinitionBuilder<TDocument> Path { get; } = new PathDefinitionBuilder<TDocument>();
+        /// <summary>Gets a <see cref="SearchPathDefinition{TDocument}"/>.</summary>
+        public static SearchPathDefinitionBuilder<TDocument> SearchPath { get; } = new SearchPathDefinitionBuilder<TDocument>();
 
-        /// <summary>Gets a <see cref="ScoreDefinitionBuilder{TDocument}"/>.</summary>
-        public static ScoreDefinitionBuilder<TDocument> Score { get; } = new ScoreDefinitionBuilder<TDocument>();
+        /// <summary>Gets a <see cref="SearchScoreDefinitionBuilder{TDocument}"/>.</summary>
+        public static SearchScoreDefinitionBuilder<TDocument> SearchScore { get; } = new SearchScoreDefinitionBuilder<TDocument>();
 
-        /// <summary>Gets a <see cref="ScoreFunctionBuilder{TDocument}"/>.</summary>
-        public static ScoreFunctionBuilder<TDocument> ScoreFunction { get; } = new ScoreFunctionBuilder<TDocument>();
+        /// <summary>Gets a <see cref="SearchScoreFunctionBuilder{TDocument}"/>.</summary>
+        public static SearchScoreFunctionBuilder<TDocument> SearchScoreFunction { get; } = new SearchScoreFunctionBuilder<TDocument>();
 
         /// <summary>Gets a <see cref="SearchDefinitionBuilder{TDocument}"/>.</summary>
         public static SearchDefinitionBuilder<TDocument> Search { get; } = new SearchDefinitionBuilder<TDocument>();
 
-        /// <summary> Gets a <see cref="SpanDefinitionBuilder{TDocument}"/>.</summary>
-        public static SpanDefinitionBuilder<TDocument> Span { get; } = new SpanDefinitionBuilder<TDocument>();
+        /// <summary> Gets a <see cref="SearchSpanDefinitionBuilder{TDocument}"/>.</summary>
+        public static SearchSpanDefinitionBuilder<TDocument> SearchSpan { get; } = new SearchSpanDefinitionBuilder<TDocument>();
     }
 }

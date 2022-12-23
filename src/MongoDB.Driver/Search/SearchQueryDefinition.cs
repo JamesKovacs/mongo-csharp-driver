@@ -21,7 +21,7 @@ namespace MongoDB.Driver.Search
     /// <summary>
     /// Base class for search queries.
     /// </summary>
-    public abstract class QueryDefinition
+    public abstract class SearchQueryDefinition
     {
         /// <summary>
         /// Renders the query to a <see cref="BsonValue"/>.
@@ -30,48 +30,48 @@ namespace MongoDB.Driver.Search
         public abstract BsonValue Render();
 
         /// <summary>
-        /// Performs an implicit conversion from a string to <see cref="QueryDefinition"/>.
+        /// Performs an implicit conversion from a string to <see cref="SearchQueryDefinition"/>.
         /// </summary>
         /// <param name="query">The string.</param>
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator QueryDefinition(string query) =>
-            new SingleQueryDefinition(query);
+        public static implicit operator SearchQueryDefinition(string query) =>
+            new SingleSearchQueryDefinition(query);
 
         /// <summary>
-        /// Performs an implicit conversion from an array of strings to <see cref="QueryDefinition"/>.
+        /// Performs an implicit conversion from an array of strings to <see cref="SearchQueryDefinition"/>.
         /// </summary>
         /// <param name="queries">The array of strings.</param>
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator QueryDefinition(string[] queries) =>
-            new MultiQueryDefinition(queries);
+        public static implicit operator SearchQueryDefinition(string[] queries) =>
+            new MultiSearchQueryDefinition(queries);
 
         /// <summary>
-        /// Performs an implicit conversion from a list of strings to <see cref="QueryDefinition"/>.
+        /// Performs an implicit conversion from a list of strings to <see cref="SearchQueryDefinition"/>.
         /// </summary>
         /// <param name="queries">The list of strings.</param>
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator QueryDefinition(List<string> queries) =>
-            new MultiQueryDefinition(queries);
+        public static implicit operator SearchQueryDefinition(List<string> queries) =>
+            new MultiSearchQueryDefinition(queries);
     }
 
     /// <summary>
     /// A query definition for a single string.
     /// </summary>
-    public sealed class SingleQueryDefinition : QueryDefinition
+    public sealed class SingleSearchQueryDefinition : SearchQueryDefinition
     {
         private readonly string _query;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SinglePathDefinition{TDocument}"/> class.
+        /// Initializes a new instance of the <see cref="SingleSearchQueryDefinition"/> class.
         /// </summary>
         /// <param name="query">The query string.</param>
-        public SingleQueryDefinition(string query)
+        public SingleSearchQueryDefinition(string query)
         {
             _query = Ensure.IsNotNull(query, nameof(query));
         }
@@ -83,15 +83,15 @@ namespace MongoDB.Driver.Search
     /// <summary>
     /// A query definition for multiple strings.
     /// </summary>
-    public sealed class MultiQueryDefinition : QueryDefinition
+    public sealed class MultiSearchQueryDefinition : SearchQueryDefinition
     {
         private readonly IEnumerable<string> _queries;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MultiPathDefinition{TDocument}"/> class.
+        /// Initializes a new instance of the <see cref="MultiSearchQueryDefinition"/> class.
         /// </summary>
         /// <param name="queries">The query strings.</param>
-        public MultiQueryDefinition(IEnumerable<string> queries)
+        public MultiSearchQueryDefinition(IEnumerable<string> queries)
         {
             _queries = Ensure.IsNotNull(queries, nameof(queries));
         }

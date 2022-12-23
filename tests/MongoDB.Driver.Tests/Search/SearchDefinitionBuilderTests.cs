@@ -68,17 +68,17 @@ namespace MongoDB.Driver.Tests.Search
                 "{ autocomplete: { query: ['foo', 'bar'], path: ['x', 'y'] } }");
 
             AssertRendered(
-                subject.Autocomplete("foo", "x", AutocompleteTokenOrder.Any),
+                subject.Autocomplete("foo", "x", SearchAutocompleteTokenOrder.Any),
                 "{ autocomplete: { query: 'foo', path: 'x' } }");
             AssertRendered(
-                subject.Autocomplete("foo", "x", AutocompleteTokenOrder.Sequential),
+                subject.Autocomplete("foo", "x", SearchAutocompleteTokenOrder.Sequential),
                 "{ autocomplete: { query: 'foo', path: 'x', tokenOrder: 'sequential' } }");
 
             AssertRendered(
-                subject.Autocomplete("foo", "x", fuzzy: new FuzzyOptions()),
+                subject.Autocomplete("foo", "x", fuzzy: new SearchFuzzyOptions()),
                 "{ autocomplete: { query: 'foo', path: 'x', fuzzy: {} } }");
             AssertRendered(
-                subject.Autocomplete("foo", "x", fuzzy: new FuzzyOptions()
+                subject.Autocomplete("foo", "x", fuzzy: new SearchFuzzyOptions()
                 {
                     MaxEdits = 1,
                     PrefixLength = 5,
@@ -86,7 +86,7 @@ namespace MongoDB.Driver.Tests.Search
                 }),
                 "{ autocomplete: { query: 'foo', path: 'x', fuzzy: { maxEdits: 1, prefixLength: 5, maxExpansions: 25 } } }");
 
-            var scoreBuilder = new ScoreDefinitionBuilder<BsonDocument>();
+            var scoreBuilder = new SearchScoreDefinitionBuilder<BsonDocument>();
             AssertRendered(
                 subject.Autocomplete("foo", "x", score: scoreBuilder.Constant(1)),
                 "{ autocomplete: { query: 'foo', path: 'x', score: { constant: { value: 1 } } } }");
@@ -167,7 +167,7 @@ namespace MongoDB.Driver.Tests.Search
                 subject.Equals("x", ObjectId.Empty),
                 "{ equals: { path: 'x', value: { $oid: '000000000000000000000000' } } }");
 
-            var scoreBuilder = new ScoreDefinitionBuilder<BsonDocument>();
+            var scoreBuilder = new SearchScoreDefinitionBuilder<BsonDocument>();
             AssertRendered(
                 subject.Equals("x", true, scoreBuilder.Constant(1)),
                 "{ equals: { path: 'x', value: true, score: { constant: { value: 1 } } } }");
@@ -405,7 +405,7 @@ namespace MongoDB.Driver.Tests.Search
                 subject.Near("x", new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc), 1000L),
                 "{ near: { path: 'x', origin: { $date: '2000-01-01T00:00:00Z' }, pivot: { $numberLong: '1000' } } }");
 
-            var scoreBuilder = new ScoreDefinitionBuilder<BsonDocument>();
+            var scoreBuilder = new SearchScoreDefinitionBuilder<BsonDocument>();
             AssertRendered(
                 subject.Near("x", 5.0, 1.0, scoreBuilder.Constant(1)),
                 "{ near: { path: 'x', origin: 5, pivot: 1, score: { constant: { value: 1 } } } }");
@@ -467,7 +467,7 @@ namespace MongoDB.Driver.Tests.Search
                 subject.Phrase("foo", "x", 5),
                 "{ phrase: { query: 'foo', path: 'x', slop: 5 } }");
 
-            var scoreBuilder = new ScoreDefinitionBuilder<BsonDocument>();
+            var scoreBuilder = new SearchScoreDefinitionBuilder<BsonDocument>();
             AssertRendered(
                 subject.Phrase("foo", "x", score: scoreBuilder.Constant(1)),
                 "{ phrase: { query: 'foo', path: 'x', score: { constant: { value: 1 } } } }");
@@ -528,7 +528,7 @@ namespace MongoDB.Driver.Tests.Search
                 subject.QueryString("x", "foo"),
                 "{ queryString: { defaultPath: 'x', query: 'foo' } }");
 
-            var scoreBuilder = new ScoreDefinitionBuilder<BsonDocument>();
+            var scoreBuilder = new SearchScoreDefinitionBuilder<BsonDocument>();
             AssertRendered(
                 subject.QueryString("x", "foo", scoreBuilder.Constant(1)),
                 "{ queryString: { defaultPath: 'x', query: 'foo', score: { constant: { value: 1 } } } }");
@@ -627,7 +627,7 @@ namespace MongoDB.Driver.Tests.Search
                 subject.Regex("foo", "x", true),
                 "{ regex: { query: 'foo', path: 'x', allowAnalyzedField: true } }");
 
-            var scoreBuilder = new ScoreDefinitionBuilder<BsonDocument>();
+            var scoreBuilder = new SearchScoreDefinitionBuilder<BsonDocument>();
             AssertRendered(
                 subject.Regex("foo", "x", score: scoreBuilder.Constant(1)),
                 "{ regex: { query: 'foo', path: 'x', score: { constant: { value: 1 } } } }");
@@ -699,8 +699,8 @@ namespace MongoDB.Driver.Tests.Search
             var subject = CreateSubject<BsonDocument>();
 
             AssertRendered(
-                subject.Span(Builders<BsonDocument>.Span
-                        .First(Builders<BsonDocument>.Span.Term("foo", "x"), 5)),
+                subject.Span(Builders<BsonDocument>.SearchSpan
+                        .First(Builders<BsonDocument>.SearchSpan.Term("foo", "x"), 5)),
                 "{ span: { first: { operator: { term: { query: 'foo', path: 'x' } }, endPositionLte: 5 } } }");
         }
 
@@ -723,10 +723,10 @@ namespace MongoDB.Driver.Tests.Search
                 "{ text: { query: ['foo', 'bar'], path: ['x', 'y'] } }");
 
             AssertRendered(
-                subject.Text("foo", "x", new FuzzyOptions()),
+                subject.Text("foo", "x", new SearchFuzzyOptions()),
                 "{ text: { query: 'foo', path: 'x', fuzzy: {} } }");
             AssertRendered(
-                subject.Text("foo", "x", new FuzzyOptions()
+                subject.Text("foo", "x", new SearchFuzzyOptions()
                 {
                     MaxEdits = 1,
                     PrefixLength = 5,
@@ -734,7 +734,7 @@ namespace MongoDB.Driver.Tests.Search
                 }),
                 "{ text: { query: 'foo', path: 'x', fuzzy: { maxEdits: 1, prefixLength: 5, maxExpansions: 25 } } }");
 
-            var scoreBuilder = new ScoreDefinitionBuilder<BsonDocument>();
+            var scoreBuilder = new SearchScoreDefinitionBuilder<BsonDocument>();
             AssertRendered(
                 subject.Text("foo", "x", score: scoreBuilder.Constant(1)),
                 "{ text: { query: 'foo', path: 'x', score: { constant: { value: 1 } } } }");
@@ -811,7 +811,7 @@ namespace MongoDB.Driver.Tests.Search
                 subject.Wildcard("foo", "x", true),
                 "{ wildcard: { query: 'foo', path: 'x', allowAnalyzedField: true } }");
 
-            var scoreBuilder = new ScoreDefinitionBuilder<BsonDocument>();
+            var scoreBuilder = new SearchScoreDefinitionBuilder<BsonDocument>();
             AssertRendered(
                 subject.Wildcard("foo", "x", score: scoreBuilder.Constant(1)),
                 "{ wildcard: { query: 'foo', path: 'x', score: { constant: { value: 1 } } } }");

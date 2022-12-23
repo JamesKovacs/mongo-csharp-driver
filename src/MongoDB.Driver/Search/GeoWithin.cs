@@ -19,7 +19,7 @@ using MongoDB.Driver.GeoJsonObjectModel;
 namespace MongoDB.Driver.Search
 {
     /// <summary>
-    /// Base class for objects specifying GeoWith query
+    /// Base class for objects specifying GeoWithin query
     /// search within.
     /// </summary>
     /// <typeparam name="TCoordinates">The type of the coordinates.</typeparam>
@@ -105,7 +105,7 @@ namespace MongoDB.Driver.Search
             Geometry = Ensure.IsNotNull(geometry, nameof(geometry));
         }
 
-        /// <summary> Gets the bottom left GeoJSON point. </summary>
+        /// <summary>Gets the GeoJson geometry.</summary>
         public GeoJsonGeometry<TCoordinates> Geometry { get; }
 
         internal override BsonElement Render() => new("geometry", Geometry.ToBsonDocument());

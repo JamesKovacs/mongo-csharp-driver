@@ -1324,7 +1324,7 @@ namespace MongoDB.Driver
         /// <returns>The stage.</returns>
         public static PipelineStageDefinition<TInput, TInput> Search<TInput>(
             SearchDefinition<TInput> searchDefinition,
-            HighlightOptions<TInput> highlight = null,
+            SearchHighlightOptions<TInput> highlight = null,
             string indexName = null,
             SearchCountOptions count = null,
             bool returnStoredSource = false)

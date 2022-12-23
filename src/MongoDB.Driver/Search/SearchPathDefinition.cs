@@ -23,7 +23,7 @@ namespace MongoDB.Driver.Search
     /// Base class for search paths.
     /// </summary>
     /// <typeparam name="TDocument">The type of the document.</typeparam>
-    public abstract class PathDefinition<TDocument>
+    public abstract class SearchPathDefinition<TDocument>
     {
         /// <summary>
         /// Renders the path to a <see cref="BsonValue"/>.
@@ -35,56 +35,56 @@ namespace MongoDB.Driver.Search
 
         /// <summary>
         /// Performs an implicit conversion from <see cref="FieldDefinition{TDocument}"/> to
-        /// <see cref="PathDefinition{TDocument}"/>.
+        /// <see cref="SearchPathDefinition{TDocument}"/>.
         /// </summary>
         /// <param name="field">The field.</param>
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator PathDefinition<TDocument>(FieldDefinition<TDocument> field) =>
-            new SinglePathDefinition<TDocument>(field);
+        public static implicit operator SearchPathDefinition<TDocument>(FieldDefinition<TDocument> field) =>
+            new SingleSearchPathDefinition<TDocument>(field);
 
         /// <summary>
-        /// Performs an implicit conversion from a field name to <see cref="PathDefinition{TDocument}"/>.
+        /// Performs an implicit conversion from a field name to <see cref="SearchPathDefinition{TDocument}"/>.
         /// </summary>
         /// <param name="fieldName">The field name.</param>
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator PathDefinition<TDocument>(string fieldName) =>
-            new SinglePathDefinition<TDocument>(new StringFieldDefinition<TDocument>(fieldName));
+        public static implicit operator SearchPathDefinition<TDocument>(string fieldName) =>
+            new SingleSearchPathDefinition<TDocument>(new StringFieldDefinition<TDocument>(fieldName));
 
         /// <summary>
         /// Performs an implicit conversion from an array of <see cref="FieldDefinition{TDocument}"/> to
-        /// <see cref="PathDefinition{TDocument}"/>.
+        /// <see cref="SearchPathDefinition{TDocument}"/>.
         /// </summary>
         /// <param name="fields">The array of fields.</param>
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator PathDefinition<TDocument>(FieldDefinition<TDocument>[] fields) =>
-            new MultiPathDefinition<TDocument>(fields);
+        public static implicit operator SearchPathDefinition<TDocument>(FieldDefinition<TDocument>[] fields) =>
+            new MultiSearchPathDefinition<TDocument>(fields);
 
         /// <summary>
         /// Performs an implicit conversion from a list of <see cref="FieldDefinition{TDocument}"/> to
-        /// <see cref="PathDefinition{TDocument}"/>.
+        /// <see cref="SearchPathDefinition{TDocument}"/>.
         /// </summary>
         /// <param name="fields">The list of fields.</param>
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator PathDefinition<TDocument>(List<FieldDefinition<TDocument>> fields) =>
-            new MultiPathDefinition<TDocument>(fields);
+        public static implicit operator SearchPathDefinition<TDocument>(List<FieldDefinition<TDocument>> fields) =>
+            new MultiSearchPathDefinition<TDocument>(fields);
 
         /// <summary>
         /// Performs an implicit conversion from an array of field names to 
-        /// <see cref="PathDefinition{TDocument}"/>.
+        /// <see cref="SearchPathDefinition{TDocument}"/>.
         /// </summary>
         /// <param name="fieldNames">The array of field names.</param>
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator PathDefinition<TDocument>(string[] fieldNames) =>
-            new MultiPathDefinition<TDocument>(fieldNames.Select(fieldName => new StringFieldDefinition<TDocument>(fieldName)));
+        public static implicit operator SearchPathDefinition<TDocument>(string[] fieldNames) =>
+            new MultiSearchPathDefinition<TDocument>(fieldNames.Select(fieldName => new StringFieldDefinition<TDocument>(fieldName)));
     }
 }

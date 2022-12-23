@@ -18,13 +18,13 @@ using MongoDB.Bson.Serialization;
 namespace MongoDB.Driver.Search
 {
     /// <summary>
-    /// Base class for search score functions.
+    /// Base class for search score modifiers.
     /// </summary>
     /// <typeparam name="TDocument">The type of the document.</typeparam>
-    public abstract class ScoreFunction<TDocument>
+    public abstract class SearchScoreDefinition<TDocument>
     {
         /// <summary>
-        /// Renders the score function to a <see cref="BsonDocument"/>.
+        /// Renders the score modifier to a <see cref="BsonDocument"/>.
         /// </summary>
         /// <param name="documentSerializer">The document serializer.</param>
         /// <param name="serializerRegistry">The serializer registry.</param>
