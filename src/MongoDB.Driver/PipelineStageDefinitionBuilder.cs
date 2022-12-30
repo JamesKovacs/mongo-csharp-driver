@@ -22,6 +22,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Linq;
+using MongoDB.Driver.Linq.Linq3Implementation;
 using MongoDB.Driver.Linq.Linq3Implementation.Misc;
 using MongoDB.Driver.Linq.Linq3Implementation.Serializers;
 using MongoDB.Driver.Linq.Linq3Implementation.Translators;
@@ -154,7 +155,7 @@ namespace MongoDB.Driver
         }
 
         /// <summary>
-        /// Creates a $bucket stage.
+        /// Creates a $bucket stage (this method can only be used with LINQ2).
         /// </summary>
         /// <typeparam name="TInput">The type of the input documents.</typeparam>
         /// <typeparam name="TValue">The type of the values.</typeparam>
@@ -179,6 +180,32 @@ namespace MongoDB.Driver
                 boundaries,
                 new ExpressionBucketOutputProjection<TInput, TValue, TOutput>(x => default(TValue), output, translationOptions),
                 options);
+        }
+
+        /// <summary>
+        /// Creates a pair of $bucket/$project stages (this method can only be used with LINQ3).
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents.</typeparam>
+        /// <typeparam name="TValue">The type of the values.</typeparam>
+        /// <typeparam name="TOutput">The type of the output documents.</typeparam>
+        /// <param name="groupBy">The group by expression.</param>
+        /// <param name="boundaries">The boundaries.</param>
+        /// <param name="output">The group projection.</param>
+        /// <param name="options">The options.</param>
+        /// <param name="translationOptions">The translation options.</param>
+        /// <returns>The stage.</returns>
+        /// <remarks>This method can only be used with LINQ3 but that can't be verified until Render is called.</remarks>
+        public static GroupingAndProjectStageDefinitions<TInput, IGrouping<TValue, TInput>, TOutput> BucketForLinq3<TInput, TValue, TOutput>(
+            Expression<Func<TInput, TValue>> groupBy,
+            IEnumerable<TValue> boundaries,
+            Expression<Func<IGrouping<TValue, TInput>, TOutput>> output,
+            AggregateBucketOptions<TValue> options = null,
+            ExpressionTranslationOptions translationOptions = null)
+        {
+            Ensure.IsNotNull(groupBy, nameof(groupBy));
+            Ensure.IsNotNull(output, nameof(output));
+
+            return GroupingAndProjectStageDefinitions.ForBucket(groupBy, boundaries, output, options);
         }
 
         /// <summary>
@@ -296,7 +323,7 @@ namespace MongoDB.Driver
         }
 
         /// <summary>
-        /// Creates a $bucketAuto stage.
+        /// Creates a $bucketAuto stage (this method can only be used with LINQ2).
         /// </summary>
         /// <typeparam name="TInput">The type of the input documents.</typeparam>
         /// <typeparam name="TValue">The type of the output documents.</typeparam>
@@ -321,6 +348,32 @@ namespace MongoDB.Driver
                 buckets,
                 new ExpressionBucketOutputProjection<TInput, TValue, TOutput>(x => default(TValue), output, translationOptions),
                 options);
+        }
+
+        /// <summary>
+        /// Creates a $bucketAuto stage (this method can only be used with LINQ3).
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents.</typeparam>
+        /// <typeparam name="TValue">The type of the output documents.</typeparam>
+        /// <typeparam name="TOutput">The type of the output documents.</typeparam>
+        /// <param name="groupBy">The group by expression.</param>
+        /// <param name="buckets">The number of buckets.</param>
+        /// <param name="output">The output projection.</param>
+        /// <param name="options">The options (optional).</param>
+        /// <param name="translationOptions">The translation options.</param>
+        /// <returns>The stage.</returns>
+        public static GroupingAndProjectStageDefinitions<TInput, IGrouping<AggregateBucketAutoResultId<TValue>, TInput>, TOutput> BucketAutoForLinq3<TInput, TValue, TOutput>(
+            Expression<Func<TInput, TValue>> groupBy,
+            int buckets,
+            Expression<Func<IGrouping<AggregateBucketAutoResultId<TValue>, TInput>, TOutput>> output,
+            AggregateBucketAutoOptions options = null,
+            ExpressionTranslationOptions translationOptions = null)
+        {
+            Ensure.IsNotNull(groupBy, nameof(groupBy));
+            Ensure.IsGreaterThanZero(buckets, nameof(buckets));
+            Ensure.IsNotNull(output, nameof(output));
+
+            return GroupingAndProjectStageDefinitions.ForBucketAuto(groupBy, buckets, output, options);
         }
 
         /// <summary>
@@ -880,15 +933,15 @@ namespace MongoDB.Driver
         /// <param name="translationOptions">The translation options.</param>
         /// <returns>The stage.</returns>
         /// <remarks>This method can only be used with LINQ3 but that can't be verified until Render is called.</remarks>
-        public static GroupForLinq3Result<TInput, TValue, TOutput> GroupForLinq3<TInput, TValue, TOutput>(
+        public static GroupingAndProjectStageDefinitions<TInput, IGrouping<TValue, TInput>, TOutput> GroupForLinq3<TInput, TValue, TOutput>(
             Expression<Func<TInput, TValue>> value,
             Expression<Func<IGrouping<TValue, TInput>, TOutput>> group,
             ExpressionTranslationOptions translationOptions = null)
         {
             Ensure.IsNotNull(value, nameof(value));
             Ensure.IsNotNull(group, nameof(group));
-            var stages = new Linq.Linq3Implementation.GroupExpressionStageDefinitions<TInput, TValue, TOutput>(value, group);
-            return new GroupForLinq3Result<TInput, TValue, TOutput>(stages.GroupStage, stages.ProjectStage);
+
+            return GroupingAndProjectStageDefinitions.ForGroup(value, group);
         }
 
         /// <summary>
@@ -1825,6 +1878,11 @@ namespace MongoDB.Driver
 
         public override RenderedProjectionDefinition<TOutput> Render(IBsonSerializer<TInput> documentSerializer, IBsonSerializerRegistry serializerRegistry, LinqProvider linqProvider)
         {
+            if (linqProvider != LinqProvider.V2)
+            {
+                throw new InvalidOperationException("ExpressionBucketOutputProjection can only be used with LINQ2.");
+            }
+
             return linqProvider.GetAdapter().TranslateExpressionToBucketOutputProjection(_valueExpression, _outputExpression, documentSerializer, serializerRegistry, _translationOptions);
         }
     }

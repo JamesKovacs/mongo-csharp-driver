@@ -24,32 +24,41 @@ using MongoDB.Driver.Linq.Linq3Implementation.Ast.Visitors;
 
 namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Optimizers
 {
-    internal class AstGroupPipelineOptimizer
+    internal class AstGroupingPipelineOptimizer
     {
         #region static
         public static AstPipeline Optimize(AstPipeline pipeline)
         {
-            var optimizer = new AstGroupPipelineOptimizer();
+            var optimizer = new AstGroupingPipelineOptimizer();
             for (var i = 0; i < pipeline.Stages.Count; i++)
             {
                 var stage = pipeline.Stages[i];
-                if (stage is AstGroupStage groupStage)
+                if (IsGroupingStage(stage))
                 {
-                    pipeline = optimizer.OptimizeGroupStage(pipeline, i, groupStage);
+                    pipeline = optimizer.OptimizeGroupingStage(pipeline, i, stage);
                 }
             }
 
             return pipeline;
+
+            static bool IsGroupingStage(AstStage stage)
+            {
+                return stage.NodeType switch
+                {
+                    AstNodeType.GroupStage or AstNodeType.BucketStage or AstNodeType.BucketAutoStage => true,
+                    _ => false
+                };
+            }
         }
         #endregion
 
         private readonly AccumulatorSet _accumulators = new AccumulatorSet();
 
-        private AstPipeline OptimizeGroupStage(AstPipeline pipeline, int i, AstGroupStage groupStage)
+        private AstPipeline OptimizeGroupingStage(AstPipeline pipeline, int i, AstStage groupingStage)
         {
             try
             {
-                if (IsOptimizableGroupStage(groupStage))
+                if (IsOptimizableGroupingStage(groupingStage))
                 {
                     var followingStages = GetFollowingStagesToOptimize(pipeline, i + 1);
                     if (followingStages == null)
@@ -57,7 +66,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Optimizers
                         return pipeline;
                     }
 
-                    var mappings = OptimizeGroupAndFollowingStages(groupStage, followingStages);
+                    var mappings = OptimizeGroupingAndFollowingStages(groupingStage, followingStages);
                     if (mappings.Length > 0)
                     {
                         return (AstPipeline)AstNodeReplacer.Replace(pipeline, mappings);
@@ -71,23 +80,49 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Optimizers
 
             return pipeline;
 
-            static bool IsOptimizableGroupStage(AstGroupStage groupStage)
+            static bool IsOptimizableGroupingStage(AstStage groupingStage)
             {
-                // { $group : { _id : ?, _elements : { $push : "$$ROOT" } } }
-                if (groupStage.Fields.Count == 1)
+                if (groupingStage is AstGroupStage groupStage)
                 {
-                    var field = groupStage.Fields[0];
-                    if (field.Path == "_elements" &&
-                        field.Value is AstUnaryAccumulatorExpression unaryAccumulatorExpression &&
-                        unaryAccumulatorExpression.Operator == AstUnaryAccumulatorOperator.Push &&
-                        unaryAccumulatorExpression.Arg is AstVarExpression varExpression &&
-                        varExpression.Name == "ROOT")
+                    // { $group : { _id : ?, _elements : { $push : "$$ROOT" } } }
+                    if (groupStage.Fields.Count == 1)
                     {
-                        return true;
+                        var field = groupStage.Fields[0];
+                        return IsElementsPush(field);
+                    }
+                }
+
+                if (groupingStage is AstBucketStage bucketStage)
+                {
+                    // { $bucket : { groupBy : ?, boundaries : ?, default : ?, output : { _elements : { $push : "$$ROOT" } } } }
+                    if (bucketStage.Output.Count == 1)
+                    {
+                        var output = bucketStage.Output[0];
+                        return IsElementsPush(output);
+                    }
+                }
+
+                if (groupingStage is AstBucketAutoStage bucketAutoStage)
+                {
+                    // { $bucketAuto : { groupBy : ?, buckets : ?, granularity : ?, output : { _elements : { $push : "$$ROOT" } } } }
+                    if (bucketAutoStage.Output.Count == 1)
+                    {
+                        var output = bucketAutoStage.Output[0];
+                        return IsElementsPush(output);
                     }
                 }
 
                 return false;
+
+                static bool IsElementsPush(AstAccumulatorField field)
+                {
+                    return
+                        field.Path == "_elements" &&
+                        field.Value is AstUnaryAccumulatorExpression unaryAccumulatorExpression &&
+                        unaryAccumulatorExpression.Operator == AstUnaryAccumulatorOperator.Push &&
+                        unaryAccumulatorExpression.Arg is AstVarExpression varExpression &&
+                        varExpression.Name == "ROOT";
+                }
             }
 
             static List<AstStage> GetFollowingStagesToOptimize(AstPipeline pipeline, int from)
@@ -134,7 +169,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Optimizers
             }
         }
 
-        private (AstNode, AstNode)[] OptimizeGroupAndFollowingStages(AstGroupStage groupStage, List<AstStage> followingStages)
+        private (AstNode, AstNode)[] OptimizeGroupingAndFollowingStages(AstStage groupingStage, List<AstStage> followingStages)
         {
             var mappings = new List<(AstNode, AstNode)>();
 
@@ -147,10 +182,21 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Optimizers
                 }
             }
 
-            var newGroupStage = AstStage.Group(groupStage.Id, _accumulators);
-            mappings.Add((groupStage, newGroupStage));
+            var newGroupingStage = CreateNewGroupingStage(groupingStage, _accumulators);
+            mappings.Add((groupingStage, newGroupingStage));
 
             return mappings.ToArray();
+
+            static AstStage CreateNewGroupingStage(AstStage groupingStage, AccumulatorSet accumulators)
+            {
+                return groupingStage switch
+                {
+                    AstGroupStage groupStage => AstStage.Group(groupStage.Id, accumulators),
+                    AstBucketStage bucketStage => AstStage.Bucket(bucketStage.GroupBy, bucketStage.Boundaries, bucketStage.Default, accumulators),
+                    AstBucketAutoStage bucketAutoStage => AstStage.BucketAuto(bucketAutoStage.GroupBy, bucketAutoStage.Buckets, bucketAutoStage.Granularity, accumulators),
+                    _ => throw new Exception($"Unexpected groupintStage node type: {groupingStage.NodeType}.")
+                };
+            }
         }
 
         private AstStage OptimizeFollowingStage(AstStage stage)

@@ -143,7 +143,7 @@ namespace MongoDB.Driver
         }
 
         /// <summary>
-        /// Appends a $bucket stage to the pipeline.
+        /// Appends a $bucket stage to the pipeline (this method can only be used with LINQ2).
         /// </summary>
         /// <typeparam name="TInput">The type of the input documents.</typeparam>
         /// <typeparam name="TIntermediate">The type of the intermediate documents.</typeparam>
@@ -168,6 +168,35 @@ namespace MongoDB.Driver
         {
             Ensure.IsNotNull(pipeline, nameof(pipeline));
             return pipeline.AppendStage(PipelineStageDefinitionBuilder.Bucket(groupBy, boundaries, output, options, translationOptions));
+        }
+
+        /// <summary>
+        /// Appends $bucket/$project stages to a LINQ3 pipeline (this method can only be used with LINQ3).
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents.</typeparam>
+        /// <typeparam name="TIntermediate">The type of the intermediate documents.</typeparam>
+        /// <typeparam name="TValue">The type of the values.</typeparam>
+        /// <typeparam name="TOutput">The type of the output documents.</typeparam>
+        /// <param name="pipeline">The pipeline.</param>
+        /// <param name="groupBy">The group by expression.</param>
+        /// <param name="boundaries">The boundaries.</param>
+        /// <param name="output">The output projection.</param>
+        /// <param name="options">The options.</param>
+        /// <param name="translationOptions">The translation options.</param>
+        /// <returns>
+        /// The new pipeline.
+        /// </returns>
+        public static PipelineDefinition<TInput, TOutput> BucketForLinq3<TInput, TIntermediate, TValue, TOutput>(
+            this PipelineDefinition<TInput, TIntermediate> pipeline,
+            Expression<Func<TIntermediate, TValue>> groupBy,
+            IEnumerable<TValue> boundaries,
+            Expression<Func<IGrouping<TValue, TIntermediate>, TOutput>> output,
+            AggregateBucketOptions<TValue> options = null,
+            ExpressionTranslationOptions translationOptions = null)
+        {
+            Ensure.IsNotNull(pipeline, nameof(pipeline));
+            var (bucketStage, projectStage) = PipelineStageDefinitionBuilder.BucketForLinq3(groupBy, boundaries, output, options, translationOptions);
+            return pipeline.AppendStage(bucketStage).AppendStage(projectStage);
         }
 
         /// <summary>
@@ -245,7 +274,7 @@ namespace MongoDB.Driver
         }
 
         /// <summary>
-        /// Appends a $bucketAuto stage to the pipeline.
+        /// Appends a $bucketAuto stage to the pipeline (this method can only be used with LINQ2).
         /// </summary>
         /// <typeparam name="TInput">The type of the input documents.</typeparam>
         /// <typeparam name="TIntermediate">The type of the intermediate documents.</typeparam>
@@ -270,6 +299,35 @@ namespace MongoDB.Driver
         {
             Ensure.IsNotNull(pipeline, nameof(pipeline));
             return pipeline.AppendStage(PipelineStageDefinitionBuilder.BucketAuto(groupBy, buckets, output, options, translationOptions));
+        }
+
+        /// <summary>
+        /// Appends a $bucketAuto stage to the pipeline (this method can only be used with LINQ3).
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents.</typeparam>
+        /// <typeparam name="TIntermediate">The type of the intermediate documents.</typeparam>
+        /// <typeparam name="TValue">The type of the value.</typeparam>
+        /// <typeparam name="TOutput">The type of the output documents.</typeparam>
+        /// <param name="pipeline">The pipeline.</param>
+        /// <param name="groupBy">The group by expression.</param>
+        /// <param name="buckets">The number of buckets.</param>
+        /// <param name="output">The output projection.</param>
+        /// <param name="options">The options (optional).</param>
+        /// <param name="translationOptions">The translation options.</param>
+        /// <returns>
+        /// The fluent aggregate interface.
+        /// </returns>
+        public static PipelineDefinition<TInput, TOutput> BucketAutoForLinq3<TInput, TIntermediate, TValue, TOutput>(
+            this PipelineDefinition<TInput, TIntermediate> pipeline,
+            Expression<Func<TIntermediate, TValue>> groupBy,
+            int buckets,
+            Expression<Func<IGrouping<AggregateBucketAutoResultId<TValue>, TIntermediate>, TOutput>> output,
+            AggregateBucketAutoOptions options = null,
+            ExpressionTranslationOptions translationOptions = null)
+        {
+            Ensure.IsNotNull(pipeline, nameof(pipeline));
+            var (bucketAutoStage, projectStage) = PipelineStageDefinitionBuilder.BucketAutoForLinq3(groupBy, buckets, output, options, translationOptions);
+            return pipeline.AppendStage(bucketAutoStage).AppendStage(projectStage);
         }
 
         /// <summary>

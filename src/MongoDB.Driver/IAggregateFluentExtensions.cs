@@ -71,7 +71,15 @@ namespace MongoDB.Driver
             AggregateBucketOptions<TValue> options = null)
         {
             Ensure.IsNotNull(aggregate, nameof(aggregate));
-            return aggregate.AppendStage(PipelineStageDefinitionBuilder.Bucket(groupBy, boundaries, output, options));
+            if (aggregate.Database.Client.Settings.LinqProvider == LinqProvider.V2)
+            {
+                return aggregate.AppendStage(PipelineStageDefinitionBuilder.Bucket(groupBy, boundaries, output, options));
+            }
+            else
+            {
+                var (bucketStage, projectStage) = PipelineStageDefinitionBuilder.BucketForLinq3(groupBy, boundaries, output, options);
+                return aggregate.AppendStage(bucketStage).AppendStage(projectStage);
+            }
         }
 
         /// <summary>
@@ -95,7 +103,7 @@ namespace MongoDB.Driver
         }
 
         /// <summary>
-        /// Appends a $bucketAuto stage to the pipeline.
+        /// Appends a $bucketAuto stage to the pipeline (this overload can only be used with LINQ2).
         /// </summary>
         /// <typeparam name="TResult">The type of the result.</typeparam>
         /// <typeparam name="TValue">The type of the value.</typeparam>
@@ -110,11 +118,45 @@ namespace MongoDB.Driver
             this IAggregateFluent<TResult> aggregate,
             Expression<Func<TResult, TValue>> groupBy,
             int buckets,
-            Expression<Func<IGrouping<TValue, TResult>, TNewResult>> output,
+            Expression<Func<IGrouping<TValue, TResult>, TNewResult>> output, // the IGrouping has been wrong all along, only fixing it for LINQ3
             AggregateBucketAutoOptions options = null)
         {
             Ensure.IsNotNull(aggregate, nameof(aggregate));
+            if (aggregate.Database.Client.Settings.LinqProvider != LinqProvider.V2)
+            {
+                throw new InvalidOperationException("This overload of BucketAuto can only be used with LINQ2.");
+            }
+
             return aggregate.AppendStage(PipelineStageDefinitionBuilder.BucketAuto(groupBy, buckets, output, options));
+        }
+
+        /// <summary>
+        /// Appends a $bucketAuto stage to the pipeline (this method can only be used with LINQ3).
+        /// </summary>
+        /// <typeparam name="TResult">The type of the result.</typeparam>
+        /// <typeparam name="TValue">The type of the value.</typeparam>
+        /// <typeparam name="TNewResult">The type of the new result.</typeparam>
+        /// <param name="aggregate">The aggregate.</param>
+        /// <param name="groupBy">The expression providing the value to group by.</param>
+        /// <param name="buckets">The number of buckets.</param>
+        /// <param name="output">The output projection.</param>
+        /// <param name="options">The options (optional).</param>
+        /// <returns>The fluent aggregate interface.</returns>
+        public static IAggregateFluent<TNewResult> BucketAutoForLinq3<TResult, TValue, TNewResult>(
+            this IAggregateFluent<TResult> aggregate,
+            Expression<Func<TResult, TValue>> groupBy,
+            int buckets,
+            Expression<Func<IGrouping<AggregateBucketAutoResultId<TValue>, TResult>, TNewResult>> output,
+            AggregateBucketAutoOptions options = null)
+        {
+            Ensure.IsNotNull(aggregate, nameof(aggregate));
+            if (aggregate.Database.Client.Settings.LinqProvider != LinqProvider.V3)
+            {
+                throw new InvalidOperationException("BucketAutoForLinq3 can only be used with LINQ3.");
+            }
+
+            var (bucketAutoStage, projectStage) = PipelineStageDefinitionBuilder.BucketAutoForLinq3(groupBy, buckets, output, options);
+            return aggregate.AppendStage(bucketAutoStage).AppendStage(projectStage);
         }
 
         /// <summary>
