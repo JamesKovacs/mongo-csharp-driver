@@ -15,6 +15,7 @@
 
 using System.Linq;
 using FluentAssertions;
+using MongoDB.Bson.TestHelpers;
 using MongoDB.Driver.Linq;
 using Xunit;
 
@@ -22,6 +23,11 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Jira
 {
     public class CSharp2113Tests : Linq3IntegrationTest
     {
+        static CSharp2113Tests()
+        {
+            TestObjectSerializerRegisterer.EnsureTestObjectSerializerIsRegistered();
+        }
+
         [Fact]
         public void Query1_should_work()
         {

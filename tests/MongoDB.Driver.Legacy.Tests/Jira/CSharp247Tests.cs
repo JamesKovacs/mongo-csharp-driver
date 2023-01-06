@@ -14,13 +14,18 @@
 */
 
 using MongoDB.Bson;
-using MongoDB.Driver;
+using MongoDB.Bson.TestHelpers;
 using Xunit;
 
 namespace MongoDB.Driver.Tests.Jira.CSharp247
 {
     public class CSharp247Tests
     {
+        static CSharp247Tests()
+        {
+            TestObjectSerializerRegisterer.EnsureTestObjectSerializerIsRegistered();
+        }
+
         public interface I
         {
             int X { get; set; }

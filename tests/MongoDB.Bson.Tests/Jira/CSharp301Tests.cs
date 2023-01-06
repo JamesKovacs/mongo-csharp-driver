@@ -15,14 +15,19 @@
 
 using System.Collections;
 using System.Collections.Generic;
-using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.TestHelpers;
 using Xunit;
 
 namespace MongoDB.Bson.Tests.Jira
 {
     public class CSharp301Tests
     {
+        static CSharp301Tests()
+        {
+            TestObjectSerializerRegisterer.EnsureTestObjectSerializerIsRegistered();
+        }
+
         public class C
         {
             public int Id;

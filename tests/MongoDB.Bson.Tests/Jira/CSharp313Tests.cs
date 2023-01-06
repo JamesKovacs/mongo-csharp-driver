@@ -14,14 +14,19 @@
 */
 
 using System;
-using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.TestHelpers;
 using Xunit;
 
 namespace MongoDB.Bson.Tests.Jira
 {
     public class CSharp313Tests
     {
+        static CSharp313Tests()
+        {
+            TestObjectSerializerRegisterer.EnsureTestObjectSerializerIsRegistered();
+        }
+
         private static object[] __scalarValues = new object[]
         {
             new BsonBinaryData(new byte[] { 1, 2, 3 }),

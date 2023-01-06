@@ -26,6 +26,11 @@ namespace MongoDB.Bson.Tests.Jira
 {
     public class CSharp1559Tests
     {
+        static CSharp1559Tests()
+        {
+            TestObjectSerializerRegisterer.EnsureTestObjectSerializerIsRegistered();
+        }
+
         [Theory]
         [InlineData(typeof(DerivedWithoutSetter_BaseWithoutSetter), new[] { 1, 2 }, "{ \"X\" : 1, \"Y\" : 2 }")]
         [InlineData(typeof(DerivedWithoutSetter_BaseWithPrivateSetterAndWithProtectedConstructor), new[] { 1, 2 }, "{ \"X\" : 1, \"Y\" : 2 }")]

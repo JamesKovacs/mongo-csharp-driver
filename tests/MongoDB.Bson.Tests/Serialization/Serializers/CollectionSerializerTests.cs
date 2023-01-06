@@ -34,6 +34,11 @@ namespace MongoDB.Bson.Tests.Serialization.CollectionSerializers
 
     public class CollectionSerializerTests
     {
+        static CollectionSerializerTests()
+        {
+            TestObjectSerializerRegisterer.EnsureTestObjectSerializerIsRegistered();
+        }
+
         public class T
         {
             public ArrayList L { get; set; }
@@ -276,6 +281,11 @@ namespace MongoDB.Bson.Tests.Serialization.CollectionSerializers
 
     public class CollectionSerializerNominalTypeObjectTests
     {
+        static CollectionSerializerNominalTypeObjectTests()
+        {
+            TestObjectSerializerRegisterer.EnsureTestObjectSerializerIsRegistered();
+        }
+
         public class T
         {
             public object L { get; set; }

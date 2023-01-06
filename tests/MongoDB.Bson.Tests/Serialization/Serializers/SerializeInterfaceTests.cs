@@ -14,14 +14,19 @@
 */
 
 using System.Linq;
-using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.TestHelpers;
 using Xunit;
 
 namespace MongoDB.Bson.Tests.Serialization
 {
     public class SerializeInterfaceTests
     {
+        static SerializeInterfaceTests()
+        {
+            TestObjectSerializerRegisterer.EnsureTestObjectSerializerIsRegistered();
+        }
+
         private interface IX
         {
             string FX { get; set; }

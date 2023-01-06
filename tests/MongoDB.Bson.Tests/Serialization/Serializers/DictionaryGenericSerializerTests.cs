@@ -22,6 +22,8 @@ using System.Text;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson.Serialization.Options;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Bson.TestHelpers;
 using MongoDB.TestHelpers.XunitExtensions;
 using Xunit;
@@ -36,6 +38,32 @@ namespace MongoDB.Bson.Tests.Serialization.DictionaryGenericSerializers
 
     public class DictionaryGenericSerializerTests
     {
+        static DictionaryGenericSerializerTests()
+        {
+            TestObjectSerializerRegisterer.EnsureTestObjectSerializerIsRegistered();
+
+            var objectSerializer = BsonSerializer.LookupSerializer<object>();
+            var dictionaryRepresentation = DictionaryRepresentation.Document;
+            var keySerializer = objectSerializer;
+            var valueSerializer = objectSerializer;
+            var dictionarySerializer = new DictionaryInterfaceImplementerSerializer<Dictionary<object, object>, object, object>(dictionaryRepresentation, keySerializer, valueSerializer);
+            var idictionarySerializer = new ImpliedImplementationInterfaceSerializer<IDictionary<object, object>, Dictionary<object, object>>(dictionarySerializer);
+            var readOnlyDictionarySerializer = new ReadOnlyDictionaryInterfaceImplementerSerializer<ReadOnlyDictionary<object, object>, object, object>(dictionaryRepresentation, keySerializer, valueSerializer);
+            var ireadOnlyDictionarySerializer = new ImpliedImplementationInterfaceSerializer<IReadOnlyDictionary<object, object>, ReadOnlyDictionary<object, object>>(readOnlyDictionarySerializer);
+            var sortedDictionarySerializer = new DictionaryInterfaceImplementerSerializer<SortedDictionary<object, object>, object, object>(dictionaryRepresentation, keySerializer, valueSerializer);
+            var sortedListSerializer = new DictionaryInterfaceImplementerSerializer<SortedList<object, object>, object, object>(dictionaryRepresentation, keySerializer, valueSerializer);
+
+            BsonClassMap.RegisterClassMap<T>(cm =>
+            {
+                cm.MapProperty(t => t.D).SetSerializer(dictionarySerializer);
+                cm.MapProperty(t => t.ID).SetSerializer(idictionarySerializer);
+                cm.MapProperty(t => t.IROD).SetSerializer(ireadOnlyDictionarySerializer);
+                cm.MapProperty(t => t.ROD).SetSerializer(readOnlyDictionarySerializer);
+                cm.MapProperty(t => t.SD).SetSerializer(sortedDictionarySerializer);
+                cm.MapProperty(t => t.SL).SetSerializer(sortedListSerializer);
+            });
+        }
+
         public class T
         {
             public Dictionary<object, object> D { get; set; }
