@@ -22,11 +22,11 @@ using Xunit;
 
 namespace MongoDB.Bson.Tests.Serialization
 {
+    [Collection("RegisterObjectSerializer")]
     public class ExpandoSerializerTests
     {
-        static ExpandoSerializerTests()
+        public ExpandoSerializerTests(RegisterObjectSerializerFixture _)
         {
-            TestObjectSerializerRegisterer.EnsureTestObjectSerializerIsRegistered();
         }
 
         [Fact]

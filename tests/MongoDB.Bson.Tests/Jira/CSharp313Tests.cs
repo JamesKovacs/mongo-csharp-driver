@@ -20,13 +20,9 @@ using Xunit;
 
 namespace MongoDB.Bson.Tests.Jira
 {
+    [Collection("RegisterObjectSerializer")]
     public class CSharp313Tests
     {
-        static CSharp313Tests()
-        {
-            TestObjectSerializerRegisterer.EnsureTestObjectSerializerIsRegistered();
-        }
-
         private static object[] __scalarValues = new object[]
         {
             new BsonBinaryData(new byte[] { 1, 2, 3 }),
@@ -48,6 +44,10 @@ namespace MongoDB.Bson.Tests.Jira
             new BsonTimestamp(1234L),
             BsonUndefined.Value
         };
+
+        public CSharp313Tests(RegisterObjectSerializerFixture _)
+        {
+        }
 
         public class C
         {

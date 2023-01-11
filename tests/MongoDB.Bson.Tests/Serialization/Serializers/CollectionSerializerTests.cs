@@ -32,11 +32,11 @@ namespace MongoDB.Bson.Tests.Serialization.CollectionSerializers
         public string P { get; set; }
     }
 
+    [Collection("RegisterObjectSerializer")]
     public class CollectionSerializerTests
     {
-        static CollectionSerializerTests()
+        public CollectionSerializerTests(RegisterObjectSerializerFixture _)
         {
-            TestObjectSerializerRegisterer.EnsureTestObjectSerializerIsRegistered();
         }
 
         public class T
@@ -279,11 +279,11 @@ namespace MongoDB.Bson.Tests.Serialization.CollectionSerializers
         }
     }
 
+    [Collection("RegisterObjectSerializer")]
     public class CollectionSerializerNominalTypeObjectTests
     {
-        static CollectionSerializerNominalTypeObjectTests()
+        public CollectionSerializerNominalTypeObjectTests(RegisterObjectSerializerFixture _)
         {
-            TestObjectSerializerRegisterer.EnsureTestObjectSerializerIsRegistered();
         }
 
         public class T

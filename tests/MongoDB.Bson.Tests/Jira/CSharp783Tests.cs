@@ -25,11 +25,11 @@ using Xunit;
 namespace MongoDB.Bson.Tests.Jira.CSharp783
 {
 #if WINDOWS
+    [Collection("RegisterObjectSerializer")]
     public class CSharp783DiscriminatedInterfaceTests
     {
-        static CSharp783DiscriminatedInterfaceTests()
+        public CSharp783DiscriminatedInterfaceTests(RegisterObjectSerializerFixture _)
         {
-            TestObjectSerializerRegisterer.EnsureTestObjectSerializerIsRegistered();
         }
 
         // nested types
@@ -150,11 +150,11 @@ namespace MongoDB.Bson.Tests.Jira.CSharp783
     }
 #endif
 
+    [Collection("RegisterObjectSerializer")]
     public class CSharp783ImpliedHashSetImplementationTests
     {
-        static CSharp783ImpliedHashSetImplementationTests()
+        public CSharp783ImpliedHashSetImplementationTests(RegisterObjectSerializerFixture _)
         {
-            TestObjectSerializerRegisterer.EnsureTestObjectSerializerIsRegistered();
         }
 
         // nested types
@@ -273,11 +273,11 @@ namespace MongoDB.Bson.Tests.Jira.CSharp783
         }
     }
 
+    [Collection("RegisterObjectSerializer")]
     public class CSharp783ImpliedSortedSetImplementationTests
     {
-        static CSharp783ImpliedSortedSetImplementationTests()
+        public CSharp783ImpliedSortedSetImplementationTests(RegisterObjectSerializerFixture _)
         {
-            TestObjectSerializerRegisterer.EnsureTestObjectSerializerIsRegistered();
         }
 
         // nested types

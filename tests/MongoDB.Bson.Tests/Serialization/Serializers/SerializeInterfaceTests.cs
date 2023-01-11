@@ -20,11 +20,11 @@ using Xunit;
 
 namespace MongoDB.Bson.Tests.Serialization
 {
+    [Collection("RegisterObjectSerializer")]
     public class SerializeInterfaceTests
     {
-        static SerializeInterfaceTests()
+        public SerializeInterfaceTests(RegisterObjectSerializerFixture _)
         {
-            TestObjectSerializerRegisterer.EnsureTestObjectSerializerIsRegistered();
         }
 
         private interface IX

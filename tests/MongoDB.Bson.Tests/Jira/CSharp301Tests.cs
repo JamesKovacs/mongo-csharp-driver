@@ -21,11 +21,11 @@ using Xunit;
 
 namespace MongoDB.Bson.Tests.Jira
 {
+    [Collection("RegisterObjectSerializer")]
     public class CSharp301Tests
     {
-        static CSharp301Tests()
+        public CSharp301Tests(RegisterObjectSerializerFixture _)
         {
-            TestObjectSerializerRegisterer.EnsureTestObjectSerializerIsRegistered();
         }
 
         public class C

@@ -31,11 +31,11 @@ using Reflector = MongoDB.Bson.TestHelpers.Reflector;
 
 namespace MongoDB.Bson.Tests.Serialization
 {
+    [Collection("RegisterObjectSerializer")]
     public class ObjectSerializerTests
     {
-        static ObjectSerializerTests()
+        public ObjectSerializerTests(RegisterObjectSerializerFixture _)
         {
-            TestObjectSerializerRegisterer.EnsureTestObjectSerializerIsRegistered();
         }
 
         public class C

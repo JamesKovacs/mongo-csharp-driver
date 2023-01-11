@@ -22,11 +22,11 @@ using Xunit;
 
 namespace MongoDB.Bson.Tests.Jira.CSharp515
 {
+    [Collection("RegisterObjectSerializer")]
     public class CSharp515Tests
     {
-        static CSharp515Tests()
+        public CSharp515Tests(RegisterObjectSerializerFixture _)
         {
-            TestObjectSerializerRegisterer.EnsureTestObjectSerializerIsRegistered();
         }
 
         public class C

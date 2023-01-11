@@ -517,7 +517,7 @@ namespace MongoDB.Bson.Serialization.Serializers
 
                 static bool IsAllowedGenericType(Type type) =>
                     __allowedGenericTypes.Contains(type.GetGenericTypeDefinition()) &&
-                    type.GetGenericArguments().All(a => AllowedTypes(a));
+                    type.GetGenericArguments().All(AllowedTypes);
             }
         }
     }

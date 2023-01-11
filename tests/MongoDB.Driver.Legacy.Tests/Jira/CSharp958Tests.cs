@@ -19,11 +19,11 @@ using Xunit;
 
 namespace MongoDB.Driver.Tests.Jira
 {
+    [Collection("RegisterObjectSerializer")]
     public class CSharp958Tests
     {
-        static CSharp958Tests()
+        public CSharp958Tests(RegisterObjectSerializerFixture _)
         {
-            TestObjectSerializerRegisterer.EnsureTestObjectSerializerIsRegistered();
         }
 
         private interface IPerson { }

@@ -36,11 +36,12 @@ namespace MongoDB.Bson.Tests.Serialization.DictionaryGenericSerializers
         public string P { get; set; }
     }
 
+    [Collection("RegisterObjectSerializer")]
     public class DictionaryGenericSerializerTests
     {
         static DictionaryGenericSerializerTests()
         {
-            TestObjectSerializerRegisterer.EnsureTestObjectSerializerIsRegistered();
+            _ = new RegisterObjectSerializerFixture(); // ensure correct ObjectSerializer is registered
 
             var objectSerializer = BsonSerializer.LookupSerializer<object>();
             var dictionaryRepresentation = DictionaryRepresentation.Document;
@@ -62,6 +63,10 @@ namespace MongoDB.Bson.Tests.Serialization.DictionaryGenericSerializers
                 cm.MapProperty(t => t.SD).SetSerializer(sortedDictionarySerializer);
                 cm.MapProperty(t => t.SL).SetSerializer(sortedListSerializer);
             });
+        }
+
+        public DictionaryGenericSerializerTests(RegisterObjectSerializerFixture _)
+        {
         }
 
         public class T
