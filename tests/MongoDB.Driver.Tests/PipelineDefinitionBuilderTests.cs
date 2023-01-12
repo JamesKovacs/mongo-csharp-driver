@@ -123,7 +123,7 @@ namespace MongoDB.Driver.Tests
         {
             var pipeline = new EmptyPipelineDefinition<BsonDocument>();
             var builder = new SearchDefinitionBuilder<BsonDocument>();
-            var result = pipeline.Search(builder.Text("foo", "bar"));
+            var result = pipeline.Search(builder.Text("bar", "foo"));
             var stages = RenderStages(result, BsonDocumentSerializer.Instance);
             stages[0].Should().Be(
                 BsonDocument.Parse("{ $search: { text: { query: 'foo', path: 'bar' } } }"));
@@ -134,7 +134,7 @@ namespace MongoDB.Driver.Tests
         {
             var pipeline = new EmptyPipelineDefinition<BsonDocument>();
             var builder = new SearchDefinitionBuilder<BsonDocument>();
-            var result = pipeline.Search(builder.Text("foo", "bar"), new SearchHighlightOptions<BsonDocument>("foo"));
+            var result = pipeline.Search(builder.Text("bar", "foo"), new SearchHighlightOptions<BsonDocument>("foo"));
             var stages = RenderStages(result, BsonDocumentSerializer.Instance);
             stages[0].Should().BeEquivalentTo(
                 BsonDocument.Parse("{ $search: { text: { query: 'foo', path: 'bar' }, highlight: { path: 'foo' } } }"));
@@ -145,7 +145,7 @@ namespace MongoDB.Driver.Tests
         {
             var pipeline = new EmptyPipelineDefinition<BsonDocument>();
             var builder = new SearchDefinitionBuilder<BsonDocument>();
-            var result = pipeline.Search(builder.Text("foo", "bar"), indexName: "foo");
+            var result = pipeline.Search(builder.Text("bar", "foo"), indexName: "foo");
             var stages = RenderStages(result, BsonDocumentSerializer.Instance);
             stages[0].Should().Be(
                 BsonDocument.Parse("{ $search: { text: { query: 'foo', path: 'bar' }, index: 'foo' } }"));
@@ -160,7 +160,7 @@ namespace MongoDB.Driver.Tests
             {
                 Type = SearchCountType.Total
             };
-            var result = pipeline.Search(builder.Text("foo", "bar"), count: count);
+            var result = pipeline.Search(builder.Text("bar", "foo"), count: count);
             var stages = RenderStages(result, BsonDocumentSerializer.Instance);
             stages[0].Should().Be(
                 BsonDocument.Parse("{ $search: { text: { query: 'foo', path: 'bar' }, count: { type: 'total' } } }"));
@@ -171,7 +171,7 @@ namespace MongoDB.Driver.Tests
         {
             var pipeline = new EmptyPipelineDefinition<BsonDocument>();
             var builder = new SearchDefinitionBuilder<BsonDocument>();
-            var result = pipeline.Search(builder.Text("foo", "bar"), returnStoredSource: true);
+            var result = pipeline.Search(builder.Text("bar", "foo"), returnStoredSource: true);
             var stages = RenderStages(result, BsonDocumentSerializer.Instance);
             stages[0].Should().Be(
                 BsonDocument.Parse("{ $search: { text: { query: 'foo', path: 'bar' }, returnStoredSource: true } }"));
@@ -182,7 +182,7 @@ namespace MongoDB.Driver.Tests
         {
             PipelineDefinition<BsonDocument, BsonDocument> pipeline = null;
             var builder = new SearchDefinitionBuilder<BsonDocument>();
-            var exception = Record.Exception(() => pipeline.Search(builder.Text("foo", "bar")));
+            var exception = Record.Exception(() => pipeline.Search(builder.Text("bar", "foo")));
             exception.Should().BeOfType<ArgumentNullException>()
                 .Which.ParamName.Should().Be("pipeline");
         }
@@ -201,7 +201,7 @@ namespace MongoDB.Driver.Tests
         {
             var pipeline = new EmptyPipelineDefinition<BsonDocument>();
             var builder = new SearchDefinitionBuilder<BsonDocument>();
-            var result = pipeline.SearchMeta(builder.Text("foo", "bar"));
+            var result = pipeline.SearchMeta(builder.Text("bar", "foo"));
             var stages = RenderStages(result, BsonDocumentSerializer.Instance);
             stages[0].Should().Be(
                 BsonDocument.Parse("{ $searchMeta: { text: { query: 'foo', path: 'bar' } } }"));
@@ -212,7 +212,7 @@ namespace MongoDB.Driver.Tests
         {
             var pipeline = new EmptyPipelineDefinition<BsonDocument>();
             var builder = new SearchDefinitionBuilder<BsonDocument>();
-            var result = pipeline.SearchMeta(builder.Text("foo", "bar"), indexName: "foo");
+            var result = pipeline.SearchMeta(builder.Text("bar", "foo"), indexName: "foo");
             var stages = RenderStages(result, BsonDocumentSerializer.Instance);
             stages[0].Should().Be(
                 BsonDocument.Parse("{ $searchMeta: { text: { query: 'foo', path: 'bar' }, index: 'foo' } }"));
@@ -227,7 +227,7 @@ namespace MongoDB.Driver.Tests
             {
                 Type = SearchCountType.Total
             };
-            var result = pipeline.SearchMeta(builder.Text("foo", "bar"), count: count);
+            var result = pipeline.SearchMeta(builder.Text("bar", "foo"), count: count);
             var stages = RenderStages(result, BsonDocumentSerializer.Instance);
             stages[0].Should().Be(
                 BsonDocument.Parse("{ $searchMeta: { text: { query: 'foo', path: 'bar' }, count: { type: 'total' } } }"));
@@ -238,7 +238,7 @@ namespace MongoDB.Driver.Tests
         {
             PipelineDefinition<BsonDocument, BsonDocument> pipeline = null;
             var builder = new SearchDefinitionBuilder<BsonDocument>();
-            var exception = Record.Exception(() => pipeline.SearchMeta(builder.Text("foo", "bar")));
+            var exception = Record.Exception(() => pipeline.SearchMeta(builder.Text("bar", "foo")));
             exception.Should().BeOfType<ArgumentNullException>()
                 .Which.ParamName.Should().Be("pipeline");
         }
