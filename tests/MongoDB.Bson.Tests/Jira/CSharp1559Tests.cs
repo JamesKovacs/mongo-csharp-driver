@@ -24,13 +24,9 @@ using Xunit;
 
 namespace MongoDB.Bson.Tests.Jira
 {
-    [Collection("RegisterObjectSerializer")]
+    [Collection(RegisterObjectSerializerFixture.CollectionName)]
     public class CSharp1559Tests
     {
-        public CSharp1559Tests(RegisterObjectSerializerFixture _)
-        {
-        }
-
         [Theory]
         [InlineData(typeof(DerivedWithoutSetter_BaseWithoutSetter), new[] { 1, 2 }, "{ \"X\" : 1, \"Y\" : 2 }")]
         [InlineData(typeof(DerivedWithoutSetter_BaseWithPrivateSetterAndWithProtectedConstructor), new[] { 1, 2 }, "{ \"X\" : 1, \"Y\" : 2 }")]

@@ -36,7 +36,7 @@ namespace MongoDB.Bson.Tests.Serialization.DictionaryGenericSerializers
         public string P { get; set; }
     }
 
-    [Collection("RegisterObjectSerializer")]
+    [Collection(RegisterObjectSerializerFixture.CollectionName)]
     public class DictionaryGenericSerializerTests
     {
         static DictionaryGenericSerializerTests()
@@ -63,10 +63,6 @@ namespace MongoDB.Bson.Tests.Serialization.DictionaryGenericSerializers
                 cm.MapProperty(t => t.SD).SetSerializer(sortedDictionarySerializer);
                 cm.MapProperty(t => t.SL).SetSerializer(sortedListSerializer);
             });
-        }
-
-        public DictionaryGenericSerializerTests(RegisterObjectSerializerFixture _)
-        {
         }
 
         public class T

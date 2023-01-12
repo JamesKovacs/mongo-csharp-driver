@@ -18,8 +18,8 @@ using Xunit;
 
 namespace MongoDB.Bson.Tests
 {
-    [CollectionDefinition("RegisterObjectSerializer")]
-    public class RegisterObjectSerializerCollection : ICollectionFixture<RegisterObjectSerializerFixture>
+    [CollectionDefinition(RegisterObjectSerializerFixture.CollectionName)]
+    public sealed class RegisterObjectSerializerCollection : ICollectionFixture<RegisterObjectSerializerFixture>
     {
     }
 }

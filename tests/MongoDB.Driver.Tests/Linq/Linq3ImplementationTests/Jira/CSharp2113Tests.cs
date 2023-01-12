@@ -21,13 +21,9 @@ using Xunit;
 
 namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Jira
 {
-    [Collection("RegisterObjectSerializer")]
+    [Collection(RegisterObjectSerializerFixture.CollectionName)]
     public class CSharp2113Tests : Linq3IntegrationTest
     {
-        public CSharp2113Tests(RegisterObjectSerializerFixture _)
-        {
-        }
-
         [Fact]
         public void Query1_should_work()
         {

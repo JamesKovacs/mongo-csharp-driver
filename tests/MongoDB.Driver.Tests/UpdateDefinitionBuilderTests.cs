@@ -27,13 +27,9 @@ using Xunit;
 
 namespace MongoDB.Driver.Tests
 {
-    [Collection("RegisterObjectSerializer")]
+    [Collection(RegisterObjectSerializerFixture.CollectionName)]
     public class UpdateDefinitionBuilderTests
     {
-        public UpdateDefinitionBuilderTests(RegisterObjectSerializerFixture _)
-        {
-        }
-
         [Fact]
         public void AddToSet()
         {

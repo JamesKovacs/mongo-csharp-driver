@@ -19,13 +19,9 @@ using Xunit;
 
 namespace MongoDB.Bson.Tests.Jira
 {
-    [Collection("RegisterObjectSerializer")]
+    [Collection(RegisterObjectSerializerFixture.CollectionName)]
     public class CSharp263Tests
     {
-        public CSharp263Tests(RegisterObjectSerializerFixture _)
-        {
-        }
-
         public class C
         {
             public int Id;

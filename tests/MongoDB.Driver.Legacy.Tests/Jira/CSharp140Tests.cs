@@ -21,13 +21,9 @@ using Xunit;
 
 namespace MongoDB.Driver.Tests.Jira.CSharp140
 {
-    [Collection("RegisterObjectSerializer")]
+    [Collection(RegisterObjectSerializerFixture.CollectionName)]
     public class CSharp140Tests
     {
-        public CSharp140Tests(RegisterObjectSerializerFixture _)
-        {
-        }
-
         private class C
         {
             public int X;

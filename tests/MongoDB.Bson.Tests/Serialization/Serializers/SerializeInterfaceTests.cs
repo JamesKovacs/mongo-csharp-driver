@@ -20,13 +20,9 @@ using Xunit;
 
 namespace MongoDB.Bson.Tests.Serialization
 {
-    [Collection("RegisterObjectSerializer")]
+    [Collection(RegisterObjectSerializerFixture.CollectionName)]
     public class SerializeInterfaceTests
     {
-        public SerializeInterfaceTests(RegisterObjectSerializerFixture _)
-        {
-        }
-
         private interface IX
         {
             string FX { get; set; }

@@ -21,13 +21,9 @@ using Xunit;
 
 namespace MongoDB.Bson.Tests.Serialization
 {
-    [Collection("RegisterObjectSerializer")]
+    [Collection(RegisterObjectSerializerFixture.CollectionName)]
     public class DiscriminatorTests
     {
-        public DiscriminatorTests(RegisterObjectSerializerFixture _)
-        {
-        }
-
         [BsonDiscriminator("A~")] // make discriminators unique with respect to object
         private class A
         {

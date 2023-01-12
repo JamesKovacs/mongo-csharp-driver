@@ -21,8 +21,10 @@ using MongoDB.Bson.Serialization.Serializers;
 
 namespace MongoDB.Bson.TestHelpers
 {
-    public class RegisterObjectSerializerFixture
+    public sealed class RegisterObjectSerializerFixture
     {
+        public const string CollectionName = "RegisterObjectSerializer";
+
         public RegisterObjectSerializerFixture()
         {
             // note: because xUnit has no way of letting us run some initialization code before any tests are run

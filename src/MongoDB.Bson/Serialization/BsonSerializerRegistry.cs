@@ -127,11 +127,11 @@ namespace MongoDB.Bson.Serialization
         {
             if (type == null)
             {
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
             }
             if (serializer == null)
             {
-                throw new ArgumentNullException("serializer");
+                throw new ArgumentNullException(nameof(serializer));
             }
             EnsureRegisteringASerializerForThisTypeIsAllowed(type);
 
@@ -144,7 +144,7 @@ namespace MongoDB.Bson.Serialization
                 var existingSerializer = _cache[type];
                 if (!existingSerializer.Equals(serializer))
                 {
-                    var message = string.Format("There is already a different serializer registered for type {0}.", BsonUtils.GetFriendlyTypeName(type));
+                    var message = $"There is already a different serializer registered for type {BsonUtils.GetFriendlyTypeName(type)}.";
                     throw new BsonSerializationException(message);
                 }
                 return false;
