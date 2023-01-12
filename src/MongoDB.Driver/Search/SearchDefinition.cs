@@ -1,16 +1,17 @@
-﻿// Copyright 2010-present MongoDB Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+﻿/* Copyright 2016-present MongoDB Inc.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -128,10 +129,10 @@ namespace MongoDB.Driver.Search
             Wildcard
         }
 
+        private readonly OperatorType _operatorType;
         // _path and _score used by many but not all subclasses
         private readonly SearchPathDefinition<TDocument> _path;
         private readonly SearchScoreDefinition<TDocument> _score;
-        private readonly OperatorType _operatorType;
 
         private protected OperatorSearchDefinition(OperatorType operatorType) : this(operatorType, null)
         {
@@ -150,15 +151,15 @@ namespace MongoDB.Driver.Search
             _score = score;
         }
 
-        private protected virtual BsonDocument RenderOperator(IBsonSerializer<TDocument> documentSerializer, IBsonSerializerRegistry serializerRegistry) => new();
-
         public sealed override BsonDocument Render(IBsonSerializer<TDocument> documentSerializer, IBsonSerializerRegistry serializerRegistry)
         {
-            var renderedOperator = RenderOperator(documentSerializer, serializerRegistry);
-            renderedOperator.Add("path", () => _path.Render(documentSerializer, serializerRegistry), _path != null);
-            renderedOperator.Add("score", () => _score.Render(documentSerializer, serializerRegistry), _score != null);
+            var renderedArgs = RenderOperator(documentSerializer, serializerRegistry);
+            renderedArgs.Add("path", () => _path.Render(documentSerializer, serializerRegistry), _path != null);
+            renderedArgs.Add("score", () => _score.Render(documentSerializer, serializerRegistry), _score != null);
 
-            return new(_operatorType.ToCamelCase(), renderedOperator);
+            return new(_operatorType.ToCamelCase(), renderedArgs);
         }
+
+        private protected virtual BsonDocument RenderOperator(IBsonSerializer<TDocument> documentSerializer, IBsonSerializerRegistry serializerRegistry) => new();
     }
 }

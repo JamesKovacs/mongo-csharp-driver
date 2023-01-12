@@ -1,16 +1,17 @@
-﻿// Copyright 2010-present MongoDB Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+﻿/* Copyright 2016-present MongoDB Inc.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 using System;
 using System.Collections.Generic;
@@ -24,13 +25,13 @@ namespace MongoDB.Driver.Search
 {
     internal sealed class AutocompleteSearchDefinition<TDocument> : OperatorSearchDefinition<TDocument>
     {
+        private readonly SearchFuzzyOptions _fuzzy;
         private readonly SearchQueryDefinition _query;
         private readonly SearchAutocompleteTokenOrder _tokenOrder;
-        private readonly SearchFuzzyOptions _fuzzy;
 
         public AutocompleteSearchDefinition(
-            SearchQueryDefinition query,
             SearchPathDefinition<TDocument> path,
+            SearchQueryDefinition query,
             SearchAutocompleteTokenOrder tokenOrder,
             SearchFuzzyOptions fuzzy,
             SearchScoreDefinition<TDocument> score)
@@ -52,18 +53,19 @@ namespace MongoDB.Driver.Search
 
     internal sealed class CompoundSearchDefinition<TDocument> : OperatorSearchDefinition<TDocument>
     {
+        private readonly List<SearchDefinition<TDocument>> _filter;
+        private readonly int _minimumShouldMatch;
         private readonly List<SearchDefinition<TDocument>> _must;
         private readonly List<SearchDefinition<TDocument>> _mustNot;
         private readonly List<SearchDefinition<TDocument>> _should;
-        private readonly List<SearchDefinition<TDocument>> _filter;
-        private readonly int _minimumShouldMatch;
 
         public CompoundSearchDefinition(
             List<SearchDefinition<TDocument>> must,
             List<SearchDefinition<TDocument>> mustNot,
             List<SearchDefinition<TDocument>> should,
             List<SearchDefinition<TDocument>> filter,
-            int minimumShouldMatch) : base(OperatorType.Compound)
+            int minimumShouldMatch)
+            : base(OperatorType.Compound)
         {
             // This constructor should always be called from a fluent interface that ensures validates the lists contents.
             _must = must;
@@ -105,21 +107,22 @@ namespace MongoDB.Driver.Search
 
     internal sealed class ExistsSearchDefinition<TDocument> : OperatorSearchDefinition<TDocument>
     {
-        public ExistsSearchDefinition(FieldDefinition<TDocument> path) : base(OperatorType.Exists, path, null)
+        public ExistsSearchDefinition(FieldDefinition<TDocument> path)
+            : base(OperatorType.Exists, path, null)
         {
         }
     }
 
     internal sealed class FacetSearchDefinition<TDocument> : OperatorSearchDefinition<TDocument>
     {
+        private readonly SearchFacet<TDocument>[] _facets;
         private readonly SearchDefinition<TDocument> _operator;
-        private readonly IEnumerable<SearchFacet<TDocument>> _facets;
 
         public FacetSearchDefinition(SearchDefinition<TDocument> @operator, IEnumerable<SearchFacet<TDocument>> facets)
             : base(OperatorType.Facet)
         {
             _operator = Ensure.IsNotNull(@operator, nameof(@operator));
-            _facets = Ensure.IsNotNull(facets, nameof(facets));
+            _facets = Ensure.IsNotNull(facets, nameof(facets)).ToArray();
         }
 
         private protected override BsonDocument RenderOperator(IBsonSerializer<TDocument> documentSerializer, IBsonSerializerRegistry serializerRegistry) =>
@@ -137,8 +140,8 @@ namespace MongoDB.Driver.Search
         private readonly GeoShapeRelation _relation;
 
         public GeoShapeSearchDefinition(
-            GeoJsonGeometry<TCoordinates> geometry,
             SearchPathDefinition<TDocument> path,
+            GeoJsonGeometry<TCoordinates> geometry,
             GeoShapeRelation relation,
             SearchScoreDefinition<TDocument> score)
             : base(OperatorType.GeoShape, path, score)
@@ -158,28 +161,29 @@ namespace MongoDB.Driver.Search
     internal sealed class GeoWithinSearchDefinition<TDocument, TCoordinates> : OperatorSearchDefinition<TDocument>
         where TCoordinates : GeoJsonCoordinates
     {
-        private readonly GeoWithin<TCoordinates> _geoWithinQuery;
+        private readonly GeoWithinArea<TCoordinates> _area;
 
         public GeoWithinSearchDefinition(
-            GeoWithin<TCoordinates> geoWithinQuery,
             SearchPathDefinition<TDocument> path,
+            GeoWithinArea<TCoordinates> area,
             SearchScoreDefinition<TDocument> score)
             : base(OperatorType.GeoWithin, path, score)
         {
-            _geoWithinQuery = Ensure.IsNotNull(geoWithinQuery, nameof(geoWithinQuery));
+            _area = Ensure.IsNotNull(area, nameof(area));
         }
 
         private protected override BsonDocument RenderOperator(IBsonSerializer<TDocument> documentSerializer, IBsonSerializerRegistry serializerRegistry) =>
-            new(_geoWithinQuery.Render());
+            new(_area.Render());
     }
 
     internal sealed class MoreLikeThisSearchDefinition<TDocument> : OperatorSearchDefinition<TDocument>
     {
-        private readonly IEnumerable<TDocument> _like;
+        private readonly TDocument[] _like;
 
-        public MoreLikeThisSearchDefinition(IEnumerable<TDocument> like) : base(OperatorType.MoreLikeThis)
+        public MoreLikeThisSearchDefinition(IEnumerable<TDocument> like)
+            : base(OperatorType.MoreLikeThis)
         {
-            _like = Ensure.IsNotNull(like, nameof(like));
+            _like = Ensure.IsNotNull(like, nameof(like)).ToArray();
         }
 
         private protected override BsonDocument RenderOperator(IBsonSerializer<TDocument> documentSerializer, IBsonSerializerRegistry serializerRegistry) =>
@@ -216,8 +220,8 @@ namespace MongoDB.Driver.Search
         private readonly int? _slop;
 
         public PhraseSearchDefinition(
-            SearchQueryDefinition query,
             SearchPathDefinition<TDocument> path,
+            SearchQueryDefinition query,
             int? slop,
             SearchScoreDefinition<TDocument> score)
             : base(OperatorType.Phrase, path, score)
@@ -260,8 +264,8 @@ namespace MongoDB.Driver.Search
         private readonly SearchRange<TField> _range;
 
         public RangeSearchDefinition(
-            SearchRange<TField> range,
             SearchPathDefinition<TDocument> path,
+            SearchRange<TField> range,
             SearchScoreDefinition<TDocument> score)
              : base(OperatorType.Range, path, score)
         {
@@ -278,29 +282,30 @@ namespace MongoDB.Driver.Search
         private static BsonValue ToBsonValue(TField value) =>
             value switch
             {
-                sbyte int8Value => (BsonValue)int8Value,
-                byte uint8Value => (BsonValue)uint8Value,
-                short int16Value => (BsonValue)int16Value,
-                ushort uint16Value => (BsonValue)uint16Value,
-                int int32Value => (BsonValue)int32Value,
-                uint uint32Value => (BsonValue)uint32Value,
-                long int64Value => (BsonValue)int64Value,
-                double doubleValue => (BsonValue)doubleValue,
-                DateTime dateTimeValue => (BsonValue)dateTimeValue,
+                sbyte v => v,
+                byte v => v,
+                short v => v,
+                ushort v => v,
+                int v => v,
+                uint v => v,
+                long v => v,
+                double v => v,
+                DateTime v => v,
                 _ => throw new InvalidCastException()
             };
     }
 
     internal sealed class RegexSearchDefinition<TDocument> : OperatorSearchDefinition<TDocument>
     {
-        private readonly SearchQueryDefinition _query;
         private readonly bool _allowAnalyzedField;
+        private readonly SearchQueryDefinition _query;
 
         public RegexSearchDefinition(
-            SearchQueryDefinition query,
             SearchPathDefinition<TDocument> path,
+            SearchQueryDefinition query,
             bool allowAnalyzedField,
-            SearchScoreDefinition<TDocument> score) : base(OperatorType.Regex, path, score)
+            SearchScoreDefinition<TDocument> score)
+            : base(OperatorType.Regex, path, score)
         {
             _query = Ensure.IsNotNull(query, nameof(query));
             _allowAnalyzedField = allowAnalyzedField;
@@ -318,7 +323,8 @@ namespace MongoDB.Driver.Search
     {
         private readonly SearchSpanDefinition<TDocument> _clause;
 
-        public SpanSearchDefinition(SearchSpanDefinition<TDocument> clause) : base(OperatorType.Span)
+        public SpanSearchDefinition(SearchSpanDefinition<TDocument> clause)
+            : base(OperatorType.Span)
         {
             _clause = Ensure.IsNotNull(clause, nameof(clause));
         }
@@ -329,12 +335,12 @@ namespace MongoDB.Driver.Search
 
     internal sealed class TextSearchDefinition<TDocument> : OperatorSearchDefinition<TDocument>
     {
-        private readonly SearchQueryDefinition _query;
         private readonly SearchFuzzyOptions _fuzzy;
+        private readonly SearchQueryDefinition _query;
 
         public TextSearchDefinition(
-            SearchQueryDefinition query,
             SearchPathDefinition<TDocument> path,
+            SearchQueryDefinition query,
             SearchFuzzyOptions fuzzy,
             SearchScoreDefinition<TDocument> score)
             : base(OperatorType.Text, path, score)
@@ -353,12 +359,12 @@ namespace MongoDB.Driver.Search
 
     internal sealed class WildcardSearchDefinition<TDocument> : OperatorSearchDefinition<TDocument>
     {
-        private readonly SearchQueryDefinition _query;
         private readonly bool _allowAnalyzedField;
+        private readonly SearchQueryDefinition _query;
 
         public WildcardSearchDefinition(
-            SearchQueryDefinition query,
             SearchPathDefinition<TDocument> path,
+            SearchQueryDefinition query,
             bool allowAnalyzedField,
             SearchScoreDefinition<TDocument> score)
             : base(OperatorType.Wildcard, path, score)

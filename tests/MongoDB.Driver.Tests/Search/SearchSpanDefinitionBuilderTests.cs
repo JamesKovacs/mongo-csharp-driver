@@ -1,16 +1,17 @@
-﻿// Copyright 2010-present MongoDB Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+﻿/* Copyright 2016-present MongoDB Inc.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 using System.Collections.Generic;
 using FluentAssertions;
@@ -30,7 +31,7 @@ namespace MongoDB.Driver.Tests.Search
             var subject = CreateSubject<BsonDocument>();
 
             AssertRendered(
-                subject.First(subject.Term("foo", "x"), 5),
+                subject.First(subject.Term("x", "foo"), 5),
                 "{ first: { operator: { term: { query: 'foo', path: 'x' } }, endPositionLte: 5 } }");
         }
 
@@ -40,10 +41,10 @@ namespace MongoDB.Driver.Tests.Search
             var subject = CreateSubject<Person>();
 
             AssertRendered(
-                subject.First(subject.Term("born", x => x.Biography), 5),
+                subject.First(subject.Term(x => x.Biography, "born"), 5),
                 "{ first: { operator: { term: { query: 'born', path: 'bio' } }, endPositionLte: 5 } }");
             AssertRendered(
-                subject.First(subject.Term("born", "Biography"), 5),
+                subject.First(subject.Term("Biography", "born"), 5),
                 "{ first: { operator: { term: { query: 'born', path: 'bio' } }, endPositionLte: 5 } }");
         }
 
@@ -56,8 +57,8 @@ namespace MongoDB.Driver.Tests.Search
                 subject.Near(
                     new List<SearchSpanDefinition<BsonDocument>>()
                     {
-                        subject.Term("foo", "x"),
-                        subject.Term("bar", "x")
+                        subject.Term("x", "foo"),
+                        subject.Term("x", "bar")
                     },
                     5,
                     inOrder: true),
@@ -73,8 +74,8 @@ namespace MongoDB.Driver.Tests.Search
                 subject.Near(
                     new List<SearchSpanDefinition<Person>>()
                     {
-                        subject.Term("born", x => x.Biography),
-                        subject.Term("school", x => x.Biography)
+                        subject.Term(x => x.Biography, "born"),
+                        subject.Term(x => x.Biography, "school")
                     },
                     5,
                     inOrder: true),
@@ -83,8 +84,8 @@ namespace MongoDB.Driver.Tests.Search
                 subject.Near(
                     new List<SearchSpanDefinition<Person>>()
                     {
-                        subject.Term("born", "Biography"),
-                        subject.Term("school", "Biography")
+                        subject.Term("Biography", "born"),
+                        subject.Term("Biography", "school")
                     },
                     5,
                     inOrder: true),
@@ -98,8 +99,8 @@ namespace MongoDB.Driver.Tests.Search
 
             AssertRendered(
                 subject.Or(
-                    subject.Term("foo", "x"),
-                    subject.Term("bar", "x")),
+                    subject.Term("x", "foo"),
+                    subject.Term("x", "bar")),
                 "{ or: { clauses: [{ term: { query: 'foo', path: 'x' } }, { term: { query: 'bar', path: 'x' } }] } }");
         }
 
@@ -110,13 +111,13 @@ namespace MongoDB.Driver.Tests.Search
 
             AssertRendered(
                 subject.Or(
-                    subject.Term("engineer", x => x.Biography),
-                    subject.Term("developer", x => x.Biography)),
+                    subject.Term(x => x.Biography, "engineer"),
+                    subject.Term(x => x.Biography, "developer")),
                 "{ or: { clauses: [{ term: { query: 'engineer', path: 'bio' } }, { term: { query: 'developer', path: 'bio' } }] } }");
             AssertRendered(
                 subject.Or(
-                    subject.Term("engineer", "Biography"),
-                    subject.Term("developer", "Biography")),
+                    subject.Term("Biography", "engineer"),
+                    subject.Term("Biography", "developer")),
                 "{ or: { clauses: [{ term: { query: 'engineer', path: 'bio' } }, { term: { query: 'developer', path: 'bio' } }] } }");
         }
 
@@ -127,8 +128,8 @@ namespace MongoDB.Driver.Tests.Search
 
             AssertRendered(
                 subject.Subtract(
-                    subject.Term("foo", "x"),
-                    subject.Term("bar", "x")),
+                    subject.Term("x", "foo"),
+                    subject.Term("x", "bar")),
                 "{ subtract: { include: { term: { query: 'foo', path: 'x' } }, exclude: { term: { query: 'bar', path: 'x' } } } }");
         }
 
@@ -139,13 +140,13 @@ namespace MongoDB.Driver.Tests.Search
 
             AssertRendered(
                 subject.Subtract(
-                    subject.Term("engineer", x => x.Biography),
-                    subject.Term("train", x => x.Biography)),
+                    subject.Term(x => x.Biography, "engineer"),
+                    subject.Term(x => x.Biography, "train")),
                 "{ subtract: { include: { term: { query: 'engineer', path: 'bio' } }, exclude: { term: { query: 'train', path: 'bio' } } } }");
             AssertRendered(
                 subject.Subtract(
-                    subject.Term("engineer", "Biography"),
-                    subject.Term("train", "Biography")),
+                    subject.Term("Biography", "engineer"),
+                    subject.Term("Biography", "train")),
                 "{ subtract: { include: { term: { query: 'engineer', path: 'bio' } }, exclude: { term: { query: 'train', path: 'bio' } } } }");
         }
 

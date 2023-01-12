@@ -1,16 +1,17 @@
-﻿// Copyright 2010-present MongoDB Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+﻿/* Copyright 2016-present MongoDB Inc.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -24,9 +25,9 @@ namespace MongoDB.Driver.Search
     /// <typeparam name="TDocument">The type of the document.</typeparam>
     public sealed class SearchHighlightOptions<TDocument>
     {
-        private SearchPathDefinition<TDocument> _path;
         private int? _maxCharsToExamine;
         private int? _maxNumPassages;
+        private SearchPathDefinition<TDocument> _path;
 
         // constructors
         /// <summary>
@@ -40,15 +41,6 @@ namespace MongoDB.Driver.Search
             _path = Ensure.IsNotNull(path, nameof(path));
             _maxCharsToExamine = maxCharsToExamine;
             _maxNumPassages = maxNumPassages;
-        }
-
-        /// <summary>
-        /// Gets or sets the document field to search.
-        /// </summary>
-        public SearchPathDefinition<TDocument> Path
-        {
-            get => _path;
-            set => _path = Ensure.IsNotNull(value, nameof(value));
         }
 
         /// <summary>
@@ -71,6 +63,14 @@ namespace MongoDB.Driver.Search
             set => _maxNumPassages = Ensure.IsNullOrGreaterThanZero(value, nameof(value));
         }
 
+        /// <summary>
+        /// Gets or sets the document field to search.
+        /// </summary>
+        public SearchPathDefinition<TDocument> Path
+        {
+            get => _path;
+            set => _path = Ensure.IsNotNull(value, nameof(value));
+        }
         /// <summary>
         /// Renders the options to a <see cref="BsonDocument"/>.
         /// </summary>

@@ -1,16 +1,17 @@
-﻿// Copyright 2010-present MongoDB Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+﻿/* Copyright 2016-present MongoDB Inc.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 using System;
 using System.Collections.Generic;
@@ -49,7 +50,7 @@ namespace MongoDB.Driver.Search
             IEnumerable<SearchSpanDefinition<TDocument>> clauses,
             int slop,
             bool inOrder = false) =>
-            new NearSearchSpanDefinition<TDocument>(clauses, slop, inOrder);
+                new NearSearchSpanDefinition<TDocument>(clauses, slop, inOrder);
 
         /// <summary>
         /// Creates a span clause that matches any of its subclauses.
@@ -76,7 +77,7 @@ namespace MongoDB.Driver.Search
         public SearchSpanDefinition<TDocument> Subtract(
             SearchSpanDefinition<TDocument> include,
             SearchSpanDefinition<TDocument> exclude) =>
-            new SubtractSearchSpanDefinition<TDocument>(include, exclude);
+                new SubtractSearchSpanDefinition<TDocument>(include, exclude);
 
         /// <summary>
         /// Creates a span clause that matches a single term.
@@ -84,26 +85,26 @@ namespace MongoDB.Driver.Search
         /// <param name="query">The string or strings to search for.</param>
         /// <param name="path">The indexed field or fields to search.</param>
         /// <returns>A term span clause.</returns>
-        public SearchSpanDefinition<TDocument> Term(SearchQueryDefinition query, SearchPathDefinition<TDocument> path) =>
-            new TermSearchSpanDefinition<TDocument>(query, path);
+        public SearchSpanDefinition<TDocument> Term(SearchPathDefinition<TDocument> path, SearchQueryDefinition query) =>
+            new TermSearchSpanDefinition<TDocument>(path, query);
 
         /// <summary>
         /// Creates a span clause that matches a single term.
         /// </summary>
         /// <typeparam name="TField">The type of the field.</typeparam>
-        /// <param name="query">The string or string to search for.</param>
         /// <param name="path">The indexed field or fields to search.</param>
+        /// <param name="query">The string or string to search for.</param>
         /// <returns>A term span clause.</returns>
         public SearchSpanDefinition<TDocument> Term<TField>(
-            SearchQueryDefinition query,
-            Expression<Func<TDocument, TField>> path) =>
-            Term(query, new ExpressionFieldDefinition<TDocument>(path));
+            Expression<Func<TDocument, TField>> path,
+            SearchQueryDefinition query) =>
+                Term(new ExpressionFieldDefinition<TDocument>(path), query);
     }
 
     internal sealed class FirstSearchSpanDefinition<TDocument> : SearchSpanDefinition<TDocument>
     {
-        private readonly SearchSpanDefinition<TDocument> _operator;
         private readonly int _endPositionLte;
+        private readonly SearchSpanDefinition<TDocument> _operator;
 
         public FirstSearchSpanDefinition(SearchSpanDefinition<TDocument> @operator, int endPositionLte)
             : base(ClauseType.First)
@@ -122,8 +123,8 @@ namespace MongoDB.Driver.Search
     internal sealed class NearSearchSpanDefinition<TDocument> : SearchSpanDefinition<TDocument>
     {
         private readonly List<SearchSpanDefinition<TDocument>> _clauses;
-        private readonly int _slop;
         private readonly bool _inOrder;
+        private readonly int _slop;
 
         public NearSearchSpanDefinition(IEnumerable<SearchSpanDefinition<TDocument>> clauses, int slop, bool inOrder)
             : base(ClauseType.Near)
@@ -158,8 +159,8 @@ namespace MongoDB.Driver.Search
 
     internal sealed class SubtractSearchSpanDefinition<TDocument> : SearchSpanDefinition<TDocument>
     {
-        private readonly SearchSpanDefinition<TDocument> _include;
         private readonly SearchSpanDefinition<TDocument> _exclude;
+        private readonly SearchSpanDefinition<TDocument> _include;
 
         public SubtractSearchSpanDefinition(SearchSpanDefinition<TDocument> include, SearchSpanDefinition<TDocument> exclude)
             : base(ClauseType.Subtract)
@@ -178,10 +179,10 @@ namespace MongoDB.Driver.Search
 
     internal sealed class TermSearchSpanDefinition<TDocument> : SearchSpanDefinition<TDocument>
     {
-        private readonly SearchQueryDefinition _query;
         private readonly SearchPathDefinition<TDocument> _path;
+        private readonly SearchQueryDefinition _query;
 
-        public TermSearchSpanDefinition(SearchQueryDefinition query, SearchPathDefinition<TDocument> path)
+        public TermSearchSpanDefinition(SearchPathDefinition<TDocument> path, SearchQueryDefinition query)
             : base(ClauseType.Term)
         {
             _query = Ensure.IsNotNull(query, nameof(query));

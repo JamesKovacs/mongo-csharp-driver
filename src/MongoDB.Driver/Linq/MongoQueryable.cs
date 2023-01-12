@@ -925,7 +925,7 @@ namespace MongoDB.Driver.Linq
         }
 
         /// <summary>
-        /// Appends a $search stage to the LINQ pipeline
+        /// Appends a $search stage to the LINQ pipeline.
         /// </summary>
         /// <typeparam name="TSource">The type of the elements of <paramref name="source" />.</typeparam>
         /// <param name="source">A sequence of values.</param>
@@ -937,7 +937,7 @@ namespace MongoDB.Driver.Linq
         /// Flag that specifies whether to perform a full document lookup on the backend database
         /// or return only stored source fields directly from Atlas Search.
         /// </param>
-        /// <returns>The fluent aggregate interface.</returns>
+        /// <returns>The queryable with a new stage appended.</returns>
         public static IMongoQueryable<TSource> Search<TSource>(
             this IMongoQueryable<TSource> source,
             SearchDefinition<TSource> searchDefinition,
@@ -952,14 +952,14 @@ namespace MongoDB.Driver.Linq
         }
 
         /// <summary>
-        /// Appends a $searchMeta stage to the LINQ pipeline
+        /// Appends a $searchMeta stage to the LINQ pipeline.
         /// </summary>
         /// <typeparam name="TSource">The type of the elements of <paramref name="source" />.</typeparam>
         /// <param name="source">A sequence of values.</param>
         /// <param name="searchDefinition">The search definition.</param>
         /// <param name="indexName">The index name.</param>
         /// <param name="count">The count options.</param>
-        /// <returns>The fluent aggregate interface.</returns>
+        /// <returns>The queryable with a new stage appended.</returns>
         public static IMongoQueryable<SearchMetaResult> SearchMeta<TSource>(
             this IMongoQueryable<TSource> source,
             SearchDefinition<TSource> searchDefinition,

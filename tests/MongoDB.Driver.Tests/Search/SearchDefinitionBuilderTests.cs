@@ -1,16 +1,17 @@
-﻿// Copyright 2010-present MongoDB Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+﻿/* Copyright 2016-present MongoDB Inc.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 using System;
 using System.Collections.Generic;
@@ -26,8 +27,21 @@ namespace MongoDB.Driver.Tests.Search
 {
     public class SearchDefinitionBuilderTests
     {
+        private static readonly GeoWithinBox<GeoJson2DGeographicCoordinates> __testBox =
+            new GeoWithinBox<GeoJson2DGeographicCoordinates>(
+                new GeoJsonPoint<GeoJson2DGeographicCoordinates>(
+                    new GeoJson2DGeographicCoordinates(-161.323242, 22.065278)),
+                new GeoJsonPoint<GeoJson2DGeographicCoordinates>(
+                    new GeoJson2DGeographicCoordinates(-152.446289, 22.512557)));
+
+        private static readonly GeoWithinCircle<GeoJson2DGeographicCoordinates> __testCircle =
+            new GeoWithinCircle<GeoJson2DGeographicCoordinates>(
+                new GeoJsonPoint<GeoJson2DGeographicCoordinates>(
+                    new GeoJson2DGeographicCoordinates(-161.323242, 22.512557)),
+                7.5);
+
         private static readonly GeoJsonPolygon<GeoJson2DGeographicCoordinates> __testPolygon =
-            new GeoJsonPolygon<GeoJson2DGeographicCoordinates>(
+                            new GeoJsonPolygon<GeoJson2DGeographicCoordinates>(
                 new GeoJsonPolygonCoordinates<GeoJson2DGeographicCoordinates>(
                     new GeoJsonLinearRingCoordinates<GeoJson2DGeographicCoordinates>(
                         new List<GeoJson2DGeographicCoordinates>()
@@ -37,48 +51,36 @@ namespace MongoDB.Driver.Tests.Search
                             new GeoJson2DGeographicCoordinates(-156.09375, 17.811456),
                             new GeoJson2DGeographicCoordinates(-161.323242, 22.512557)
                         })));
-        private static readonly GeoWithinBox<GeoJson2DGeographicCoordinates> __testBox =
-            new GeoWithinBox<GeoJson2DGeographicCoordinates>(
-                new GeoJsonPoint<GeoJson2DGeographicCoordinates>(
-                    new GeoJson2DGeographicCoordinates(-161.323242, 22.065278)),
-                new GeoJsonPoint<GeoJson2DGeographicCoordinates>(
-                    new GeoJson2DGeographicCoordinates(-152.446289, 22.512557)));
-        private static readonly GeoWithinCircle<GeoJson2DGeographicCoordinates> __testCircle =
-            new GeoWithinCircle<GeoJson2DGeographicCoordinates>(
-                new GeoJsonPoint<GeoJson2DGeographicCoordinates>(
-                    new GeoJson2DGeographicCoordinates(-161.323242, 22.512557)),
-                7.5);
-
         [Fact]
         public void Autocomplete()
         {
             var subject = CreateSubject<BsonDocument>();
 
             AssertRendered(
-                subject.Autocomplete("foo", "x"),
+                subject.Autocomplete("x", "foo"),
                 "{ autocomplete: { query: 'foo', path: 'x' } }");
             AssertRendered(
-                subject.Autocomplete("foo", new[] { "x", "y" }),
+                subject.Autocomplete(new[] { "x", "y" }, "foo"),
                 "{ autocomplete: { query: 'foo', path: ['x', 'y'] } }");
             AssertRendered(
-                subject.Autocomplete(new[] { "foo", "bar" }, "x"),
+                subject.Autocomplete("x", new[] { "foo", "bar" }),
                 "{ autocomplete: { query: ['foo', 'bar'], path: 'x' } }");
             AssertRendered(
-                subject.Autocomplete(new[] { "foo", "bar" }, new[] { "x", "y" }),
+                subject.Autocomplete(new[] { "x", "y" }, new[] { "foo", "bar" }),
                 "{ autocomplete: { query: ['foo', 'bar'], path: ['x', 'y'] } }");
 
             AssertRendered(
-                subject.Autocomplete("foo", "x", SearchAutocompleteTokenOrder.Any),
+                subject.Autocomplete("x", "foo", SearchAutocompleteTokenOrder.Any),
                 "{ autocomplete: { query: 'foo', path: 'x' } }");
             AssertRendered(
-                subject.Autocomplete("foo", "x", SearchAutocompleteTokenOrder.Sequential),
+                subject.Autocomplete("x", "foo", SearchAutocompleteTokenOrder.Sequential),
                 "{ autocomplete: { query: 'foo', path: 'x', tokenOrder: 'sequential' } }");
 
             AssertRendered(
-                subject.Autocomplete("foo", "x", fuzzy: new SearchFuzzyOptions()),
+                subject.Autocomplete("x", "foo", fuzzy: new SearchFuzzyOptions()),
                 "{ autocomplete: { query: 'foo', path: 'x', fuzzy: {} } }");
             AssertRendered(
-                subject.Autocomplete("foo", "x", fuzzy: new SearchFuzzyOptions()
+                subject.Autocomplete("x", "foo", fuzzy: new SearchFuzzyOptions()
                 {
                     MaxEdits = 1,
                     PrefixLength = 5,
@@ -88,7 +90,7 @@ namespace MongoDB.Driver.Tests.Search
 
             var scoreBuilder = new SearchScoreDefinitionBuilder<BsonDocument>();
             AssertRendered(
-                subject.Autocomplete("foo", "x", score: scoreBuilder.Constant(1)),
+                subject.Autocomplete("x", "foo", score: scoreBuilder.Constant(1)),
                 "{ autocomplete: { query: 'foo', path: 'x', score: { constant: { value: 1 } } } }");
         }
 
@@ -97,43 +99,43 @@ namespace MongoDB.Driver.Tests.Search
         {
             var subject = CreateSubject<Person>();
             AssertRendered(
-                subject.Autocomplete("foo", x => x.FirstName),
+                subject.Autocomplete(x => x.FirstName, "foo"),
                 "{ autocomplete: { query: 'foo', path: 'fn' } }");
             AssertRendered(
-                subject.Autocomplete("foo", "FirstName"),
+                subject.Autocomplete("FirstName", "foo"),
                 "{ autocomplete: { query: 'foo', path: 'fn' } }");
 
             AssertRendered(
                 subject.Autocomplete(
-                    "foo",
                     new FieldDefinition<Person>[]
                     {
                         new ExpressionFieldDefinition<Person, string>(x => x.FirstName),
                         new ExpressionFieldDefinition<Person, string>(x => x.LastName)
-                    }),
+                    },
+                    "foo"),
                 "{ autocomplete: { query: 'foo', path: ['fn', 'ln'] } }");
             AssertRendered(
-                subject.Autocomplete("foo", new[] { "FirstName", "LastName" }),
+                subject.Autocomplete(new[] { "FirstName", "LastName" }, "foo"),
                 "{ autocomplete: { query: 'foo', path: ['fn', 'ln'] } }");
 
             AssertRendered(
-                subject.Autocomplete(new[] { "foo", "bar" }, x => x.FirstName),
+                subject.Autocomplete(x => x.FirstName, new[] { "foo", "bar" }),
                 "{ autocomplete: { query: ['foo', 'bar'], path: 'fn' } }");
             AssertRendered(
-                subject.Autocomplete(new[] { "foo", "bar" }, "FirstName"),
+                subject.Autocomplete("FirstName", new[] { "foo", "bar" }),
                 "{ autocomplete: { query: ['foo', 'bar'], path: 'fn' } }");
 
             AssertRendered(
                 subject.Autocomplete(
-                    new[] { "foo", "bar" },
                     new FieldDefinition<Person>[]
                     {
                         new ExpressionFieldDefinition<Person, string>(x => x.FirstName),
                         new ExpressionFieldDefinition<Person, string>(x => x.LastName)
-                    }),
+                    },
+                    new[] { "foo", "bar" }),
                 "{ autocomplete: { query: ['foo', 'bar'], path: ['fn', 'ln'] } }");
             AssertRendered(
-                subject.Autocomplete(new[] { "foo", "bar" }, new[] { "FirstName", "LastName" }),
+                subject.Autocomplete(new[] { "FirstName", "LastName" }, new[] { "foo", "bar" }),
                 "{ autocomplete: { query: ['foo', 'bar'], path: ['fn', 'ln'] } }");
         }
 
@@ -221,8 +223,8 @@ namespace MongoDB.Driver.Tests.Search
 
             AssertRendered(
                 subject.Facet(
-                    subject.Phrase("foo", "x"),
-                    facetBuilder.String("string", "y", 100)),
+                    subject.Phrase("x", "foo"),
+                    facetBuilder.String("y", "string", 100)),
                 "{ facet: { operator: { phrase: { query: 'foo', path: 'x' } }, facets: { string: { type: 'string', path: 'y', numBuckets: 100 } } } }");
         }
 
@@ -234,13 +236,13 @@ namespace MongoDB.Driver.Tests.Search
 
             AssertRendered(
                 subject.Facet(
-                    subject.Phrase("foo", x => x.LastName),
-                    facetBuilder.String("string", x => x.FirstName, 100)),
+                    subject.Phrase(x => x.LastName, "foo"),
+                    facetBuilder.String(x => x.FirstName, "string", 100)),
                 "{ facet: { operator: { phrase: { query: 'foo', path: 'ln' } }, facets: { string: { type: 'string', path: 'fn', numBuckets: 100 } } } }");
             AssertRendered(
                 subject.Facet(
-                    subject.Phrase("foo", "LastName"),
-                    facetBuilder.String("string", "FirstName", 100)),
+                    subject.Phrase("LastName", "foo"),
+                    facetBuilder.String("FirstName", "string", 100)),
                 "{ facet: { operator: { phrase: { query: 'foo', path: 'ln' } }, facets: { string: { type: 'string', path: 'fn', numBuckets: 100 } } } }");
         }
 
@@ -263,8 +265,8 @@ namespace MongoDB.Driver.Tests.Search
 
             AssertRendered(
                 subject.GeoShape(
-                    __testPolygon,
                     "location",
+                    __testPolygon,
                     GeoShapeRelation.Disjoint),
                 "{ geoShape: { geometry: { type: 'Polygon', coordinates: [[[-161.323242, 22.512557], [-152.446289, 22.065278], [-156.09375, 17.811456], [-161.323242, 22.512557]]] }, path: 'location', relation: 'disjoint' } }");
         }
@@ -276,14 +278,14 @@ namespace MongoDB.Driver.Tests.Search
 
             AssertRendered(
                 subject.GeoShape(
-                    __testPolygon,
                     x => x.Location,
+                    __testPolygon,
                     GeoShapeRelation.Disjoint),
                 "{ geoShape: { geometry: { type: 'Polygon', coordinates: [[[-161.323242, 22.512557], [-152.446289, 22.065278], [-156.09375, 17.811456], [-161.323242, 22.512557]]] }, path: 'location', relation: 'disjoint' } }");
             AssertRendered(
                 subject.GeoShape(
-                    __testPolygon,
                     "Location",
+                    __testPolygon,
                     GeoShapeRelation.Disjoint),
                 "{ geoShape: { geometry: { type: 'Polygon', coordinates: [[[-161.323242, 22.512557], [-152.446289, 22.065278], [-156.09375, 17.811456], [-161.323242, 22.512557]]] }, path: 'location', relation: 'disjoint' } }");
         }
@@ -294,13 +296,13 @@ namespace MongoDB.Driver.Tests.Search
             var subject = CreateSubject<BsonDocument>();
 
             AssertRendered(
-                subject.GeoWithin(__testPolygon, "location"),
+                subject.GeoWithin("location", __testPolygon),
                 "{ geoWithin: { geometry: { type: 'Polygon', coordinates: [[[-161.323242, 22.512557], [-152.446289, 22.065278], [-156.09375, 17.811456], [-161.323242, 22.512557]]] }, path: 'location' } }");
             AssertRendered(
-                subject.GeoWithin(__testBox, "location"),
+                subject.GeoWithin("location", __testBox),
                 "{ geoWithin: { box: { bottomLeft: { type: 'Point', coordinates: [-161.323242, 22.065278] }, topRight: { type: 'Point', coordinates: [-152.446289, 22.512557] } }, path: 'location' } }");
             AssertRendered(
-                subject.GeoWithin(__testCircle, "location"),
+                subject.GeoWithin("location", __testCircle),
                 "{ geoWithin: { circle: { center: { type: 'Point', coordinates: [-161.323242, 22.512557] }, radius: 7.5 }, path: 'location' } }");
         }
 
@@ -310,24 +312,24 @@ namespace MongoDB.Driver.Tests.Search
             var subject = CreateSubject<Person>();
 
             AssertRendered(
-                subject.GeoWithin(__testPolygon, x => x.Location),
+                subject.GeoWithin(x => x.Location, __testPolygon),
                 "{ geoWithin: { geometry: { type: 'Polygon', coordinates: [[[-161.323242, 22.512557], [-152.446289, 22.065278], [-156.09375, 17.811456], [-161.323242, 22.512557]]] }, path: 'location' } }");
             AssertRendered(
-                subject.GeoWithin(__testPolygon, "Location"),
+                subject.GeoWithin("Location", __testPolygon),
                 "{ geoWithin: { geometry: { type: 'Polygon', coordinates: [[[-161.323242, 22.512557], [-152.446289, 22.065278], [-156.09375, 17.811456], [-161.323242, 22.512557]]] }, path: 'location' } }");
 
             AssertRendered(
-                subject.GeoWithin(__testBox, x => x.Location),
+                subject.GeoWithin(x => x.Location, __testBox),
                 "{ geoWithin: { box: { bottomLeft: { type: 'Point', coordinates: [-161.323242, 22.065278] }, topRight: { type: 'Point', coordinates: [-152.446289, 22.512557] } }, path: 'location' } }");
             AssertRendered(
-                subject.GeoWithin(__testBox, "Location"),
+                subject.GeoWithin("Location", __testBox),
                 "{ geoWithin: { box: { bottomLeft: { type: 'Point', coordinates: [-161.323242, 22.065278] }, topRight: { type: 'Point', coordinates: [-152.446289, 22.512557] } }, path: 'location' } }");
 
             AssertRendered(
-                subject.GeoWithin(__testCircle, x => x.Location),
+                subject.GeoWithin(x => x.Location, __testCircle),
                 "{ geoWithin: { circle: { center: { type: 'Point', coordinates: [-161.323242, 22.512557] }, radius: 7.5 }, path: 'location' } }");
             AssertRendered(
-                subject.GeoWithin(__testCircle, "Location"),
+                subject.GeoWithin("Location", __testCircle),
                 "{ geoWithin: { circle: { center: { type: 'Point', coordinates: [-161.323242, 22.512557] }, radius: 7.5 }, path: 'location' } }");
         }
 
@@ -451,25 +453,25 @@ namespace MongoDB.Driver.Tests.Search
             var subject = CreateSubject<BsonDocument>();
 
             AssertRendered(
-                subject.Phrase("foo", "x"),
+                subject.Phrase("x", "foo"),
                 "{ phrase: { query: 'foo', path: 'x' } }");
             AssertRendered(
-                subject.Phrase("foo", new[] { "x", "y" }),
+                subject.Phrase(new[] { "x", "y" }, "foo"),
                 "{ phrase: { query: 'foo', path: ['x', 'y'] } }");
             AssertRendered(
-                subject.Phrase(new[] { "foo", "bar" }, "x"),
+                subject.Phrase("x", new[] { "foo", "bar" }),
                 "{ phrase: { query: ['foo', 'bar'], path: 'x' } }");
             AssertRendered(
-                subject.Phrase(new[] { "foo", "bar" }, new[] { "x", "y" }),
+                subject.Phrase(new[] { "x", "y" }, new[] { "foo", "bar" }),
                 "{ phrase: { query: ['foo', 'bar'], path: ['x', 'y'] } }");
 
             AssertRendered(
-                subject.Phrase("foo", "x", 5),
+                subject.Phrase("x", "foo", 5),
                 "{ phrase: { query: 'foo', path: 'x', slop: 5 } }");
 
             var scoreBuilder = new SearchScoreDefinitionBuilder<BsonDocument>();
             AssertRendered(
-                subject.Phrase("foo", "x", score: scoreBuilder.Constant(1)),
+                subject.Phrase("x", "foo", score: scoreBuilder.Constant(1)),
                 "{ phrase: { query: 'foo', path: 'x', score: { constant: { value: 1 } } } }");
         }
 
@@ -479,43 +481,43 @@ namespace MongoDB.Driver.Tests.Search
             var subject = CreateSubject<Person>();
 
             AssertRendered(
-                subject.Phrase("foo", x => x.FirstName),
+                subject.Phrase(x => x.FirstName, "foo"),
                 "{ phrase: { query: 'foo', path: 'fn' } }");
             AssertRendered(
-                subject.Phrase("foo", "FirstName"),
+                subject.Phrase("FirstName", "foo"),
                 "{ phrase: { query: 'foo', path: 'fn' } }");
 
             AssertRendered(
                 subject.Phrase(
-                    "foo",
                     new FieldDefinition<Person>[]
                     {
                         new ExpressionFieldDefinition<Person, string>(x => x.FirstName),
                         new ExpressionFieldDefinition<Person, string>(x => x.LastName)
-                    }),
+                    },
+                    "foo"),
                 "{ phrase: { query: 'foo', path: ['fn', 'ln'] } }");
             AssertRendered(
-                subject.Phrase("foo", new[] { "FirstName", "LastName" }),
+                subject.Phrase(new[] { "FirstName", "LastName" }, "foo"),
                 "{ phrase: { query: 'foo', path: ['fn', 'ln'] } }");
 
             AssertRendered(
-                subject.Phrase(new[] { "foo", "bar" }, x => x.FirstName),
+                subject.Phrase(x => x.FirstName, new[] { "foo", "bar" }),
                 "{ phrase: { query: ['foo', 'bar'], path: 'fn' } }");
             AssertRendered(
-                subject.Phrase(new[] { "foo", "bar" }, "FirstName"),
+                subject.Phrase("FirstName", new[] { "foo", "bar" }),
                 "{ phrase: { query: ['foo', 'bar'], path: 'fn' } }");
 
             AssertRendered(
                 subject.Phrase(
-                    new[] { "foo", "bar" },
                     new FieldDefinition<Person>[]
                     {
                         new ExpressionFieldDefinition<Person, string>(x => x.FirstName),
                         new ExpressionFieldDefinition<Person, string>(x => x.LastName)
-                    }),
+                    },
+                    new[] { "foo", "bar" }),
                 "{ phrase: { query: ['foo', 'bar'], path: ['fn', 'ln'] } }");
             AssertRendered(
-                subject.Phrase(new[] { "foo", "bar" }, new[] { "FirstName", "LastName" }),
+                subject.Phrase(new[] { "FirstName", "LastName" }, new[] { "foo", "bar" }),
                 "{ phrase: { query: ['foo', 'bar'], path: ['fn', 'ln'] } }");
         }
 
@@ -553,10 +555,11 @@ namespace MongoDB.Driver.Tests.Search
             var subject = CreateSubject<BsonDocument>();
 
             AssertRendered(
-                subject.Range(SearchRangeBuilder
-                    .Gte(new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc))
-                    .Lte(new DateTime(2009, 12, 31, 0, 0, 0, DateTimeKind.Utc)),
-                    "x"),
+                subject.Range(
+                    "x",
+                    SearchRangeBuilder
+                        .Gte(new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc))
+                        .Lte(new DateTime(2009, 12, 31, 0, 0, 0, DateTimeKind.Utc))),
                 "{ range: { path: 'x', gte: { $date: '2000-01-01T00:00:00Z' }, lte: { $date: '2009-12-31T00:00:00Z' } } }");
         }
 
@@ -566,7 +569,7 @@ namespace MongoDB.Driver.Tests.Search
             var subject = CreateSubject<BsonDocument>();
 
             AssertRendered(
-                subject.Range(SearchRangeBuilder.Gt(1.5).Lt(2.5), "x"),
+                subject.Range("x", SearchRangeBuilder.Gt(1.5).Lt(2.5)),
                 "{ range: { path: 'x', gt: 1.5, lt: 2.5 } }");
         }
 
@@ -576,16 +579,16 @@ namespace MongoDB.Driver.Tests.Search
             var subject = CreateSubject<BsonDocument>();
 
             AssertRendered(
-                subject.Range(SearchRangeBuilder.Gt(1).Lt(10), "x"),
+                subject.Range("x", SearchRangeBuilder.Gt(1).Lt(10)),
                 "{ range: { path: 'x', gt: 1, lt: 10 } }");
             AssertRendered(
-                subject.Range(SearchRangeBuilder.Lt(10).Gt(1), "x"),
+                subject.Range("x", SearchRangeBuilder.Lt(10).Gt(1)),
                 "{ range: { path: 'x', gt: 1, lt: 10 } }");
             AssertRendered(
-                subject.Range(SearchRangeBuilder.Gte(1).Lte(10), "x"),
+                subject.Range("x", SearchRangeBuilder.Gte(1).Lte(10)),
                 "{ range: { path: 'x', gte: 1, lte: 10 } }");
             AssertRendered(
-                subject.Range(SearchRangeBuilder.Lte(10).Gte(1), "x"),
+                subject.Range("x", SearchRangeBuilder.Lte(10).Gte(1)),
                 "{ range: { path: 'x', gte: 1, lte: 10 } }");
         }
 
@@ -595,10 +598,10 @@ namespace MongoDB.Driver.Tests.Search
             var subject = CreateSubject<Person>();
 
             AssertRendered(
-                subject.Range(SearchRangeBuilder.Gte(18).Lt(65), x => x.Age),
+                subject.Range(x => x.Age, SearchRangeBuilder.Gte(18).Lt(65)),
                 "{ range: { path: 'age', gte: 18, lt: 65 } }");
             AssertRendered(
-                subject.Range(SearchRangeBuilder.Gte(18).Lt(65), "Age"),
+                subject.Range("Age", SearchRangeBuilder.Gte(18).Lt(65)),
                 "{ range: { path: 'age', gte: 18, lt: 65 } }");
         }
 
@@ -608,28 +611,28 @@ namespace MongoDB.Driver.Tests.Search
             var subject = CreateSubject<BsonDocument>();
 
             AssertRendered(
-                subject.Regex("foo", "x"),
+                subject.Regex("x", "foo"),
                 "{ regex: { query: 'foo', path: 'x' } }");
             AssertRendered(
-                subject.Regex("foo", new[] { "x", "y" }),
+                subject.Regex(new[] { "x", "y" }, "foo"),
                 "{ regex: { query: 'foo', path: ['x', 'y'] } }");
             AssertRendered(
-                subject.Regex(new[] { "foo", "bar" }, "x"),
+                subject.Regex("x", new[] { "foo", "bar" }),
                 "{ regex: { query: ['foo', 'bar'], path: 'x' } }");
             AssertRendered(
-                subject.Regex(new[] { "foo", "bar" }, new[] { "x", "y" }),
+                subject.Regex(new[] { "x", "y" }, new[] { "foo", "bar" }),
                 "{ regex: { query: ['foo', 'bar'], path: ['x', 'y'] } }");
 
             AssertRendered(
-                subject.Regex("foo", "x", false),
+                subject.Regex("x", "foo", false),
                 "{ regex: { query: 'foo', path: 'x' } }");
             AssertRendered(
-                subject.Regex("foo", "x", true),
+                subject.Regex("x", "foo", true),
                 "{ regex: { query: 'foo', path: 'x', allowAnalyzedField: true } }");
 
             var scoreBuilder = new SearchScoreDefinitionBuilder<BsonDocument>();
             AssertRendered(
-                subject.Regex("foo", "x", score: scoreBuilder.Constant(1)),
+                subject.Regex("x", "foo", score: scoreBuilder.Constant(1)),
                 "{ regex: { query: 'foo', path: 'x', score: { constant: { value: 1 } } } }");
         }
 
@@ -639,43 +642,43 @@ namespace MongoDB.Driver.Tests.Search
             var subject = CreateSubject<Person>();
 
             AssertRendered(
-                subject.Regex("foo", x => x.FirstName),
+                subject.Regex(x => x.FirstName, "foo"),
                 "{ regex: { query: 'foo', path: 'fn' } }");
             AssertRendered(
-                subject.Regex("foo", "FirstName"),
+                subject.Regex("FirstName", "foo"),
                 "{ regex: { query: 'foo', path: 'fn' } }");
 
             AssertRendered(
                 subject.Regex(
-                    "foo",
                     new FieldDefinition<Person>[]
                     {
                         new ExpressionFieldDefinition<Person, string>(x => x.FirstName),
                         new ExpressionFieldDefinition<Person, string>(x => x.LastName)
-                    }),
+                    },
+                    "foo"),
                 "{ regex: { query: 'foo', path: ['fn', 'ln'] } }");
             AssertRendered(
-                subject.Regex("foo", new[] { "FirstName", "LastName" }),
+                subject.Regex(new[] { "FirstName", "LastName" }, "foo"),
                 "{ regex: { query: 'foo', path: ['fn', 'ln'] } }");
 
             AssertRendered(
-                subject.Regex(new[] { "foo", "bar" }, x => x.FirstName),
+                subject.Regex(x => x.FirstName, new[] { "foo", "bar" }),
                 "{ regex: { query: ['foo', 'bar'], path: 'fn' } }");
             AssertRendered(
-                subject.Regex(new[] { "foo", "bar" }, "FirstName"),
+                subject.Regex("FirstName", new[] { "foo", "bar" }),
                 "{ regex: { query: ['foo', 'bar'], path: 'fn' } }");
 
             AssertRendered(
                 subject.Regex(
-                    new[] { "foo", "bar" },
                     new FieldDefinition<Person>[]
                     {
                         new ExpressionFieldDefinition<Person, string>(x => x.FirstName),
                         new ExpressionFieldDefinition<Person, string>(x => x.LastName)
-                    }),
+                    },
+                    new[] { "foo", "bar" }),
                 "{ regex: { query: ['foo', 'bar'], path: ['fn', 'ln'] } }");
             AssertRendered(
-                subject.Regex(new[] { "foo", "bar" }, new[] { "FirstName", "LastName" }),
+                subject.Regex(new[] { "FirstName", "LastName" }, new[] { "foo", "bar" }),
                 "{ regex: { query: ['foo', 'bar'], path: ['fn', 'ln'] } }");
         }
 
@@ -700,7 +703,7 @@ namespace MongoDB.Driver.Tests.Search
 
             AssertRendered(
                 subject.Span(Builders<BsonDocument>.SearchSpan
-                        .First(Builders<BsonDocument>.SearchSpan.Term("foo", "x"), 5)),
+                        .First(Builders<BsonDocument>.SearchSpan.Term("x", "foo"), 5)),
                 "{ span: { first: { operator: { term: { query: 'foo', path: 'x' } }, endPositionLte: 5 } } }");
         }
 
@@ -710,23 +713,23 @@ namespace MongoDB.Driver.Tests.Search
             var subject = CreateSubject<BsonDocument>();
 
             AssertRendered(
-                subject.Text("foo", "x"),
+                subject.Text("x", "foo"),
                 "{ text: { query: 'foo', path: 'x' } }");
             AssertRendered(
-                subject.Text("foo", new[] { "x", "y" }),
+                subject.Text(new[] { "x", "y" }, "foo"),
                 "{ text: { query: 'foo', path: ['x', 'y'] } }");
             AssertRendered(
-                subject.Text(new[] { "foo", "bar" }, "x"),
+                subject.Text("x", new[] { "foo", "bar" }),
                 "{ text: { query: ['foo', 'bar'], path: 'x' } }");
             AssertRendered(
-                subject.Text(new[] { "foo", "bar" }, new[] { "x", "y" }),
+                subject.Text(new[] { "x", "y" }, new[] { "foo", "bar" }),
                 "{ text: { query: ['foo', 'bar'], path: ['x', 'y'] } }");
 
             AssertRendered(
-                subject.Text("foo", "x", new SearchFuzzyOptions()),
+                subject.Text("x", "foo", new SearchFuzzyOptions()),
                 "{ text: { query: 'foo', path: 'x', fuzzy: {} } }");
             AssertRendered(
-                subject.Text("foo", "x", new SearchFuzzyOptions()
+                subject.Text("x", "foo", new SearchFuzzyOptions()
                 {
                     MaxEdits = 1,
                     PrefixLength = 5,
@@ -736,7 +739,7 @@ namespace MongoDB.Driver.Tests.Search
 
             var scoreBuilder = new SearchScoreDefinitionBuilder<BsonDocument>();
             AssertRendered(
-                subject.Text("foo", "x", score: scoreBuilder.Constant(1)),
+                subject.Text("x", "foo", score: scoreBuilder.Constant(1)),
                 "{ text: { query: 'foo', path: 'x', score: { constant: { value: 1 } } } }");
         }
 
@@ -746,43 +749,43 @@ namespace MongoDB.Driver.Tests.Search
             var subject = CreateSubject<Person>();
 
             AssertRendered(
-                subject.Text("foo", x => x.FirstName),
+                subject.Text(x => x.FirstName, "foo"),
                 "{ text: { query: 'foo', path: 'fn' } }");
             AssertRendered(
-                subject.Text("foo", "FirstName"),
+                subject.Text("FirstName", "foo"),
                 "{ text: { query: 'foo', path: 'fn' } }");
 
             AssertRendered(
                 subject.Text(
-                    "foo",
                     new FieldDefinition<Person>[]
                     {
                         new ExpressionFieldDefinition<Person, string>(x => x.FirstName),
                         new ExpressionFieldDefinition<Person, string>(x => x.LastName)
-                    }),
+                    },
+                    "foo"),
                 "{ text: { query: 'foo', path: ['fn', 'ln'] } }");
             AssertRendered(
-                subject.Text("foo", new[] { "FirstName", "LastName" }),
+                subject.Text(new[] { "FirstName", "LastName" }, "foo"),
                 "{ text: { query: 'foo', path: ['fn', 'ln'] } }");
 
             AssertRendered(
-                subject.Text(new[] { "foo", "bar" }, x => x.FirstName),
+                subject.Text(x => x.FirstName, new[] { "foo", "bar" }),
                 "{ text: { query: ['foo', 'bar'], path: 'fn' } }");
             AssertRendered(
-                subject.Text(new[] { "foo", "bar" }, "FirstName"),
+                subject.Text("FirstName", new[] { "foo", "bar" }),
                 "{ text: { query: ['foo', 'bar'], path: 'fn' } }");
 
             AssertRendered(
                 subject.Text(
-                    new[] { "foo", "bar" },
                     new FieldDefinition<Person>[]
                     {
                         new ExpressionFieldDefinition<Person, string>(x => x.FirstName),
                         new ExpressionFieldDefinition<Person, string>(x => x.LastName)
-                    }),
+                    },
+                    new[] { "foo", "bar" }),
                 "{ text: { query: ['foo', 'bar'], path: ['fn', 'ln'] } }");
             AssertRendered(
-                subject.Text(new[] { "foo", "bar" }, new[] { "FirstName", "LastName" }),
+                subject.Text(new[] { "FirstName", "LastName" }, new[] { "foo", "bar" }),
                 "{ text: { query: ['foo', 'bar'], path: ['fn', 'ln'] } }");
         }
 
@@ -792,28 +795,28 @@ namespace MongoDB.Driver.Tests.Search
             var subject = CreateSubject<BsonDocument>();
 
             AssertRendered(
-                subject.Wildcard("foo", "x"),
+                subject.Wildcard("x", "foo"),
                 "{ wildcard: { query: 'foo', path: 'x' } }");
             AssertRendered(
-                subject.Wildcard("foo", new[] { "x", "y" }),
+                subject.Wildcard(new[] { "x", "y" }, "foo"),
                 "{ wildcard: { query: 'foo', path: ['x', 'y'] } }");
             AssertRendered(
-                subject.Wildcard(new[] { "foo", "bar" }, "x"),
+                subject.Wildcard("x", new[] { "foo", "bar" }),
                 "{ wildcard: { query: ['foo', 'bar'], path: 'x' } }");
             AssertRendered(
-                subject.Wildcard(new[] { "foo", "bar" }, new[] { "x", "y" }),
+                subject.Wildcard(new[] { "x", "y" }, new[] { "foo", "bar" }),
                 "{ wildcard: { query: ['foo', 'bar'], path: ['x', 'y'] } }");
 
             AssertRendered(
-                subject.Wildcard("foo", "x", false),
+                subject.Wildcard("x", "foo", false),
                 "{ wildcard: { query: 'foo', path: 'x' } }");
             AssertRendered(
-                subject.Wildcard("foo", "x", true),
+                subject.Wildcard("x", "foo", true),
                 "{ wildcard: { query: 'foo', path: 'x', allowAnalyzedField: true } }");
 
             var scoreBuilder = new SearchScoreDefinitionBuilder<BsonDocument>();
             AssertRendered(
-                subject.Wildcard("foo", "x", score: scoreBuilder.Constant(1)),
+                subject.Wildcard("x", "foo", score: scoreBuilder.Constant(1)),
                 "{ wildcard: { query: 'foo', path: 'x', score: { constant: { value: 1 } } } }");
         }
 
@@ -823,43 +826,43 @@ namespace MongoDB.Driver.Tests.Search
             var subject = CreateSubject<Person>();
 
             AssertRendered(
-                subject.Wildcard("foo", x => x.FirstName),
+                subject.Wildcard(x => x.FirstName, "foo"),
                 "{ wildcard: { query: 'foo', path: 'fn' } }");
             AssertRendered(
-                subject.Wildcard("foo", "FirstName"),
+                subject.Wildcard("FirstName", "foo"),
                 "{ wildcard: { query: 'foo', path: 'fn' } }");
 
             AssertRendered(
                 subject.Wildcard(
-                    "foo",
                     new FieldDefinition<Person>[]
                     {
                         new ExpressionFieldDefinition<Person, string>(x => x.FirstName),
                         new ExpressionFieldDefinition<Person, string>(x => x.LastName)
-                    }),
+                    },
+                    "foo"),
                 "{ wildcard: { query: 'foo', path: ['fn', 'ln'] } }");
             AssertRendered(
-                subject.Wildcard("foo", new[] { "FirstName", "LastName" }),
+                subject.Wildcard(new[] { "FirstName", "LastName" }, "foo"),
                 "{ wildcard: { query: 'foo', path: ['fn', 'ln'] } }");
 
             AssertRendered(
-                subject.Wildcard(new[] { "foo", "bar" }, x => x.FirstName),
+                subject.Wildcard(x => x.FirstName, new[] { "foo", "bar" }),
                 "{ wildcard: { query: ['foo', 'bar'], path: 'fn' } }");
             AssertRendered(
-                subject.Wildcard(new[] { "foo", "bar" }, "FirstName"),
+                subject.Wildcard("FirstName", new[] { "foo", "bar" }),
                 "{ wildcard: { query: ['foo', 'bar'], path: 'fn' } }");
 
             AssertRendered(
                 subject.Wildcard(
-                    new[] { "foo", "bar" },
                     new FieldDefinition<Person>[]
                     {
                         new ExpressionFieldDefinition<Person, string>(x => x.FirstName),
                         new ExpressionFieldDefinition<Person, string>(x => x.LastName)
-                    }),
+                    },
+                    new[] { "foo", "bar" }),
                 "{ wildcard: { query: ['foo', 'bar'], path: ['fn', 'ln'] } }");
             AssertRendered(
-                subject.Wildcard(new[] { "foo", "bar" }, new[] { "FirstName", "LastName" }),
+                subject.Wildcard(new[] { "FirstName", "LastName" }, new[] { "foo", "bar" }),
                 "{ wildcard: { query: ['foo', 'bar'], path: ['fn', 'ln'] } }");
         }
 
@@ -876,6 +879,23 @@ namespace MongoDB.Driver.Tests.Search
 
         private SearchDefinitionBuilder<TDocument> CreateSubject<TDocument>() =>new SearchDefinitionBuilder<TDocument>();
 
+        private class Person : SimplePerson
+        {
+            [BsonElement("age")]
+            public int Age { get; set; }
+
+            [BsonElement("dob")]
+            public DateTime Birthday { get; set; }
+
+            [BsonId]
+            public ObjectId Id { get; set; }
+            [BsonElement("location")]
+            public GeoJsonPoint<GeoJson2DGeographicCoordinates> Location { get; set; }
+
+            [BsonElement("ret")]
+            public bool Retired { get; set; }
+        }
+
         private class SimplePerson
         {
             [BsonElement("fn")]
@@ -883,24 +903,6 @@ namespace MongoDB.Driver.Tests.Search
 
             [BsonElement("ln")]
             public string LastName { get; set; }
-        }
-
-        private class Person : SimplePerson
-        {
-            [BsonId]
-            public ObjectId Id { get; set; }
-
-            [BsonElement("age")]
-            public int Age { get; set; }
-
-            [BsonElement("ret")]
-            public bool Retired { get; set; }
-
-            [BsonElement("dob")]
-            public DateTime Birthday { get; set; }
-
-            [BsonElement("location")]
-            public GeoJsonPoint<GeoJson2DGeographicCoordinates> Location { get; set; }
         }
     }
 }

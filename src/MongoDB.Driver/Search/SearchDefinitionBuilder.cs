@@ -1,16 +1,17 @@
-﻿// Copyright 2010-present MongoDB Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+﻿/* Copyright 2016-present MongoDB Inc.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 using System;
 using System.Collections.Generic;
@@ -30,38 +31,38 @@ namespace MongoDB.Driver.Search
         /// Creates a search definition that performs a search for a word or phrase that contains
         /// a sequence of characters from an incomplete input string.
         /// </summary>
-        /// <param name="query">The query definition specifying the string or strings to search for.</param>
         /// <param name="path">The indexed field to search.</param>
+        /// <param name="query">The query definition specifying the string or strings to search for.</param>
         /// <param name="tokenOrder">The order in which to search for tokens.</param>
         /// <param name="fuzzy">The options for fuzzy search.</param>
         /// <param name="score">The score modifier.</param>
         /// <returns>An autocomplete search definition.</returns>
         public SearchDefinition<TDocument> Autocomplete(
-            SearchQueryDefinition query,
             SearchPathDefinition<TDocument> path,
+            SearchQueryDefinition query,
             SearchAutocompleteTokenOrder tokenOrder = SearchAutocompleteTokenOrder.Any,
             SearchFuzzyOptions fuzzy = null,
             SearchScoreDefinition<TDocument> score = null) =>
-                new AutocompleteSearchDefinition<TDocument>(query, path, tokenOrder, fuzzy, score);
+                new AutocompleteSearchDefinition<TDocument>(path, query, tokenOrder, fuzzy, score);
 
         /// <summary>
         /// Creates a search definition that performs a search for a word or phrase that contains
         /// a sequence of characters from an incomplete search string.
         /// </summary>
         /// <typeparam name="TField">The type of the field.</typeparam>
-        /// <param name="query">The query definition specifying the string or strings to search for.</param>
         /// <param name="path">The indexed field to search.</param>
+        /// <param name="query">The query definition specifying the string or strings to search for.</param>
         /// <param name="tokenOrder">The order in which to search for tokens.</param>
         /// <param name="fuzzy">The options for fuzzy search.</param>
         /// <param name="score">The score modifier.</param>
         /// <returns>An autocomplete search definition.</returns>
         public SearchDefinition<TDocument> Autocomplete<TField>(
-            SearchQueryDefinition query,
             Expression<Func<TDocument, TField>> path,
+            SearchQueryDefinition query,
             SearchAutocompleteTokenOrder tokenOrder = SearchAutocompleteTokenOrder.Any,
             SearchFuzzyOptions fuzzy = null,
             SearchScoreDefinition<TDocument> score = null) =>
-                Autocomplete(query, new ExpressionFieldDefinition<TDocument>(path), tokenOrder, fuzzy, score);
+                Autocomplete(new ExpressionFieldDefinition<TDocument>(path), query, tokenOrder, fuzzy, score);
 
         /// <summary>
         /// Creates a search definition that combines two or more operators into a single query.
@@ -172,48 +173,48 @@ namespace MongoDB.Driver.Search
         /// Creates a search definition that queries for shapes with a given geometry.
         /// </summary>
         /// <typeparam name="TCoordinates">The type of the coordinates.</typeparam>
+        /// <param name="path">Indexed geo type field or fields to search.</param>
         /// <param name="geometry">
+        /// <param name="relation">
         /// GeoJSON object specifying the Polygon, MultiPolygon, or LineString shape or point
         /// to search.
         /// </param>
-        /// <param name="path">Indexed geo type field or fields to search.</param>
-        /// <param name="relation">
         /// Relation of the query shape geometry to the indexed field geometry.
         /// </param>
         /// <param name="score">The score modifier.</param>
         /// <returns>A geo shape search definition.</returns>
         public SearchDefinition<TDocument> GeoShape<TCoordinates>(
-            GeoJsonGeometry<TCoordinates> geometry,
             SearchPathDefinition<TDocument> path,
+            GeoJsonGeometry<TCoordinates> geometry,
             GeoShapeRelation relation,
             SearchScoreDefinition<TDocument> score = null)
             where TCoordinates : GeoJsonCoordinates =>
-                new GeoShapeSearchDefinition<TDocument, TCoordinates>(geometry, path, relation, score);
+                new GeoShapeSearchDefinition<TDocument, TCoordinates>(path, geometry, relation, score);
 
         /// <summary>
         /// Creates a search definition that queries for shapes with a given geometry.
         /// </summary>
         /// <typeparam name="TCoordinates">The type of the coordinates.</typeparam>
         /// <typeparam name="TField">The type of the field.</typeparam>
+        /// <param name="path">Indexed geo type field or fields to search.</param>
         /// <param name="geometry">
+        /// <param name="relation">
         /// GeoJSON object specifying the Polygon, MultiPolygon, or LineString shape or point
         /// to search.
         /// </param>
-        /// <param name="path">Indexed geo type field or fields to search.</param>
-        /// <param name="relation">
         /// Relation of the query shape geometry to the indexed field geometry.
         /// </param>
         /// <param name="score">The score modifier.</param>
         /// <returns>A geo shape search definition.</returns>
         public SearchDefinition<TDocument> GeoShape<TCoordinates, TField>(
-            GeoJsonGeometry<TCoordinates> geometry,
             Expression<Func<TDocument, TField>> path,
+            GeoJsonGeometry<TCoordinates> geometry,
             GeoShapeRelation relation,
             SearchScoreDefinition<TDocument> score = null)
             where TCoordinates : GeoJsonCoordinates =>
                 GeoShape(
-                    geometry,
                     new ExpressionFieldDefinition<TDocument>(path),
+                    geometry,
                     relation,
                     score);
 
@@ -222,18 +223,18 @@ namespace MongoDB.Driver.Search
         /// geometry.
         /// </summary>
         /// <typeparam name="TCoordinates">The type of the coordinates.</typeparam>
+        /// <param name="path">Indexed geo type field or fields to search.</param>
         /// <param name="geometry">
         /// GeoJSON object specifying the MultiPolygon or Polygon to search within.
         /// </param>
-        /// <param name="path">Indexed geo type field or fields to search.</param>
         /// <param name="score">The score modifier.</param>
         /// <returns>A geo within search definition.</returns>
         public SearchDefinition<TDocument> GeoWithin<TCoordinates>(
-            GeoJsonGeometry<TCoordinates> geometry,
             SearchPathDefinition<TDocument> path,
+            GeoJsonGeometry<TCoordinates> geometry,
             SearchScoreDefinition<TDocument> score = null)
             where TCoordinates : GeoJsonCoordinates =>
-                GeoWithin(new GeoWithinGeometry<TCoordinates>(geometry), path, score);
+                GeoWithin(path, new GeoWithinGeometry<TCoordinates>(geometry), score);
 
         /// <summary>
         /// Creates a search definition that queries for geographic points within a given
@@ -241,49 +242,49 @@ namespace MongoDB.Driver.Search
         /// </summary>
         /// <typeparam name="TCoordinates">The type of the coordinates.</typeparam>
         /// <typeparam name="TField">The type of the field.</typeparam>
+        /// <param name="path">Indexed geo type field or fields to search.</param>
         /// <param name="geometry">
         /// GeoJSON object specifying the MultiPolygon or Polygon to search within.
         /// </param>
-        /// <param name="path">Indexed geo type field or fields to search.</param>
         /// <param name="score">The score modifier.</param>
         /// <returns>A geo within search definition.</returns>
         public SearchDefinition<TDocument> GeoWithin<TCoordinates, TField>(
-            GeoJsonGeometry<TCoordinates> geometry,
             Expression<Func<TDocument, TField>> path,
+            GeoJsonGeometry<TCoordinates> geometry,
             SearchScoreDefinition<TDocument> score = null)
             where TCoordinates : GeoJsonCoordinates =>
-                GeoWithin(new GeoWithinGeometry<TCoordinates>(geometry), path, score);
+                GeoWithin(path, new GeoWithinGeometry<TCoordinates>(geometry), score);
 
         /// <summary>
         /// Creates a search definition that queries for geographic points within a given geo object.
         /// </summary>
         /// <typeparam name="TCoordinates">The type of the coordinates.</typeparam>
         /// <typeparam name="TField">The type of the field.</typeparam>
-        /// <param name="geoWithinQuery">Object that specifies the geo object to search within./// </param>
         /// <param name="path">Indexed geo type field or fields to search.</param>
+        /// <param name="area">Object that specifies the geo object to search within./// </param>
         /// <param name="score">The score modifier.</param>
         /// <returns>A geo within search definition.</returns>
         public SearchDefinition<TDocument> GeoWithin<TCoordinates, TField>(
-            GeoWithin<TCoordinates> geoWithinQuery,
             Expression<Func<TDocument, TField>> path,
+            GeoWithinArea<TCoordinates> area,
             SearchScoreDefinition<TDocument> score = null)
             where TCoordinates : GeoJsonCoordinates =>
-                GeoWithin(geoWithinQuery, new ExpressionFieldDefinition<TDocument>(path), score);
+                GeoWithin(new ExpressionFieldDefinition<TDocument>(path), area, score);
 
         /// <summary>
         /// Creates a search definition that queries for geographic points within a given geo object.
         /// </summary>
         /// <typeparam name="TCoordinates">The type of the coordinates.</typeparam>
-        /// <param name="geoWithinQuery">Object that specifies the geo object to search within./// </param>
         /// <param name="path">Indexed geo type field or fields to search.</param>
+        /// <param name="area">Object that specifies the geo object to search within./// </param>
         /// <param name="score">The score modifier.</param>
         /// <returns>A geo within search definition.</returns>
         public SearchDefinition<TDocument> GeoWithin<TCoordinates>(
-            GeoWithin<TCoordinates> geoWithinQuery,
             SearchPathDefinition<TDocument> path,
+            GeoWithinArea<TCoordinates> area,
             SearchScoreDefinition<TDocument> score = null)
             where TCoordinates : GeoJsonCoordinates =>
-                new GeoWithinSearchDefinition<TDocument, TCoordinates>(geoWithinQuery, path, score);
+                new GeoWithinSearchDefinition<TDocument, TCoordinates>(path, area, score);
 
         /// <summary>
         /// Creates a search definition that returns documents similar to the input documents.
@@ -468,34 +469,34 @@ namespace MongoDB.Driver.Search
         /// Creates a search definition that performs search for documents containing an ordered
         /// sequence of terms.
         /// </summary>
-        /// <param name="query">The string or strings to search for.</param>
         /// <param name="path">The indexed field or fields to search.</param>
+        /// <param name="query">The string or strings to search for.</param>
         /// <param name="slop">The allowable distance between words in the query phrase.</param>
         /// <param name="score">The score modifier.</param>
         /// <returns>A phrase search definition.</returns>
         public SearchDefinition<TDocument> Phrase(
-            SearchQueryDefinition query,
             SearchPathDefinition<TDocument> path,
+            SearchQueryDefinition query,
             int? slop = null,
             SearchScoreDefinition<TDocument> score = null) =>
-                new PhraseSearchDefinition<TDocument>(query, path, slop, score);
+                new PhraseSearchDefinition<TDocument>(path, query, slop, score);
 
         /// <summary>
         /// Creates a search definition that performs search for documents containing an ordered
         /// sequence of terms.
         /// </summary>
         /// <typeparam name="TField">The type of the field.</typeparam>
-        /// <param name="query">The string or strings to search for.</param>
         /// <param name="path">The indexed field or fields to search.</param>
+        /// <param name="query">The string or strings to search for.</param>
         /// <param name="slop">The allowable distance between words in the query phrase.</param>
         /// <param name="score">The score modifier.</param>
         /// <returns>A phrase search definition.</returns>
         public SearchDefinition<TDocument> Phrase<TField>(
-            SearchQueryDefinition query,
             Expression<Func<TDocument, TField>> path,
+            SearchQueryDefinition query,
             int? slop = null,
             SearchScoreDefinition<TDocument> score = null) =>
-                Phrase(query, new ExpressionFieldDefinition<TDocument>(path), slop, score);
+                Phrase(new ExpressionFieldDefinition<TDocument>(path), query, slop, score);
 
         /// <summary>
         /// Creates a search definition that queries a combination of indexed fields and values.
@@ -530,11 +531,11 @@ namespace MongoDB.Driver.Search
         /// </summary>
         /// <returns>A fluent range interface.</returns>
         public SearchDefinition<TDocument> Range<TField>(
-            SearchRange<TField> range,
             Expression<Func<TDocument, TField>> path,
+            SearchRange<TField> range,
             SearchScoreDefinition<TDocument> score = null)
             where TField : struct, IComparable<TField> =>
-            Range(range, new ExpressionFieldDefinition<TDocument>(path), score);
+            Range(new ExpressionFieldDefinition<TDocument>(path), range, score);
 
         /// <summary>
         /// Creates a search definition that queries for documents where a floating-point
@@ -542,46 +543,46 @@ namespace MongoDB.Driver.Search
         /// </summary>
         /// <returns>A fluent range interface.</returns>
         public SearchDefinition<TDocument> Range<TField>(
-            SearchRange<TField> range,
             SearchPathDefinition<TDocument> path,
+            SearchRange<TField> range,
             SearchScoreDefinition<TDocument> score = null)
             where TField : struct, IComparable<TField> =>
-                new RangeSearchDefinition<TDocument, TField>(range, path, score);
+                new RangeSearchDefinition<TDocument, TField>(path, range, score);
 
         /// <summary>
         /// Creates a search definition that interprets the query as a regular expression.
         /// </summary>
-        /// <param name="query">The string or strings to search for.</param>
         /// <param name="path">The indexed field or fields to search.</param>
+        /// <param name="query">The string or strings to search for.</param>
         /// <param name="allowAnalyzedField">
         /// Must be set to true if the query is run against an analyzed field.
         /// </param>
         /// <param name="score">The score modifier.</param>
         /// <returns>A regular expression search definition.</returns>
         public SearchDefinition<TDocument> Regex(
-            SearchQueryDefinition query,
             SearchPathDefinition<TDocument> path,
+            SearchQueryDefinition query,
             bool allowAnalyzedField = false,
             SearchScoreDefinition<TDocument> score = null) =>
-                new RegexSearchDefinition<TDocument>(query, path, allowAnalyzedField, score);
+                new RegexSearchDefinition<TDocument>(path, query, allowAnalyzedField, score);
 
         /// <summary>
         /// Creates a search definition that interprets the query as a regular expression.
         /// </summary>
         /// <typeparam name="TField">The type of the field.</typeparam>
-        /// <param name="query">The string or strings to search for.</param>
         /// <param name="path">The indexed field or fields to search.</param>
+        /// <param name="query">The string or strings to search for.</param>
         /// <param name="allowAnalyzedField">
         /// Must be set to true if the query is run against an analyzed field.
         /// </param>
         /// <param name="score">The score modifier.</param>
         /// <returns>A regular expression search definition.</returns>
         public SearchDefinition<TDocument> Regex<TField>(
-            SearchQueryDefinition query,
             Expression<Func<TDocument, TField>> path,
+            SearchQueryDefinition query,
             bool allowAnalyzedField = false,
             SearchScoreDefinition<TDocument> score = null) =>
-                Regex(query, new ExpressionFieldDefinition<TDocument>(path), allowAnalyzedField, score);
+                Regex(new ExpressionFieldDefinition<TDocument>(path), query, allowAnalyzedField, score);
 
         /// <summary>
         /// Creates a search definition that finds text search matches within regions of a text
@@ -596,70 +597,70 @@ namespace MongoDB.Driver.Search
         /// Creates a search definition that performs full-text search using the analyzer specified
         /// in the index configuration.
         /// </summary>
-        /// <param name="query">The string or strings to search for.</param>
         /// <param name="path">The indexed field or fields to search.</param>
+        /// <param name="query">The string or strings to search for.</param>
         /// <param name="fuzzy">The options for fuzzy search.</param>
         /// <param name="score">The score modifier.</param>
         /// <returns>A text search definition.</returns>
         public SearchDefinition<TDocument> Text(
-            SearchQueryDefinition query,
             SearchPathDefinition<TDocument> path,
+            SearchQueryDefinition query,
             SearchFuzzyOptions fuzzy = null,
             SearchScoreDefinition<TDocument> score = null) =>
-                new TextSearchDefinition<TDocument>(query, path, fuzzy, score);
+                new TextSearchDefinition<TDocument>(path, query, fuzzy, score);
 
         /// <summary>
         /// Creates a search definition that performs full-text search using the analyzer specified
         /// in the index configuration.
         /// </summary>
         /// <typeparam name="TField">The type of the field.</typeparam>
-        /// <param name="query">The string or strings to search for.</param>
         /// <param name="path">The indexed field or field to search.</param>
+        /// <param name="query">The string or strings to search for.</param>
         /// <param name="fuzzy">The options for fuzzy search.</param>
         /// <param name="score">The score modifier.</param>
         /// <returns>A text search definition.</returns>
         public SearchDefinition<TDocument> Text<TField>(
-            SearchQueryDefinition query,
             Expression<Func<TDocument, TField>> path,
+            SearchQueryDefinition query,
             SearchFuzzyOptions fuzzy = null,
             SearchScoreDefinition<TDocument> score = null) =>
-                Text(query, new ExpressionFieldDefinition<TDocument>(path), fuzzy, score);
+                Text(new ExpressionFieldDefinition<TDocument>(path), query, fuzzy, score);
 
         /// <summary>
         /// Creates a search definition that uses special characters in the search string that can
         /// match any character.
         /// </summary>
-        /// <param name="query">The string or strings to search for.</param>
         /// <param name="path">The indexed field or fields to search.</param>
+        /// <param name="query">The string or strings to search for.</param>
         /// <param name="allowAnalyzedField">
         /// Must be set to true if the query is run against an analyzed field.
         /// </param>
         /// <param name="score">The score modifier.</param>
         /// <returns>A wildcard search definition.</returns>
         public SearchDefinition<TDocument> Wildcard(
-            SearchQueryDefinition query,
             SearchPathDefinition<TDocument> path,
+            SearchQueryDefinition query,
             bool allowAnalyzedField = false,
             SearchScoreDefinition<TDocument> score = null) =>
-                new WildcardSearchDefinition<TDocument>(query, path, allowAnalyzedField, score);
+                new WildcardSearchDefinition<TDocument>(path, query, allowAnalyzedField, score);
 
         /// <summary>
         /// Creates a search definition that uses special characters in the search string that can
         /// match any character.
         /// </summary>
         /// <typeparam name="TField">The type of the field.</typeparam>
-        /// <param name="query">The string or strings to search for.</param>
         /// <param name="path">The indexed field or fields to search.</param>
+        /// <param name="query">The string or strings to search for.</param>
         /// <param name="allowAnalyzedField">
         /// Must be set to true if the query is run against an analyzed field.
         /// </param>
         /// <param name="score">The score modifier.</param>
         /// <returns>A wildcard search definition.</returns>
         public SearchDefinition<TDocument> Wildcard<TField>(
-            SearchQueryDefinition query,
             Expression<Func<TDocument, TField>> path,
+            SearchQueryDefinition query,
             bool allowAnalyzedField = false,
             SearchScoreDefinition<TDocument> score = null) =>
-                Wildcard(query, new ExpressionFieldDefinition<TDocument>(path), allowAnalyzedField, score);
+                Wildcard(new ExpressionFieldDefinition<TDocument>(path), query, allowAnalyzedField, score);
     }
 }
