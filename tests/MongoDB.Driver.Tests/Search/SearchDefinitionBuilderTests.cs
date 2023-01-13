@@ -1,4 +1,4 @@
-﻿/* Copyright 2016-present MongoDB Inc.
+﻿/* Copyright 2010-present MongoDB Inc.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ namespace MongoDB.Driver.Tests.Search
                 7.5);
 
         private static readonly GeoJsonPolygon<GeoJson2DGeographicCoordinates> __testPolygon =
-                            new GeoJsonPolygon<GeoJson2DGeographicCoordinates>(
+            new GeoJsonPolygon<GeoJson2DGeographicCoordinates>(
                 new GeoJsonPolygonCoordinates<GeoJson2DGeographicCoordinates>(
                     new GeoJsonLinearRingCoordinates<GeoJson2DGeographicCoordinates>(
                         new List<GeoJson2DGeographicCoordinates>()
@@ -51,6 +51,7 @@ namespace MongoDB.Driver.Tests.Search
                             new GeoJson2DGeographicCoordinates(-156.09375, 17.811456),
                             new GeoJson2DGeographicCoordinates(-161.323242, 22.512557)
                         })));
+
         [Fact]
         public void Autocomplete()
         {
@@ -95,7 +96,7 @@ namespace MongoDB.Driver.Tests.Search
         }
 
         [Fact]
-        public void Autocomplete_Typed()
+        public void Autocomplete_typed()
         {
             var subject = CreateSubject<Person>();
             AssertRendered(
@@ -158,6 +159,24 @@ namespace MongoDB.Driver.Tests.Search
         }
 
         [Fact]
+        public void Compound_typed()
+        {
+            var subject = CreateSubject<Person>();
+
+            AssertRendered<Person>(
+                subject.Compound()
+                    .Must(
+                        subject.Exists(p => p.Age),
+                        subject.Exists(p => p.FirstName))
+                    .MustNot(
+                        subject.Exists(p => p.Retired),
+                        subject.Exists(p => p.Birthday))
+                    .Must(
+                        subject.Exists(p => p.LastName)),
+                "{ compound: { must: [{ exists: { path: 'age' } }, { exists: { path: 'fn' } }, { exists: { path: 'ln' } }], mustNot: [{ exists: { path: 'ret' } }, { exists: { path: 'dob' } }] } }");
+        }
+
+        [Fact]
         public void Equals()
         {
             var subject = CreateSubject<BsonDocument>();
@@ -176,7 +195,7 @@ namespace MongoDB.Driver.Tests.Search
         }
 
         [Fact]
-        public void Equals_Typed()
+        public void Equals_typed()
         {
             var subject = CreateSubject<Person>();
 
@@ -203,7 +222,7 @@ namespace MongoDB.Driver.Tests.Search
         }
 
         [Fact]
-        public void Exists_Typed()
+        public void Exists_typed()
         {
             var subject = CreateSubject<Person>();
 
@@ -224,12 +243,12 @@ namespace MongoDB.Driver.Tests.Search
             AssertRendered(
                 subject.Facet(
                     subject.Phrase("x", "foo"),
-                    facetBuilder.String("y", "string", 100)),
+                    facetBuilder.String("string", "y", 100)),
                 "{ facet: { operator: { phrase: { query: 'foo', path: 'x' } }, facets: { string: { type: 'string', path: 'y', numBuckets: 100 } } } }");
         }
 
         [Fact]
-        public void Facet_Typed()
+        public void Facet_typed()
         {
             var subject = CreateSubject<Person>();
             var facetBuilder = new SearchFacetBuilder<Person>();
@@ -237,12 +256,12 @@ namespace MongoDB.Driver.Tests.Search
             AssertRendered(
                 subject.Facet(
                     subject.Phrase(x => x.LastName, "foo"),
-                    facetBuilder.String(x => x.FirstName, "string", 100)),
+                    facetBuilder.String("string", x => x.FirstName, 100)),
                 "{ facet: { operator: { phrase: { query: 'foo', path: 'ln' } }, facets: { string: { type: 'string', path: 'fn', numBuckets: 100 } } } }");
             AssertRendered(
                 subject.Facet(
                     subject.Phrase("LastName", "foo"),
-                    facetBuilder.String("FirstName", "string", 100)),
+                    facetBuilder.String("string", "FirstName", 100)),
                 "{ facet: { operator: { phrase: { query: 'foo', path: 'ln' } }, facets: { string: { type: 'string', path: 'fn', numBuckets: 100 } } } }");
         }
 
@@ -259,6 +278,18 @@ namespace MongoDB.Driver.Tests.Search
         }
 
         [Fact]
+        public void Filter_typed()
+        {
+            var subject = CreateSubject<Person>();
+
+            AssertRendered<Person>(
+                subject.Compound().Filter(
+                    subject.Exists(p => p.Age),
+                    subject.Exists(p => p.Birthday)),
+                "{ compound: { filter: [{ exists: { path: 'age' } }, { exists: { path: 'dob' } }] } }");
+        }
+
+        [Fact]
         public void GeoShape()
         {
             var subject = CreateSubject<BsonDocument>();
@@ -272,7 +303,7 @@ namespace MongoDB.Driver.Tests.Search
         }
 
         [Fact]
-        public void GeoShape_Typed()
+        public void GeoShape_typed()
         {
             var subject = CreateSubject<Person>();
 
@@ -307,7 +338,7 @@ namespace MongoDB.Driver.Tests.Search
         }
 
         [Fact]
-        public void GeoWithin_Typed()
+        public void GeoWithin_typed()
         {
             var subject = CreateSubject<Person>();
 
@@ -346,7 +377,7 @@ namespace MongoDB.Driver.Tests.Search
         }
 
         [Fact]
-        public void MoreLikeThis_Typed()
+        public void MoreLikeThis_typed()
         {
             var subject = CreateSubject<SimplePerson>();
 
@@ -368,25 +399,25 @@ namespace MongoDB.Driver.Tests.Search
         [Fact]
         public void Must()
         {
-            var subject = CreateSubject<BsonDocument>();
+            var subject = CreateSubject<Person>();
 
-            AssertRendered<BsonDocument>(
+            AssertRendered<Person>(
                 subject.Compound().Must(
-                    subject.Exists("x"),
-                    subject.Exists("y")),
-                "{ compound: { must: [{ exists: { path: 'x' } }, { exists: { path: 'y' } }] } }");
+                    subject.Exists(p => p.Age),
+                    subject.Exists(p => p.Birthday)),
+                "{ compound: { must: [{ exists: { path: 'age' } }, { exists: { path: 'dob' } }] } }");
         }
 
         [Fact]
         public void MustNot()
         {
-            var subject = CreateSubject<BsonDocument>();
+            var subject = CreateSubject<Person>();
 
-            AssertRendered<BsonDocument>(
+            AssertRendered<Person>(
                 subject.Compound().MustNot(
-                    subject.Exists("x"),
-                    subject.Exists("y")),
-                "{ compound: { mustNot: [{ exists: { path: 'x' } }, { exists: { path: 'y' } }] } }");
+                    subject.Exists(p => p.Age),
+                    subject.Exists(p => p.Birthday)),
+                "{ compound: { mustNot: [{ exists: { path: 'age' } }, { exists: { path: 'dob' } }] } }");
         }
 
         [Fact]
@@ -414,7 +445,7 @@ namespace MongoDB.Driver.Tests.Search
         }
 
         [Fact]
-        public void Near_Typed()
+        public void Near_typed()
         {
             var subject = CreateSubject<Person>();
 
@@ -476,7 +507,7 @@ namespace MongoDB.Driver.Tests.Search
         }
 
         [Fact]
-        public void Phrase_Typed()
+        public void Phrase_typed()
         {
             var subject = CreateSubject<Person>();
 
@@ -537,7 +568,7 @@ namespace MongoDB.Driver.Tests.Search
         }
 
         [Fact]
-        public void QueryString_Typed()
+        public void QueryString_typed()
         {
             var subject = CreateSubject<Person>();
 
@@ -552,25 +583,25 @@ namespace MongoDB.Driver.Tests.Search
         [Fact]
         public void RangeDateTime()
         {
-            var subject = CreateSubject<BsonDocument>();
+            var subject = CreateSubject<Person>();
 
             AssertRendered(
                 subject.Range(
-                    "x",
+                    p => p.Birthday,
                     SearchRangeBuilder
                         .Gte(new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc))
                         .Lte(new DateTime(2009, 12, 31, 0, 0, 0, DateTimeKind.Utc))),
-                "{ range: { path: 'x', gte: { $date: '2000-01-01T00:00:00Z' }, lte: { $date: '2009-12-31T00:00:00Z' } } }");
+                "{ range: { path: 'dob', gte: { $date: '2000-01-01T00:00:00Z' }, lte: { $date: '2009-12-31T00:00:00Z' } } }");
         }
 
         [Fact]
         public void RangeDouble()
         {
-            var subject = CreateSubject<BsonDocument>();
+            var subject = CreateSubject<Person>();
 
             AssertRendered(
-                subject.Range("x", SearchRangeBuilder.Gt(1.5).Lt(2.5)),
-                "{ range: { path: 'x', gt: 1.5, lt: 2.5 } }");
+                subject.Range(p => p.Age, SearchRangeBuilder.Gt(1.5).Lt(2.5)),
+                "{ range: { path: 'age', gt: 1.5, lt: 2.5 } }");
         }
 
         [Fact]
@@ -593,7 +624,7 @@ namespace MongoDB.Driver.Tests.Search
         }
 
         [Fact]
-        public void RangeInt32_Typed()
+        public void RangeInt32_typed()
         {
             var subject = CreateSubject<Person>();
 
@@ -637,7 +668,7 @@ namespace MongoDB.Driver.Tests.Search
         }
 
         [Fact]
-        public void Regex_Typed()
+        public void Regex_typed()
         {
             var subject = CreateSubject<Person>();
 
@@ -685,26 +716,26 @@ namespace MongoDB.Driver.Tests.Search
         [Fact]
         public void Should()
         {
-            var subject = CreateSubject<BsonDocument>();
+            var subject = CreateSubject<Person>();
 
-            AssertRendered<BsonDocument>(
+            AssertRendered<Person>(
                 subject.Compound()
                     .Should(
-                        subject.Exists("x"),
-                        subject.Exists("y"))
+                        subject.Exists(p => p.Age),
+                        subject.Exists(p => p.Birthday))
                     .MinimumShouldMatch(2),
-                "{ compound: { should: [{ exists: { path: 'x' } }, { exists: { path: 'y' } }], minimumShouldMatch: 2 } }");
+                "{ compound: { should: [{ exists: { path: 'age' } }, { exists: { path: 'dob' } }], minimumShouldMatch: 2 } }");
         }
 
         [Fact]
         public void Span()
         {
-            var subject = CreateSubject<BsonDocument>();
+            var subject = CreateSubject<Person>();
 
             AssertRendered(
-                subject.Span(Builders<BsonDocument>.SearchSpan
-                        .First(Builders<BsonDocument>.SearchSpan.Term("x", "foo"), 5)),
-                "{ span: { first: { operator: { term: { query: 'foo', path: 'x' } }, endPositionLte: 5 } } }");
+                subject.Span(Builders<Person>.SearchSpan
+                        .First(Builders<Person>.SearchSpan.Term(p => p.Age, "foo"), 5)),
+                "{ span: { first: { operator: { term: { query: 'foo', path: 'age' } }, endPositionLte: 5 } } }");
         }
 
         [Fact]
@@ -744,7 +775,7 @@ namespace MongoDB.Driver.Tests.Search
         }
 
         [Fact]
-        public void Text_Typed()
+        public void Text_typed()
         {
             var subject = CreateSubject<Person>();
 
@@ -821,7 +852,7 @@ namespace MongoDB.Driver.Tests.Search
         }
 
         [Fact]
-        public void Wildcard_Typed()
+        public void Wildcard_typed()
         {
             var subject = CreateSubject<Person>();
 
@@ -877,7 +908,7 @@ namespace MongoDB.Driver.Tests.Search
             renderedQuery.Should().BeEquivalentTo(expected);
         }
 
-        private SearchDefinitionBuilder<TDocument> CreateSubject<TDocument>() =>new SearchDefinitionBuilder<TDocument>();
+        private SearchDefinitionBuilder<TDocument> CreateSubject<TDocument>() => new SearchDefinitionBuilder<TDocument>();
 
         private class Person : SimplePerson
         {

@@ -1,4 +1,4 @@
-﻿/* Copyright 2016-present MongoDB Inc.
+﻿/* Copyright 2010-present MongoDB Inc.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -134,7 +134,8 @@ namespace MongoDB.Driver.Search
         private readonly SearchPathDefinition<TDocument> _path;
         private readonly SearchScoreDefinition<TDocument> _score;
 
-        private protected OperatorSearchDefinition(OperatorType operatorType) : this(operatorType, null)
+        private protected OperatorSearchDefinition(OperatorType operatorType)
+            : this(operatorType, null)
         {
         }
 
@@ -153,13 +154,13 @@ namespace MongoDB.Driver.Search
 
         public sealed override BsonDocument Render(IBsonSerializer<TDocument> documentSerializer, IBsonSerializerRegistry serializerRegistry)
         {
-            var renderedArgs = RenderOperator(documentSerializer, serializerRegistry);
+            var renderedArgs = RenderArguments(documentSerializer, serializerRegistry);
             renderedArgs.Add("path", () => _path.Render(documentSerializer, serializerRegistry), _path != null);
             renderedArgs.Add("score", () => _score.Render(documentSerializer, serializerRegistry), _score != null);
 
             return new(_operatorType.ToCamelCase(), renderedArgs);
         }
 
-        private protected virtual BsonDocument RenderOperator(IBsonSerializer<TDocument> documentSerializer, IBsonSerializerRegistry serializerRegistry) => new();
+        private protected virtual BsonDocument RenderArguments(IBsonSerializer<TDocument> documentSerializer, IBsonSerializerRegistry serializerRegistry) => new();
     }
 }

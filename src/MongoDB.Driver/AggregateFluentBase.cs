@@ -218,7 +218,7 @@ namespace MongoDB.Driver
 
         /// <inheritdoc />
         public virtual IAggregateFluent<TResult> Search(
-            SearchDefinition<TResult> query,
+            SearchDefinition<TResult> searchDefinition,
             SearchHighlightOptions<TResult> highlight = null,
             string indexName = null,
             SearchCountOptions count = null,

@@ -1,4 +1,4 @@
-﻿/* Copyright 2016-present MongoDB Inc.
+﻿/* Copyright 2010-present MongoDB Inc.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -82,8 +82,8 @@ namespace MongoDB.Driver.Search
         /// <summary>
         /// Creates a span clause that matches a single term.
         /// </summary>
-        /// <param name="query">The string or strings to search for.</param>
         /// <param name="path">The indexed field or fields to search.</param>
+        /// <param name="query">The string or strings to search for.</param>
         /// <returns>A term span clause.</returns>
         public SearchSpanDefinition<TDocument> Term(SearchPathDefinition<TDocument> path, SearchQueryDefinition query) =>
             new TermSearchSpanDefinition<TDocument>(path, query);

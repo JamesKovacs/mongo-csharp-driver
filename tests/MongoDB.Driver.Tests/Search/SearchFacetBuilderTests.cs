@@ -1,4 +1,4 @@
-﻿/* Copyright 2016-present MongoDB Inc.
+﻿/* Copyright 2010-present MongoDB Inc.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -37,23 +37,23 @@ namespace MongoDB.Driver.Tests.Search
             };
 
             AssertRendered(
-                subject.Date("x", "date", boundaries, "foo"),
+                subject.Date("date", "x", boundaries, "foo"),
                 "{ type: 'date', path: 'x', boundaries: [{ $date: '0001-01-01T00:00:00Z' }, { $date: '9999-12-31T23:59:59.9999999Z' }], default: 'foo' }");
             AssertRendered(
-                subject.Date("x", "date", boundaries),
+                subject.Date("date", "x", boundaries),
                 "{ type: 'date', path: 'x', boundaries: [{ $date: '0001-01-01T00:00:00Z' }, { $date: '9999-12-31T23:59:59.9999999Z' }] }");
         }
 
         [Fact]
-        public void Date_Typed()
+        public void Date_typed()
         {
             var subject = CreateSubject<Person>();
 
             AssertRendered(
-                subject.Date(x => x.Birthday, "date", DateTime.MinValue, DateTime.MaxValue),
+                subject.Date("date", x => x.Birthday, DateTime.MinValue, DateTime.MaxValue),
                 "{ type: 'date', path: 'dob', boundaries: [{ $date: '0001-01-01T00:00:00Z' }, { $date: '9999-12-31T23:59:59.9999999Z' }] }");
             AssertRendered(
-                subject.Date("Birthday", "date", DateTime.MinValue, DateTime.MaxValue),
+                subject.Date("date", "Birthday", DateTime.MinValue, DateTime.MaxValue),
                 "{ type: 'date', path: 'dob', boundaries: [{ $date: '0001-01-01T00:00:00Z' }, { $date: '9999-12-31T23:59:59.9999999Z' }] }");
         }
 
@@ -69,23 +69,23 @@ namespace MongoDB.Driver.Tests.Search
             };
 
             AssertRendered(
-                subject.Number("x", "number", boundaries, "foo"),
+                subject.Number("number", "x", boundaries, "foo"),
                 "{ type: 'number', path: 'x', boundaries: [0, 50, 100], default: 'foo' }");
             AssertRendered(
-                subject.Number("x", "number", boundaries),
+                subject.Number("number", "x", boundaries),
                 "{ type: 'number', path: 'x', boundaries: [0, 50, 100] }");
         }
 
         [Fact]
-        public void Number_Typed()
+        public void Number_typed()
         {
             var subject = CreateSubject<Person>();
 
             AssertRendered(
-                subject.Number(x => x.Age, "number", 0, 18, 65, 120),
+                subject.Number("number", x => x.Age, 0, 18, 65, 120),
                 "{ type: 'number', path: 'age', boundaries: [0, 18, 65, 120] }");
             AssertRendered(
-                subject.Number("Age", "number", 0, 18, 65, 120),
+                subject.Number("number", "Age", 0, 18, 65, 120),
                 "{ type: 'number', path: 'age', boundaries: [0, 18, 65, 120] }");
         }
 
@@ -95,20 +95,20 @@ namespace MongoDB.Driver.Tests.Search
             var subject = CreateSubject<BsonDocument>();
 
             AssertRendered(
-                subject.String("x", "string", 100),
+                subject.String("string", "x", 100),
                 "{ type: 'string', path: 'x', numBuckets: 100 }");
         }
 
         [Fact]
-        public void String_Typed()
+        public void String_typed()
         {
             var subject = CreateSubject<Person>();
 
             AssertRendered(
-                subject.String(x => x.FirstName, "string", 100),
+                subject.String("string", x => x.FirstName, 100),
                 "{ type: 'string', path: 'fn', numBuckets: 100 }");
             AssertRendered(
-                subject.String("FirstName", "string", 100),
+                subject.String("string", "FirstName", 100),
                 "{ type: 'string', path: 'fn', numBuckets: 100 }");
         }
 

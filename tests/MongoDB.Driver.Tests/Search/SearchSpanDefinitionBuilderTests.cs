@@ -1,4 +1,4 @@
-﻿/* Copyright 2016-present MongoDB Inc.
+﻿/* Copyright 2010-present MongoDB Inc.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ namespace MongoDB.Driver.Tests.Search
         }
 
         [Fact]
-        public void First_Typed()
+        public void First_typed()
         {
             var subject = CreateSubject<Person>();
 
@@ -66,7 +66,7 @@ namespace MongoDB.Driver.Tests.Search
         }
 
         [Fact]
-        public void Near_Typed()
+        public void Near_typed()
         {
             var subject = CreateSubject<Person>();
 
@@ -105,7 +105,7 @@ namespace MongoDB.Driver.Tests.Search
         }
 
         [Fact]
-        public void Or_Typed()
+        public void Or_typed()
         {
             var subject = CreateSubject<Person>();
 
@@ -134,7 +134,7 @@ namespace MongoDB.Driver.Tests.Search
         }
 
         [Fact]
-        public void Subtract_Typed()
+        public void Subtract_typed()
         {
             var subject = CreateSubject<Person>();
 

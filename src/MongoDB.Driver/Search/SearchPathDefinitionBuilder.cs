@@ -1,4 +1,4 @@
-﻿/* Copyright 2016-present MongoDB Inc.
+﻿/* Copyright 2010-present MongoDB Inc.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -89,6 +89,7 @@ namespace MongoDB.Driver.Search
         /// <returns>A single-field search path.</returns>
         public SearchPathDefinition<TDocument> Single<TField>(Expression<Func<TDocument, TField>> field) =>
             Single(new ExpressionFieldDefinition<TDocument>(field));
+
         /// <summary>
         /// Creates a search path that uses special characters in the field name
         /// that can match any character.
@@ -112,11 +113,12 @@ namespace MongoDB.Driver.Search
             _analyzerName = Ensure.IsNotNull(analyzerName, nameof(analyzerName));
         }
 
-        public override BsonValue Render(IBsonSerializer<TDocument> documentSerializer, IBsonSerializerRegistry serializerRegistry) => new BsonDocument()
-        {
-            {  "value", _field.Render(documentSerializer, serializerRegistry).FieldName },
-            {  "multi", _analyzerName }
-        };
+        public override BsonValue Render(IBsonSerializer<TDocument> documentSerializer, IBsonSerializerRegistry serializerRegistry) =>
+            new BsonDocument()
+            {
+                {  "value", _field.Render(documentSerializer, serializerRegistry).FieldName },
+                {  "multi", _analyzerName }
+            };
     }
 
     internal sealed class MultiSearchPathDefinition<TDocument> : SearchPathDefinition<TDocument>
@@ -147,6 +149,7 @@ namespace MongoDB.Driver.Search
             return new BsonString(renderedField.FieldName);
         }
     }
+
     internal sealed class WildcardSearchPathDefinition<TDocument> : SearchPathDefinition<TDocument>
     {
         private readonly string _query;
@@ -156,9 +159,10 @@ namespace MongoDB.Driver.Search
             _query = Ensure.IsNotNull(query, nameof(query));
         }
 
-        public override BsonValue Render(IBsonSerializer<TDocument> documentSerializer, IBsonSerializerRegistry serializerRegistry) => new BsonDocument()
-        {
-            { "wildcard", _query }
-        };
+        public override BsonValue Render(IBsonSerializer<TDocument> documentSerializer, IBsonSerializerRegistry serializerRegistry) =>
+            new BsonDocument()
+            {
+                { "wildcard", _query }
+            };
     }
 }

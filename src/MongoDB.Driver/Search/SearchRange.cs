@@ -1,4 +1,4 @@
-﻿/* Copyright 2016-present MongoDB Inc.
+﻿/* Copyright 2010-present MongoDB Inc.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -24,6 +24,11 @@ namespace MongoDB.Driver.Search
     /// <typeparam name="TValue">The type of the range value.</typeparam>
     public struct SearchRange<TValue> where TValue : struct, IComparable<TValue>
     {
+        #region static
+        /// <summary>Empty range.</summary>
+        public static SearchRange<TValue> Empty { get; } = new(default, default, default, default);
+        #endregion
+
         /// <summary>
         /// Initializes a new instance of the <see cref="SearchRange{TValue}"/> class.
         /// </summary>
@@ -44,8 +49,6 @@ namespace MongoDB.Driver.Search
             IsMaxInclusive = isMaxInclusive;
         }
 
-        /// <summary>Empty range.</summary>
-        public static SearchRange<TValue> Empty { get; } = new(default, default, default, default);
         /// <summary>Gets the value that indicates whether the upper bound of the range is inclusive.</summary>
         public bool IsMaxInclusive { get; }
 
@@ -79,7 +82,7 @@ namespace MongoDB.Driver.Search
         /// <param name="value">The value.</param>
         /// <returns>Search range.</returns>
         public static SearchRange<TValue> Gt<TValue>(this SearchRange<TValue> searchRange, TValue value) where TValue : struct, IComparable<TValue>
-            => new(value, searchRange.Max, false, searchRange.IsMaxInclusive);
+            => new(min: value, searchRange.Max, isMinInclusive: false, searchRange.IsMaxInclusive);
 
         /// <summary>
         /// Creates a greater or equal than search range.
@@ -96,7 +99,7 @@ namespace MongoDB.Driver.Search
         /// <param name="value">The value.</param>
         /// <returns>Search range.</returns>
         public static SearchRange<TValue> Gte<TValue>(this SearchRange<TValue> searchRange, TValue value) where TValue : struct, IComparable<TValue>
-            => new(value, searchRange.Max, true, searchRange.IsMaxInclusive);
+            => new(min: value, searchRange.Max, isMinInclusive: true, searchRange.IsMaxInclusive);
 
         /// <summary>
         /// Creates a less than search range.
@@ -113,7 +116,7 @@ namespace MongoDB.Driver.Search
         /// <param name="value">The value.</param>
         /// <returns>Search range.</returns>
         public static SearchRange<TValue> Lt<TValue>(this SearchRange<TValue> searchRange, TValue value) where TValue : struct, IComparable<TValue>
-            => new(searchRange.Min, value, searchRange.IsMinInclusive, false);
+            => new(searchRange.Min, max: value, searchRange.IsMinInclusive, isMaxInclusive: false);
 
         /// <summary>
         /// Creates a less than or equal search range.
@@ -122,6 +125,7 @@ namespace MongoDB.Driver.Search
         /// <returns>search range.</returns>
         public static SearchRange<TValue> Lte<TValue>(TValue value) where TValue : struct, IComparable<TValue>
             => SearchRange<TValue>.Empty.Lte(value);
+
         /// <summary>
         /// Adds a less than or equal value to a search range.
         /// </summary>
@@ -129,6 +133,6 @@ namespace MongoDB.Driver.Search
         /// <param name="value">The value.</param>
         /// <returns>search range.</returns>
         public static SearchRange<TValue> Lte<TValue>(this SearchRange<TValue> searchRange, TValue value) where TValue : struct, IComparable<TValue>
-            => new(searchRange.Min, value, searchRange.IsMinInclusive, true);
+            => new(searchRange.Min, max: value, searchRange.IsMinInclusive, isMaxInclusive: true);
     }
 }

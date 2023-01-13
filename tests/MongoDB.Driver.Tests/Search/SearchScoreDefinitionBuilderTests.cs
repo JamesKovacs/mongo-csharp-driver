@@ -1,4 +1,4 @@
-﻿/* Copyright 2016-present MongoDB Inc.
+﻿/* Copyright 2010-present MongoDB Inc.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ namespace MongoDB.Driver.Tests.Search
         [Fact]
         public void Boost()
         {
-            var subject = CreateSubject<BsonDocument>();
+            var subject = CreateSubject<Person>();
 
             AssertRendered(
                 subject.Boost(1),
@@ -38,10 +38,13 @@ namespace MongoDB.Driver.Tests.Search
             AssertRendered(
                 subject.Boost("x", 1),
                 "{ boost: { path: 'x', undefined: 1 } }");
+            AssertRendered(
+                subject.Boost(p => p.Age, 1),
+                "{ boost: { path: 'age', undefined: 1 } }");
         }
 
         [Fact]
-        public void Boost_Typed()
+        public void Boost_typed()
         {
             var subject = CreateSubject<Person>();
 
@@ -49,14 +52,14 @@ namespace MongoDB.Driver.Tests.Search
                 subject.Boost(x => x.Age),
                 "{ boost: { path: 'age' } }");
             AssertRendered(
-                subject.Boost("Age"),
+                subject.Boost("age"),
                 "{ boost: { path: 'age' } }");
         }
 
         [Fact]
         public void Constant()
         {
-            var subject = CreateSubject<BsonDocument>();
+            var subject = CreateSubject<Person>();
 
             AssertRendered(
                 subject.Constant(1),
@@ -66,12 +69,15 @@ namespace MongoDB.Driver.Tests.Search
         [Fact]
         public void Function()
         {
-            var subject = CreateSubject<BsonDocument>();
+            var subject = CreateSubject<Person>();
+            var functionBuilder = new SearchScoreFunctionBuilder<Person>();
 
-            var functionBuilder = new SearchScoreFunctionBuilder<BsonDocument>();
             AssertRendered(
-                subject.Function(functionBuilder.Path("x")),
-                "{ function: { path: 'x' } }");
+                subject.Function(functionBuilder.Path(p => p.Age)),
+                "{ function: { path: 'age' } }");
+            AssertRendered(
+              subject.Function(functionBuilder.Path("age")),
+              "{ function: { path: 'age' } }");
         }
 
         private void AssertRendered<TDocument>(SearchScoreDefinition<TDocument> score, string expected) =>

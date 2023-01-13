@@ -1,4 +1,4 @@
-﻿/* Copyright 2016-present MongoDB Inc.
+﻿/* Copyright 2010-present MongoDB Inc.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ namespace MongoDB.Driver.Tests.Search
         }
 
         [Fact]
-        public void Analyzer_Typed()
+        public void Analyzer_typed()
         {
             var subject = CreateSubject<Person>();
 
@@ -75,7 +75,7 @@ namespace MongoDB.Driver.Tests.Search
         }
 
         [Fact]
-        public void Multi_Typed()
+        public void Multi_typed()
         {
             var subject = CreateSubject<Person>();
 
@@ -104,17 +104,18 @@ namespace MongoDB.Driver.Tests.Search
         }
 
         [Fact]
-        public void Single_Typed()
+        public void Single_typed()
         {
             var subject = CreateSubject<Person>();
 
             AssertRendered(subject.Single(x => x.FirstName), new BsonString("fn"));
             AssertRendered(subject.Single("FirstName"), new BsonString("fn"));
         }
+
         [Fact]
         public void Wildcard()
         {
-            var subject = CreateSubject<BsonDocument>();
+            var subject = CreateSubject<Person>();
 
             AssertRendered(
                 subject.Wildcard("*"),

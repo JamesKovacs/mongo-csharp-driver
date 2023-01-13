@@ -1,4 +1,4 @@
-﻿/* Copyright 2016-present MongoDB Inc.
+﻿/* Copyright 2010-present MongoDB Inc.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -22,35 +22,35 @@ namespace MongoDB.Driver.Tests.Search
 {
     public class MongoQueryableTests
     {
-        private readonly IMongoQueryable<Person> _queryable;
-
-        public MongoQueryableTests()
-        {
-            var client = DriverTestConfiguration.Linq3Client;
-            var db = client.GetDatabase(DriverTestConfiguration.DatabaseNamespace.DatabaseName);
-            _queryable = db.GetCollection<Person>(DriverTestConfiguration.CollectionNamespace.CollectionName).AsQueryable();
-        }
-
         [Fact]
         public void Search()
         {
-            var query = _queryable
-                .Where(x => x.FirstName == "Alexandra")
-                .Search(Builders<Person>.Search.Text(x => x.FirstName, "Alex"))
-                .ToString();
+            var subject = CreateSubject();
 
-            query.Should().EndWith("Aggregate([{ \"$match\" : { \"fn\" : \"Alexandra\" } }, { \"$search\" : { \"text\" : { \"query\" : \"Alex\", \"path\" : \"fn\" } } }])");
+            var query = subject
+                .Search(Builders<Person>.Search.Text(x => x.FirstName, "Alex"));
+
+            query.ToString().Should().EndWith("Aggregate([{ \"$search\" : { \"text\" : { \"query\" : \"Alex\", \"path\" : \"fn\" } } }])");
         }
 
         [Fact]
         public void SearchMeta()
         {
-            var query = _queryable
-                .Where(x => x.FirstName == "Alexandra")
-                .SearchMeta(Builders<Person>.Search.Text(x => x.FirstName, "Alex"))
-                .ToString();
+            var subject = CreateSubject();
 
-            query.Should().EndWith("Aggregate([{ \"$match\" : { \"fn\" : \"Alexandra\" } }, { \"$searchMeta\" : { \"text\" : { \"query\" : \"Alex\", \"path\" : \"fn\" } } }])");
+            var query = subject
+                .Where(x => x.FirstName == "Alexandra")
+                .SearchMeta(Builders<Person>.Search.Text(x => x.FirstName, "Alex"));
+
+            query.ToString().Should().EndWith("Aggregate([{ \"$searchMeta\" : { \"text\" : { \"query\" : \"Alex\", \"path\" : \"fn\" } } }])");
+        }
+
+        private IMongoQueryable<Person> CreateSubject()
+        {
+            var client = DriverTestConfiguration.Linq3Client;
+            var database = client.GetDatabase(DriverTestConfiguration.DatabaseNamespace.DatabaseName);
+            var collection = database.GetCollection<Person>(DriverTestConfiguration.CollectionNamespace.CollectionName);
+            return collection.AsQueryable();
         }
 
         private class Person

@@ -1,4 +1,4 @@
-﻿/* Copyright 2016-present MongoDB Inc.
+﻿/* Copyright 2010-present MongoDB Inc.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -86,6 +86,17 @@ namespace MongoDB.Driver.Search
         /// The result of the conversion.
         /// </returns>
         public static implicit operator SearchPathDefinition<TDocument>(string[] fieldNames) =>
+            new MultiSearchPathDefinition<TDocument>(fieldNames.Select(fieldName => new StringFieldDefinition<TDocument>(fieldName)));
+
+        /// <summary>
+        /// Performs an implicit conversion from an array of field names to 
+        /// <see cref="SearchPathDefinition{TDocument}"/>.
+        /// </summary>
+        /// <param name="fieldNames">The list of field names.</param>
+        /// <returns>
+        /// The result of the conversion.
+        /// </returns>
+        public static implicit operator SearchPathDefinition<TDocument>(List<string> fieldNames) =>
             new MultiSearchPathDefinition<TDocument>(fieldNames.Select(fieldName => new StringFieldDefinition<TDocument>(fieldName)));
     }
 }

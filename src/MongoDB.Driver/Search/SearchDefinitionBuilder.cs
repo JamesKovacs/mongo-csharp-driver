@@ -1,4 +1,4 @@
-﻿/* Copyright 2016-present MongoDB Inc.
+﻿/* Copyright 2010-present MongoDB Inc.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -65,10 +65,10 @@ namespace MongoDB.Driver.Search
                 Autocomplete(new ExpressionFieldDefinition<TDocument>(path), query, tokenOrder, fuzzy, score);
 
         /// <summary>
-        /// Creates a search definition that combines two or more operators into a single query.
+        /// Creates a builder for a compound search definition.
         /// </summary>
         /// <returns></returns>
-        public CompoundSearchDefinitionFluent<TDocument> Compound() => new CompoundSearchDefinitionFluent<TDocument>();
+        public CompoundSearchDefinitionBuilder<TDocument> Compound() => new CompoundSearchDefinitionBuilder<TDocument>();
 
         /// <summary>
         /// Creates a search definition that queries for documents where an indexed field is equal
@@ -261,7 +261,7 @@ namespace MongoDB.Driver.Search
         /// <typeparam name="TCoordinates">The type of the coordinates.</typeparam>
         /// <typeparam name="TField">The type of the field.</typeparam>
         /// <param name="path">Indexed geo type field or fields to search.</param>
-        /// <param name="area">Object that specifies the geo object to search within./// </param>
+        /// <param name="area">Object that specifies the area to search within.</param>
         /// <param name="score">The score modifier.</param>
         /// <returns>A geo within search definition.</returns>
         public SearchDefinition<TDocument> GeoWithin<TCoordinates, TField>(
@@ -276,7 +276,7 @@ namespace MongoDB.Driver.Search
         /// </summary>
         /// <typeparam name="TCoordinates">The type of the coordinates.</typeparam>
         /// <param name="path">Indexed geo type field or fields to search.</param>
-        /// <param name="area">Object that specifies the geo object to search within./// </param>
+        /// <param name="area">Object that specifies the area to search within.</param>
         /// <param name="score">The score modifier.</param>
         /// <returns>A geo within search definition.</returns>
         public SearchDefinition<TDocument> GeoWithin<TCoordinates>(
@@ -535,7 +535,7 @@ namespace MongoDB.Driver.Search
             SearchRange<TField> range,
             SearchScoreDefinition<TDocument> score = null)
             where TField : struct, IComparable<TField> =>
-            Range(new ExpressionFieldDefinition<TDocument>(path), range, score);
+                Range(new ExpressionFieldDefinition<TDocument>(path), range, score);
 
         /// <summary>
         /// Creates a search definition that queries for documents where a floating-point

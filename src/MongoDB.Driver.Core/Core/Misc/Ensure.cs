@@ -28,6 +28,22 @@ namespace MongoDB.Driver.Core.Misc
     public static class Ensure
     {
         /// <summary>
+        /// Ensures that the value of a parameter is not null.
+        /// </summary>
+        /// <typeparam name="T">Type type of the value.</typeparam>
+        /// <param name="value">The value of the parameter.</param>
+        /// <param name="paramName">The name of the parameter.</param>
+        /// <returns>The value of the parameter.</returns>
+        public static Nullable<T> HasValue<T>(Nullable<T> value, string paramName) where T : struct
+        {
+            if (!value.HasValue)
+            {
+                throw new ArgumentException("The Nullable parameter must have a value.", paramName);
+            }
+            return value;
+        }
+
+        /// <summary>
         /// Ensures that the value of a parameter is between a minimum and a maximum value.
         /// </summary>
         /// <typeparam name="T">Type type of the value.</typeparam>
@@ -65,24 +81,6 @@ namespace MongoDB.Driver.Core.Misc
         }
 
         /// <summary>
-        /// Ensures that the value of a parameter is greater than or equal to a comparand.
-        /// </summary>
-        /// <typeparam name="T">Type type of the value.</typeparam>
-        /// <param name="value">The value of the parameter.</param>
-        /// <param name="comparand">The comparand.</param>
-        /// <param name="paramName">The name of the parameter.</param>
-        /// <returns>The value of the parameter.</returns>
-        public static T IsGreaterThanOrEqualTo<T>(T value, T comparand, string paramName) where T : IComparable<T>
-        {
-            if (value.CompareTo(comparand) < 0)
-            {
-                var message = string.Format("Value is not greater than or equal to {1}: {0}.", value, comparand);
-                throw new ArgumentOutOfRangeException(paramName, message);
-            }
-            return value;
-        }
-
-        /// <summary>
         /// Ensures that the value of a parameter is greater than a comparand.
         /// </summary>
         /// <typeparam name="T">Type type of the value.</typeparam>
@@ -95,6 +93,24 @@ namespace MongoDB.Driver.Core.Misc
             if (value.CompareTo(comparand) <= 0)
             {
                 var message = $"Value is not greater than {comparand}: {value}.";
+                throw new ArgumentOutOfRangeException(paramName, message);
+            }
+            return value;
+        }
+
+        /// <summary>
+        /// Ensures that the value of a parameter is greater than or equal to a comparand.
+        /// </summary>
+        /// <typeparam name="T">Type type of the value.</typeparam>
+        /// <param name="value">The value of the parameter.</param>
+        /// <param name="comparand">The comparand.</param>
+        /// <param name="paramName">The name of the parameter.</param>
+        /// <returns>The value of the parameter.</returns>
+        public static T IsGreaterThanOrEqualTo<T>(T value, T comparand, string paramName) where T : IComparable<T>
+        {
+            if (value.CompareTo(comparand) < 0)
+            {
+                var message = string.Format("Value is not greater than or equal to {1}: {0}.", value, comparand);
                 throw new ArgumentOutOfRangeException(paramName, message);
             }
             return value;
@@ -230,22 +246,6 @@ namespace MongoDB.Driver.Core.Misc
                 throw new ArgumentNullException(paramName, "Values cannot contain any null items.");
             }
             return values;
-        }
-
-        /// <summary>
-        /// Ensures that the value of a parameter is not null.
-        /// </summary>
-        /// <typeparam name="T">Type type of the value.</typeparam>
-        /// <param name="value">The value of the parameter.</param>
-        /// <param name="paramName">The name of the parameter.</param>
-        /// <returns>The value of the parameter.</returns>
-        public static Nullable<T> HasValue<T>(Nullable<T> value, string paramName) where T : struct
-        {
-            if (!value.HasValue)
-            {
-                throw new ArgumentException("The Nullable parameter must have a value.", paramName);
-            }
-            return value;
         }
 
         /// <summary>

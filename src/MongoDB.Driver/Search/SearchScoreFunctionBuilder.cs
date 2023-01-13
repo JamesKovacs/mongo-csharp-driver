@@ -1,4 +1,4 @@
-﻿/* Copyright 2016-present MongoDB Inc.
+﻿/* Copyright 2010-present MongoDB Inc.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ namespace MongoDB.Driver.Search
             double scale,
             double decay = 0.5,
             double offset = 0)
-            => new GaussSearchScoreFunction<TDocument>(path, origin, scale, decay, offset);
+                => new GaussSearchScoreFunction<TDocument>(path, origin, scale, decay, offset);
 
         /// <summary>
         /// Creates a function that decays, or reduces by multiplying, the final scores of the
@@ -103,7 +103,7 @@ namespace MongoDB.Driver.Search
             double scale,
             double decay = 0.5,
             double offset = 0)
-            => Gauss(new ExpressionFieldDefinition<TDocument>(path), origin, scale, decay, offset);
+                => Gauss(new ExpressionFieldDefinition<TDocument>(path), origin, scale, decay, offset);
 
         /// <summary>
         /// Creates a function that calculates the base-10 logarithm of a number.

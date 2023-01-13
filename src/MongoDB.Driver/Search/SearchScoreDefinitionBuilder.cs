@@ -1,4 +1,4 @@
-﻿/* Copyright 2016-present MongoDB Inc.
+﻿/* Copyright 2010-present MongoDB Inc.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -121,6 +121,7 @@ namespace MongoDB.Driver.Search
         public override BsonDocument Render(IBsonSerializer<TDocument> documentSerializer, IBsonSerializerRegistry serializerRegistry) =>
             new("boost",  new BsonDocument("value", _value));
     }
+
     internal sealed class ConstantSearchScoreDefinition<TDocument> : SearchScoreDefinition<TDocument>
     {
         private readonly double _value;
