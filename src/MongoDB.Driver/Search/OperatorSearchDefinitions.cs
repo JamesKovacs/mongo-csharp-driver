@@ -176,18 +176,30 @@ namespace MongoDB.Driver.Search
             new(_area.Render());
     }
 
-    internal sealed class MoreLikeThisSearchDefinition<TDocument> : OperatorSearchDefinition<TDocument>
+    internal sealed class MoreLikeThisSearchDefinition<TDocumentCollection, TDocumentLike> : OperatorSearchDefinition<TDocumentCollection>
     {
-        private readonly TDocument[] _like;
+        private readonly TDocumentLike[] _like;
 
-        public MoreLikeThisSearchDefinition(IEnumerable<TDocument> like)
+        public MoreLikeThisSearchDefinition(IEnumerable<TDocumentLike> like)
             : base(OperatorType.MoreLikeThis)
         {
+            if (typeof(TDocumentLike) != typeof(BsonDocument) &&
+                typeof(TDocumentLike) != typeof(TDocumentCollection))
+            {
+                throw new ArgumentOutOfRangeException($"Only {nameof(BsonDocument)} and {nameof(TDocumentCollection)} are supported for {nameof(TDocumentLike)} type.");
+            }
+
             _like = Ensure.IsNotNull(like, nameof(like)).ToArray();
         }
 
-        private protected override BsonDocument RenderArguments(IBsonSerializer<TDocument> documentSerializer, IBsonSerializerRegistry serializerRegistry) =>
-            new("like", new BsonArray(_like.Select(e => e.ToBsonDocument(documentSerializer))));
+        private protected override BsonDocument RenderArguments(IBsonSerializer<TDocumentCollection> documentSerializer, IBsonSerializerRegistry serializerRegistry)
+        {
+            var likeArray = typeof(TDocumentLike) == typeof(BsonDocument) ?
+                new BsonArray(_like.OfType<BsonDocument>()) :
+                new BsonArray(_like.OfType<TDocumentCollection>().Select(e => e.ToBsonDocument(documentSerializer)));
+
+            return new("like", likeArray);
+        }
     }
 
     internal sealed class NearSearchDefinition<TDocument> : OperatorSearchDefinition<TDocument>
@@ -282,15 +294,16 @@ namespace MongoDB.Driver.Search
         private static BsonValue ToBsonValue(TField value) =>
             value switch
             {
-                sbyte v => v,
-                byte v => v,
-                short v => v,
-                ushort v => v,
-                int v => v,
-                uint v => v,
-                long v => v,
-                double v => v,
-                DateTime v => v,
+                sbyte v => (BsonInt32)v,
+                byte v => (BsonInt32)v,
+                short v => (BsonInt32)v,
+                ushort v => (BsonInt32)v,
+                int v => (BsonInt32)v,
+                uint v => (BsonInt32)v,
+                long v => (BsonInt64)v,
+                float v => (BsonDouble)v,
+                double v => (BsonDouble)v,
+                DateTime v => (BsonDateTime)v,
                 _ => throw new InvalidCastException()
             };
     }

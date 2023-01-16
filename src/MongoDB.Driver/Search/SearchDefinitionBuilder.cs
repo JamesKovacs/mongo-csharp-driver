@@ -294,7 +294,17 @@ namespace MongoDB.Driver.Search
         /// </param>
         /// <returns>A more like this search definition.</returns>
         public SearchDefinition<TDocument> MoreLikeThis(IEnumerable<TDocument> like) =>
-            new MoreLikeThisSearchDefinition<TDocument>(like);
+            new MoreLikeThisSearchDefinition<TDocument, TDocument>(like);
+
+        /// <summary>
+        /// Creates a search definition that returns documents similar to the input documents.
+        /// </summary>
+        /// <param name="like">
+        /// One or more documents that Atlas Search uses to extract representative terms for.
+        /// </param>
+        /// <returns>A more like this search definition.</returns>
+        public SearchDefinition<TDocument> MoreLikeThis(IEnumerable<BsonDocument> like) =>
+            new MoreLikeThisSearchDefinition<TDocument, BsonDocument>(like);
 
         /// <summary>
         /// Creates a search definition that returns documents similar to the input documents.
@@ -305,6 +315,16 @@ namespace MongoDB.Driver.Search
         /// <returns>A more like this search definition.</returns>
         public SearchDefinition<TDocument> MoreLikeThis(params TDocument[] like) =>
             MoreLikeThis((IEnumerable<TDocument>)like);
+
+        /// <summary>
+        /// Creates a search definition that returns documents similar to the input documents.
+        /// </summary>
+        /// <param name="like">
+        /// One or more documents that Atlas Search uses to extract representative terms for.
+        /// </param>
+        /// <returns>A more like this search definition.</returns>
+        public SearchDefinition<TDocument> MoreLikeThis(params BsonDocument[] like) =>
+            MoreLikeThis((IEnumerable<BsonDocument>)like);
 
         /// <summary>
         /// Creates a search definition that supports querying and scoring numeric and date values.

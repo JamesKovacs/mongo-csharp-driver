@@ -39,7 +39,6 @@ namespace MongoDB.Driver.Tests.Search
             var subject = CreateSubject();
 
             var query = subject
-                .Where(x => x.FirstName == "Alexandra")
                 .SearchMeta(Builders<Person>.Search.Text(x => x.FirstName, "Alex"));
 
             query.ToString().Should().EndWith("Aggregate([{ \"$searchMeta\" : { \"text\" : { \"query\" : \"Alex\", \"path\" : \"fn\" } } }])");

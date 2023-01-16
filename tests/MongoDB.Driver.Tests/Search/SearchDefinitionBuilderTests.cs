@@ -394,6 +394,20 @@ namespace MongoDB.Driver.Tests.Search
                         LastName = "Doe"
                     }),
                 "{ moreLikeThis: { like: [{ fn: 'John', ln: 'Doe' }, { fn: 'Jane', ln: 'Doe' }] } }");
+
+            AssertRendered(
+                subject.MoreLikeThis(
+                    new BsonDocument
+                    {
+                        { "fn", "John" },
+                        { "ln", "Doe" },
+                    },
+                    new BsonDocument
+                    {
+                        { "fn", "Jane" },
+                        { "ln", "Doe" },
+                    }),
+                "{ moreLikeThis: { like: [{ fn: 'John', ln: 'Doe' }, { fn: 'Jane', ln: 'Doe' }] } }");
         }
 
         [Fact]
