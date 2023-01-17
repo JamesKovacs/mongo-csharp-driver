@@ -14,6 +14,7 @@
 */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using MongoDB.Bson;
@@ -224,7 +225,7 @@ namespace MongoDB.Driver.Tests
 
             if (linqProvider == LinqProvider.V2)
             {
-                var result = subject.BucketAuto(
+                var result = subject.BucketAutoForLinq2(
                     e => e.Year,
                     buckets,
                     g => new { _id = default(AggregateBucketAutoResultId<int?>), Years = g.Select(e => e.Year), Count = g.Count() });
@@ -237,23 +238,18 @@ namespace MongoDB.Driver.Tests
             }
             else
             {
-                var result = subject.BucketAutoForLinq3(
+                var result = subject.BucketAuto(
                     e => (int?)e.Year,
                     buckets,
                     g => new { Key = g.Key, Years = g.Select(e => e.Year), Count = g.Count() });
 
-                var stages = result.Stages;
-                stages.Count().Should().Be(2);
-                var bucketAutoStage = stages[0];
-                var projectStage = stages[1];
-
+                var stage = result.Stages.Single();
                 var serializerRegistry = BsonSerializer.SerializerRegistry;
                 var exhibitSerializer = serializerRegistry.GetSerializer<Exhibit>();
-                var renderedBucketAutoStage = bucketAutoStage.Render(exhibitSerializer, serializerRegistry, linqProvider);
-                var renderedProjectStage = projectStage.Render(renderedBucketAutoStage.OutputSerializer, serializerRegistry, linqProvider);
-
-                renderedBucketAutoStage.Document.Should().Be("{ $bucketAuto : { groupBy : '$year', buckets : 4, output : { __agg0 : { $push : '$year' }, __agg1 : { $sum : 1 } } } }");
-                renderedProjectStage.Document.Should().Be("{ $project : { Key : '$_id', Years : '$__agg0', Count : '$__agg1', _id : 0 } }");
+                var renderedStage = stage.Render(exhibitSerializer, serializerRegistry, linqProvider);
+                renderedStage.Documents.Should().HaveCount(2);
+                renderedStage.Documents[0].Should().Be("{ $bucketAuto : { groupBy : '$year', buckets : 4, output : { __agg0 : { $push : '$year' }, __agg1 : { $sum : 1 } } } }");
+                renderedStage.Documents[1].Should().Be("{ $project : { Key : '$_id', Years : '$__agg0', Count : '$__agg1', _id : 0 } }");
             }
         }
 
@@ -271,7 +267,7 @@ namespace MongoDB.Driver.Tests
             if (linqProvider == LinqProvider.V2)
             {
                 var result = subject
-                    .BucketAuto(
+                    .BucketAutoForLinq2(
                         e => e.Year,
                         buckets,
                         g => new { _id = default(AggregateBucketAutoResultId<int?>), Years = g.Select(e => e.Year), Count = g.Count() })
@@ -288,7 +284,7 @@ namespace MongoDB.Driver.Tests
             else
             {
                 var result = subject
-                    .BucketAutoForLinq3(
+                    .BucketAuto(
                         e => (int?)e.Year,
                         buckets,
                         g => new { Key = g.Key, Years = g.Select(e => e.Year), Count = g.Count() })

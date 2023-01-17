@@ -212,17 +212,13 @@ namespace MongoDB.Driver.Tests
                     g => new { Key = g.Key, Years = g.Select(e => e.Year), Count = g.Count() },
                     options);
 
-                var stages = result.Stages;
-                var bucketStage = stages[0];
-                var projectStage = stages[1];
-
+                var stage = result.Stages.Single();
                 var serializerRegistry = BsonSerializer.SerializerRegistry;
                 var exhibitSerializer = serializerRegistry.GetSerializer<Exhibit>();
-                var renderedBucketStage = bucketStage.Render(exhibitSerializer, serializerRegistry, linqProvider);
-                var renderedProjectStage = projectStage.Render(renderedBucketStage.OutputSerializer, serializerRegistry, linqProvider);
-
-                renderedBucketStage.Document.Should().Be("{ $bucket : { groupBy : '$year', boundaries : [ 1900, 1920, 1950 ], default : 'Unknown', output : { __agg0 : {$push : '$year' }, __agg1 : { $sum : 1 } } } }");
-                renderedProjectStage.Document.Should().Be("{ $project : { Key : '$_id', Years : '$__agg0', Count : '$__agg1', _id : 0 } }");
+                var renderedStage = stage.Render(exhibitSerializer, serializerRegistry, linqProvider);
+                renderedStage.Documents.Should().HaveCount(2);
+                renderedStage.Documents[0].Should().Be("{ $bucket : { groupBy : '$year', boundaries : [ 1900, 1920, 1950 ], default : 'Unknown', output : { __agg0 : {$push : '$year' }, __agg1 : { $sum : 1 } } } }");
+                renderedStage.Documents[1].Should().Be("{ $project : { Key : '$_id', Years : '$__agg0', Count : '$__agg1', _id : 0 } }");
             }
         }
 

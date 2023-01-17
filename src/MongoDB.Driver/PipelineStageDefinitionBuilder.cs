@@ -23,7 +23,6 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Linq;
 using MongoDB.Driver.Linq.Linq3Implementation;
-using MongoDB.Driver.Linq.Linq3Implementation.Misc;
 using MongoDB.Driver.Linq.Linq3Implementation.Serializers;
 using MongoDB.Driver.Linq.Linq3Implementation.Translators;
 
@@ -155,7 +154,7 @@ namespace MongoDB.Driver
         }
 
         /// <summary>
-        /// Creates a $bucket stage (this method can only be used with LINQ2).
+        /// Creates a $bucket stage.
         /// </summary>
         /// <typeparam name="TInput">The type of the input documents.</typeparam>
         /// <typeparam name="TValue">The type of the values.</typeparam>
@@ -175,37 +174,7 @@ namespace MongoDB.Driver
         {
             Ensure.IsNotNull(groupBy, nameof(groupBy));
             Ensure.IsNotNull(output, nameof(output));
-            return Bucket(
-                new ExpressionAggregateExpressionDefinition<TInput, TValue>(groupBy, translationOptions),
-                boundaries,
-                new ExpressionBucketOutputProjection<TInput, TValue, TOutput>(x => default(TValue), output, translationOptions),
-                options);
-        }
-
-        /// <summary>
-        /// Creates a pair of $bucket/$project stages (this method can only be used with LINQ3).
-        /// </summary>
-        /// <typeparam name="TInput">The type of the input documents.</typeparam>
-        /// <typeparam name="TValue">The type of the values.</typeparam>
-        /// <typeparam name="TOutput">The type of the output documents.</typeparam>
-        /// <param name="groupBy">The group by expression.</param>
-        /// <param name="boundaries">The boundaries.</param>
-        /// <param name="output">The group projection.</param>
-        /// <param name="options">The options.</param>
-        /// <param name="translationOptions">The translation options.</param>
-        /// <returns>The stage.</returns>
-        /// <remarks>This method can only be used with LINQ3 but that can't be verified until Render is called.</remarks>
-        public static GroupingAndProjectStageDefinitions<TInput, IGrouping<TValue, TInput>, TOutput> BucketForLinq3<TInput, TValue, TOutput>(
-            Expression<Func<TInput, TValue>> groupBy,
-            IEnumerable<TValue> boundaries,
-            Expression<Func<IGrouping<TValue, TInput>, TOutput>> output,
-            AggregateBucketOptions<TValue> options = null,
-            ExpressionTranslationOptions translationOptions = null)
-        {
-            Ensure.IsNotNull(groupBy, nameof(groupBy));
-            Ensure.IsNotNull(output, nameof(output));
-
-            return GroupingAndProjectStageDefinitions.ForBucket(groupBy, boundaries, output, options);
+            return new BucketWithOutputExpressionStageDefinition<TInput, TValue, TOutput>(groupBy, boundaries, output, options, translationOptions);
         }
 
         /// <summary>
@@ -323,7 +292,7 @@ namespace MongoDB.Driver
         }
 
         /// <summary>
-        /// Creates a $bucketAuto stage (this method can only be used with LINQ2).
+        /// Creates a $bucketAuto stage (this method can only be used with LINQ3).
         /// </summary>
         /// <typeparam name="TInput">The type of the input documents.</typeparam>
         /// <typeparam name="TValue">The type of the output documents.</typeparam>
@@ -337,21 +306,17 @@ namespace MongoDB.Driver
         public static PipelineStageDefinition<TInput, TOutput> BucketAuto<TInput, TValue, TOutput>(
             Expression<Func<TInput, TValue>> groupBy,
             int buckets,
-            Expression<Func<IGrouping<TValue, TInput>, TOutput>> output,
+            Expression<Func<IGrouping<AggregateBucketAutoResultId<TValue>, TInput>, TOutput>> output,
             AggregateBucketAutoOptions options = null,
             ExpressionTranslationOptions translationOptions = null)
         {
             Ensure.IsNotNull(groupBy, nameof(groupBy));
             Ensure.IsNotNull(output, nameof(output));
-            return BucketAuto(
-                new ExpressionAggregateExpressionDefinition<TInput, TValue>(groupBy, translationOptions),
-                buckets,
-                new ExpressionBucketOutputProjection<TInput, TValue, TOutput>(x => default(TValue), output, translationOptions),
-                options);
+            return new BucketAutoWithOutputExpressionStageDefinition<TInput, TValue, TOutput>(groupBy, buckets, output, options);
         }
 
         /// <summary>
-        /// Creates a $bucketAuto stage (this method can only be used with LINQ3).
+        /// Creates a $bucketAuto stage (this method can only be used with LINQ2).
         /// </summary>
         /// <typeparam name="TInput">The type of the input documents.</typeparam>
         /// <typeparam name="TValue">The type of the output documents.</typeparam>
@@ -362,18 +327,20 @@ namespace MongoDB.Driver
         /// <param name="options">The options (optional).</param>
         /// <param name="translationOptions">The translation options.</param>
         /// <returns>The stage.</returns>
-        public static GroupingAndProjectStageDefinitions<TInput, IGrouping<AggregateBucketAutoResultId<TValue>, TInput>, TOutput> BucketAutoForLinq3<TInput, TValue, TOutput>(
+        public static PipelineStageDefinition<TInput, TOutput> BucketAutoForLinq2<TInput, TValue, TOutput>(
             Expression<Func<TInput, TValue>> groupBy,
             int buckets,
-            Expression<Func<IGrouping<AggregateBucketAutoResultId<TValue>, TInput>, TOutput>> output,
+            Expression<Func<IGrouping<TValue, TInput>, TOutput>> output, // the IGrouping for BucketAuto has been wrong all along, only fixing it for LINQ3
             AggregateBucketAutoOptions options = null,
             ExpressionTranslationOptions translationOptions = null)
         {
             Ensure.IsNotNull(groupBy, nameof(groupBy));
-            Ensure.IsGreaterThanZero(buckets, nameof(buckets));
             Ensure.IsNotNull(output, nameof(output));
-
-            return GroupingAndProjectStageDefinitions.ForBucketAuto(groupBy, buckets, output, options);
+            return BucketAuto(
+                new ExpressionAggregateExpressionDefinition<TInput, TValue>(groupBy, translationOptions),
+                buckets,
+                new ExpressionBucketOutputProjection<TInput, TValue, TOutput>(x => default(TValue), output, translationOptions),
+                options);
         }
 
         /// <summary>
@@ -919,29 +886,7 @@ namespace MongoDB.Driver
         {
             Ensure.IsNotNull(value, nameof(value));
             Ensure.IsNotNull(group, nameof(group));
-            return Group(new GroupExpressionProjection<TInput, TValue, TOutput>(value, group, translationOptions));
-        }
-
-        /// <summary>
-        /// Creates a $group stage (this method can only be used with LINQ3).
-        /// </summary>
-        /// <typeparam name="TInput">The type of the input documents.</typeparam>
-        /// <typeparam name="TValue">The type of the values.</typeparam>
-        /// <typeparam name="TOutput">The type of the output documents.</typeparam>
-        /// <param name="value">The value field.</param>
-        /// <param name="group">The group projection.</param>
-        /// <param name="translationOptions">The translation options.</param>
-        /// <returns>The stage.</returns>
-        /// <remarks>This method can only be used with LINQ3 but that can't be verified until Render is called.</remarks>
-        public static GroupingAndProjectStageDefinitions<TInput, IGrouping<TValue, TInput>, TOutput> GroupForLinq3<TInput, TValue, TOutput>(
-            Expression<Func<TInput, TValue>> value,
-            Expression<Func<IGrouping<TValue, TInput>, TOutput>> group,
-            ExpressionTranslationOptions translationOptions = null)
-        {
-            Ensure.IsNotNull(value, nameof(value));
-            Ensure.IsNotNull(group, nameof(group));
-
-            return GroupingAndProjectStageDefinitions.ForGroup(value, group);
+            return new GroupWithOutputExpressionStageDefinition<TInput, TValue, TOutput>(value, group);
         }
 
         /// <summary>
