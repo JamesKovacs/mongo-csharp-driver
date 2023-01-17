@@ -61,8 +61,8 @@ namespace MongoDB.Driver.Search
         public SearchHighlightOptions(
             Expression<Func<TDocument, object>> path,
             int? maxCharsToExamine = null,
-            int? maxNumPassages = null) :
-            this(new ExpressionFieldDefinition<TDocument>(path), maxCharsToExamine, maxNumPassages)
+            int? maxNumPassages = null)
+                : this(new ExpressionFieldDefinition<TDocument>(path), maxCharsToExamine, maxNumPassages)
         {
         }
 

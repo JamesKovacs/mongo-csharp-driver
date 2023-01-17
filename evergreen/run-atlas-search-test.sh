@@ -14,4 +14,4 @@ echo "Running Atlas Search driver tests"
 
 export ATLAS_SEARCH_TESTS_ENABLED=true
 
-powershell.exe .\\build.ps1 --target TestAtlasSearch
+powershell.exe .\\build.ps1 --target=TestAtlasSearch

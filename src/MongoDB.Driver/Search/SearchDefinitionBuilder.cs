@@ -306,7 +306,7 @@ namespace MongoDB.Driver.Search
         /// </param>
         /// <returns>A more like this search definition.</returns>
         public SearchDefinition<TDocument> MoreLikeThis<TLike>(params TLike[] like) =>
-            new MoreLikeThisSearchDefinition<TDocument, TLike>(like);
+            MoreLikeThis((IEnumerable<TLike>)like);
 
         /// <summary>
         /// Creates a search definition that supports querying and scoring numeric and date values.
