@@ -374,6 +374,12 @@ namespace MongoDB.Driver.Tests.Search
                     new BsonDocument("x", "foo"),
                     new BsonDocument("x", "bar")),
                 "{ moreLikeThis: { like: [{ x: 'foo' }, { x: 'bar' }] } }");
+
+            AssertRendered(
+              subject.MoreLikeThis(
+                  new SimplePerson { FirstName = "John", LastName = "Doe" },
+                  new SimplePerson { FirstName = "Jane", LastName = "Doe" }),
+             "{ moreLikeThis: { like: [{ fn: 'John', ln: 'Doe' }, { fn: 'Jane', ln: 'Doe' }] } }");
         }
 
         [Fact]
@@ -383,31 +389,29 @@ namespace MongoDB.Driver.Tests.Search
 
             AssertRendered(
                 subject.MoreLikeThis(
-                    new SimplePerson
-                    {
-                        FirstName = "John",
-                        LastName = "Doe"
-                    },
-                    new SimplePerson
-                    {
-                        FirstName = "Jane",
-                        LastName = "Doe"
-                    }),
-                "{ moreLikeThis: { like: [{ fn: 'John', ln: 'Doe' }, { fn: 'Jane', ln: 'Doe' }] } }");
+                    new SimplestPerson { FirstName = "John" },
+                    new SimplestPerson { FirstName = "Jane" }),
+                "{ moreLikeThis: { like: [{ fn: 'John' }, { fn: 'Jane' }] } }");
 
             AssertRendered(
                 subject.MoreLikeThis(
-                    new BsonDocument
-                    {
+                    new SimplePerson { FirstName = "John", LastName = "Doe" },
+                    new SimplePerson { FirstName = "Jane", LastName = "Doe" }),
+                "{ moreLikeThis: { like: [{ fn: 'John', ln: 'Doe' }, { fn: 'Jane', ln: 'Doe' }] } }");
+
+            AssertRendered(
+               subject.MoreLikeThis(
+                   new BsonDocument
+                   {
                         { "fn", "John" },
                         { "ln", "Doe" },
-                    },
-                    new BsonDocument
-                    {
+                   },
+                   new BsonDocument
+                   {
                         { "fn", "Jane" },
                         { "ln", "Doe" },
-                    }),
-                "{ moreLikeThis: { like: [{ fn: 'John', ln: 'Doe' }, { fn: 'Jane', ln: 'Doe' }] } }");
+                   }),
+               "{ moreLikeThis: { like: [{ fn: 'John', ln: 'Doe' }, { fn: 'Jane', ln: 'Doe' }] } }");
         }
 
         [Fact]
@@ -948,6 +952,12 @@ namespace MongoDB.Driver.Tests.Search
 
             [BsonElement("ln")]
             public string LastName { get; set; }
+        }
+
+        private class SimplestPerson
+        {
+            [BsonElement("fn")]
+            public string FirstName { get; set; }
         }
     }
 }

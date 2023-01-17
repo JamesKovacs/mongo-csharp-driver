@@ -176,29 +176,26 @@ namespace MongoDB.Driver.Search
             new(_area.Render());
     }
 
-    internal sealed class MoreLikeThisSearchDefinition<TDocumentCollection, TDocumentLike> : OperatorSearchDefinition<TDocumentCollection>
+    internal sealed class MoreLikeThisSearchDefinition<TDocument, TLike> : OperatorSearchDefinition<TDocument>
     {
-        private readonly TDocumentLike[] _like;
+        private readonly TLike[] _like;
 
-        public MoreLikeThisSearchDefinition(IEnumerable<TDocumentLike> like)
+        public MoreLikeThisSearchDefinition(IEnumerable<TLike> like)
             : base(OperatorType.MoreLikeThis)
         {
-            if (typeof(TDocumentLike) != typeof(BsonDocument) &&
-                typeof(TDocumentLike) != typeof(TDocumentCollection))
-            {
-                throw new ArgumentOutOfRangeException($"Only {nameof(BsonDocument)} and {nameof(TDocumentCollection)} are supported for {nameof(TDocumentLike)} type.");
-            }
-
             _like = Ensure.IsNotNull(like, nameof(like)).ToArray();
         }
 
-        private protected override BsonDocument RenderArguments(IBsonSerializer<TDocumentCollection> documentSerializer, IBsonSerializerRegistry serializerRegistry)
+        private protected override BsonDocument RenderArguments(IBsonSerializer<TDocument> documentSerializer, IBsonSerializerRegistry serializerRegistry)
         {
-            var likeArray = typeof(TDocumentLike) == typeof(BsonDocument) ?
-                new BsonArray(_like.OfType<BsonDocument>()) :
-                new BsonArray(_like.OfType<TDocumentCollection>().Select(e => e.ToBsonDocument(documentSerializer)));
+            var likeSerializer = typeof(TLike) switch
+            {
+                var t when t == typeof(BsonDocument) => null,
+                var t when t == typeof(TDocument) => (IBsonSerializer<TLike>)documentSerializer,
+                _ => serializerRegistry.GetSerializer<TLike>()
+            };
 
-            return new("like", likeArray);
+            return new("like", new BsonArray(_like.Select(document => document.ToBsonDocument(likeSerializer))));
         }
     }
 
