@@ -194,7 +194,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Optimizers
                     AstGroupStage groupStage => AstStage.Group(groupStage.Id, accumulators),
                     AstBucketStage bucketStage => AstStage.Bucket(bucketStage.GroupBy, bucketStage.Boundaries, bucketStage.Default, accumulators),
                     AstBucketAutoStage bucketAutoStage => AstStage.BucketAuto(bucketAutoStage.GroupBy, bucketAutoStage.Buckets, bucketAutoStage.Granularity, accumulators),
-                    _ => throw new Exception($"Unexpected groupintStage node type: {groupingStage.NodeType}.")
+                    _ => throw new Exception($"Unexpected {nameof(groupingStage)} node type: {groupingStage.NodeType}.")
                 };
             }
         }
