@@ -141,8 +141,8 @@ namespace MongoDB.Driver.Search
 
         public GeoShapeSearchDefinition(
             SearchPathDefinition<TDocument> path,
-            GeoJsonGeometry<TCoordinates> geometry,
             GeoShapeRelation relation,
+            GeoJsonGeometry<TCoordinates> geometry,
             SearchScoreDefinition<TDocument> score)
                 : base(OperatorType.GeoShape, path, score)
         {

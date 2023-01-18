@@ -185,11 +185,11 @@ namespace MongoDB.Driver.Search
         /// <returns>A geo shape search definition.</returns>
         public SearchDefinition<TDocument> GeoShape<TCoordinates>(
             SearchPathDefinition<TDocument> path,
-            GeoJsonGeometry<TCoordinates> geometry,
             GeoShapeRelation relation,
+            GeoJsonGeometry<TCoordinates> geometry,
             SearchScoreDefinition<TDocument> score = null)
             where TCoordinates : GeoJsonCoordinates =>
-                new GeoShapeSearchDefinition<TDocument, TCoordinates>(path, geometry, relation, score);
+                new GeoShapeSearchDefinition<TDocument, TCoordinates>(path, relation, geometry, score);
 
         /// <summary>
         /// Creates a search definition that queries for shapes with a given geometry.
@@ -208,14 +208,14 @@ namespace MongoDB.Driver.Search
         /// <returns>A geo shape search definition.</returns>
         public SearchDefinition<TDocument> GeoShape<TCoordinates, TField>(
             Expression<Func<TDocument, TField>> path,
-            GeoJsonGeometry<TCoordinates> geometry,
             GeoShapeRelation relation,
+            GeoJsonGeometry<TCoordinates> geometry,
             SearchScoreDefinition<TDocument> score = null)
             where TCoordinates : GeoJsonCoordinates =>
                 GeoShape(
                     new ExpressionFieldDefinition<TDocument>(path),
-                    geometry,
                     relation,
+                    geometry,
                     score);
 
         /// <summary>

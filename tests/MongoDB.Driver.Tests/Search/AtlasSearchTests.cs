@@ -167,8 +167,8 @@ namespace MongoDB.Driver.Tests.Search
             var results = GeoSearch(
                 GeoBuilders.Search.GeoShape(
                     x => x.Address.Location,
-                    __testPolygon,
-                    GeoShapeRelation.Intersects));
+                    GeoShapeRelation.Intersects,
+                    __testPolygon));
 
             results.Count.Should().Be(25);
             results.First().Name.Should().Be("Ribeira Charming Duplex");

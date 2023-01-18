@@ -297,8 +297,8 @@ namespace MongoDB.Driver.Tests.Search
             AssertRendered(
                 subject.GeoShape(
                     "location",
-                    __testPolygon,
-                    GeoShapeRelation.Disjoint),
+                    GeoShapeRelation.Disjoint,
+                    __testPolygon),
                 "{ geoShape: { geometry: { type: 'Polygon', coordinates: [[[-161.323242, 22.512557], [-152.446289, 22.065278], [-156.09375, 17.811456], [-161.323242, 22.512557]]] }, path: 'location', relation: 'disjoint' } }");
         }
 
@@ -310,14 +310,14 @@ namespace MongoDB.Driver.Tests.Search
             AssertRendered(
                 subject.GeoShape(
                     x => x.Location,
-                    __testPolygon,
-                    GeoShapeRelation.Disjoint),
+                    GeoShapeRelation.Disjoint,
+                    __testPolygon),
                 "{ geoShape: { geometry: { type: 'Polygon', coordinates: [[[-161.323242, 22.512557], [-152.446289, 22.065278], [-156.09375, 17.811456], [-161.323242, 22.512557]]] }, path: 'location', relation: 'disjoint' } }");
             AssertRendered(
                 subject.GeoShape(
                     "Location",
-                    __testPolygon,
-                    GeoShapeRelation.Disjoint),
+                    GeoShapeRelation.Disjoint,
+                    __testPolygon),
                 "{ geoShape: { geometry: { type: 'Polygon', coordinates: [[[-161.323242, 22.512557], [-152.446289, 22.065278], [-156.09375, 17.811456], [-161.323242, 22.512557]]] }, path: 'location', relation: 'disjoint' } }");
         }
 
