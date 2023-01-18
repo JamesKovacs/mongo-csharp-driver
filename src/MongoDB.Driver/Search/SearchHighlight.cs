@@ -24,23 +24,37 @@ namespace MongoDB.Driver.Search
     public sealed class SearchHighlight
     {
         /// <summary>
-        /// Gets or sets the document field which returned a match.
+        /// Initializes a new instance of the <see cref="SearchHighlight"/> class.
+        /// </summary>
+        /// <param name="path">document field which returned a match.</param>
+        /// <param name="score">Score assigned to this result.</param>
+        /// <param name="texts">Objects containing the matching text and the surrounding text.</param>
+        public SearchHighlight(string path, double score, SearchHighlightText[] texts)
+        {
+            Path = path;
+            Score = score;
+            Texts = texts;
+        }
+
+        /// <summary>
+        /// Gets the document field which returned a match.
         /// </summary>
         [BsonElement("path")]
-        public string Path { get; private set; }
+        public string Path { get; }
 
         /// <summary>
-        /// Gets or sets one or more objects containing the matching text and the surrounding text
-        /// (if any).
-        /// </summary>
-        [BsonElement("texts")]
-        public SearchHighlightText[] Texts { get; private set; }
-
-        /// <summary>
-        /// Gets or sets the score assigned to this result.
+        /// Gets the score assigned to this result.
         /// </summary>
         [BsonElement("score")]
-        public double Score { get; private set; }
+        public double Score { get; }
+
+        /// <summary>
+        /// Gets one or more objects containing the matching text and the surrounding text
+        /// (if any).
+        /// </summary>
+        [BsonDefaultValue(null)]
+        [BsonElement("texts")]
+        public SearchHighlightText[] Texts { get; }
     }
 
     /// <summary>
@@ -49,17 +63,28 @@ namespace MongoDB.Driver.Search
     public sealed class SearchHighlightText
     {
         /// <summary>
-        /// Gets or sets the text from the field which returned a match.
+        /// Initializes a new instance of the <see cref="SearchHighlightText"/> class.
         /// </summary>
-        [BsonElement("value")]
-        public string Value { get; private set; }
+        /// <param name="type">Type of search highlight.</param>
+        /// <param name="value">Text from the field which returned a match.</param>
+        public SearchHighlightText(HighlightTextType type, string value)
+        {
+            Type = type;
+            Value = value;
+        }
 
         /// <summary>
         /// Gets or sets the type of text, matching or surrounding.
         /// </summary>
         [BsonElement("type")]
         [BsonRepresentation(BsonType.String)]
-        public HighlightTextType Type { get; private set; }
+        public HighlightTextType Type { get; }
+
+        /// <summary>
+        /// Gets the text from the field which returned a match.
+        /// </summary>
+        [BsonElement("value")]
+        public string Value { get; }
     }
 
     /// <summary>

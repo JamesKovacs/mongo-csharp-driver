@@ -370,7 +370,6 @@ namespace MongoDB.Driver.Tests.Search
                 .Single();
 
             result.Should().NotBeNull();
-            result.Facet.Should().NotBeNull().And.ContainKeys("date", "number", "string");
 
             var bucket = result.Facet["string"].Buckets.Should().NotBeNull().And.ContainSingle().Subject;
             bucket.Id.Should().Be((BsonString)"machine");

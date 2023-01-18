@@ -25,16 +25,29 @@ namespace MongoDB.Driver.Search
     public sealed class SearchMetaCountResult
     {
         /// <summary>
-        /// Gets or sets the lower bound for this result set.
+        /// Initializes a new instance of the <see cref="SearchMetaCountResult"/> class.
         /// </summary>
-        [BsonElement("lowerBound")]
-        public long? LowerBound { get; private set; }
+        /// <param name="lowerBound">Lower bound for this result set.</param>
+        /// <param name="total">Total for this result set.</param>
+        public SearchMetaCountResult(long? lowerBound, long? total)
+        {
+            LowerBound = lowerBound;
+            Total = total;
+        }
 
         /// <summary>
-        /// Gets or sets the total for this result set.
+        /// Gets the lower bound for this result set.
         /// </summary>
+        [BsonDefaultValue(null)]
+        [BsonElement("lowerBound")]
+        public long? LowerBound { get; }
+
+        /// <summary>
+        /// Gets the total for this result set.
+        /// </summary>
+        [BsonDefaultValue(null)]
         [BsonElement("total")]
-        public long? Total { get; private set; }
+        public long? Total { get; }
     }
 
     /// <summary>
@@ -43,16 +56,27 @@ namespace MongoDB.Driver.Search
     public sealed class SearchMetaFacetBucketResult
     {
         /// <summary>
-        /// Gets or sets the count of documents in this facet bucket.
+        /// Initializes a new instance of the <see cref="SearchMetaFacetBucketResult"/> class.
         /// </summary>
-        [BsonElement("count")]
-        public long Count { get; private set; }
+        /// <param name="count">count of documents in this facet bucket.</param>
+        /// <param name="id">Unique identifier that identifies this facet bucket.</param>
+        public SearchMetaFacetBucketResult(long count, BsonValue id)
+        {
+            Count = count;
+            Id = id;
+        }
 
         /// <summary>
-        /// Gets or sets the unique identifier that identifies this facet bucket.
+        /// Gets the count of documents in this facet bucket.
+        /// </summary>
+        [BsonElement("count")]
+        public long Count { get; }
+
+        /// <summary>
+        /// Gets the unique identifier that identifies this facet bucket.
         /// </summary>
         [BsonId]
-        public BsonValue Id { get; private set; }
+        public BsonValue Id { get; }
     }
 
     /// <summary>
@@ -61,10 +85,19 @@ namespace MongoDB.Driver.Search
     public sealed class SearchMetaFacetResult
     {
         /// <summary>
-        /// Gets or sets a list of bucket result sets.
+        /// Initializes a new instance of the <see cref="SearchMetaFacetResult"/> class.
+        /// </summary>
+        /// <param name="buckets">An array of bucket result sets.</param>
+        public SearchMetaFacetResult(SearchMetaFacetBucketResult[] buckets)
+        {
+            Buckets = buckets;
+        }
+
+        /// <summary>
+        /// Gets an array of bucket result sets.
         /// </summary>
         [BsonElement("buckets")]
-        public List<SearchMetaFacetBucketResult> Buckets { get; private set; }
+        public SearchMetaFacetBucketResult[] Buckets { get; }
     }
 
     /// <summary>
@@ -73,15 +106,28 @@ namespace MongoDB.Driver.Search
     public sealed class SearchMetaResult
     {
         /// <summary>
-        /// Gets or sets the count result set.
+        /// Initializes a new instance of the <see cref="SearchMetaResult"/> class.
         /// </summary>
-        [BsonElement("count")]
-        public SearchMetaCountResult Count { get; private set; }
+        /// <param name="count">Count result set.</param>
+        /// <param name="facet">Facet result sets.</param>
+        public SearchMetaResult(SearchMetaCountResult count, IReadOnlyDictionary<string, SearchMetaFacetResult> facet)
+        {
+            Count = count;
+            Facet = facet;
+        }
 
         /// <summary>
-        /// Gets or sets the facet result sets.
+        /// Gets the count result set.
         /// </summary>
+        [BsonDefaultValue(null)]
+        [BsonElement("count")]
+        public SearchMetaCountResult Count { get; }
+
+        /// <summary>
+        /// Gets the facet result sets.
+        /// </summary>
+        [BsonDefaultValue(null)]
         [BsonElement("facet")]
-        public Dictionary<string, SearchMetaFacetResult> Facet { get; private set; }
+        public IReadOnlyDictionary<string, SearchMetaFacetResult> Facet { get; }
     }
 }
