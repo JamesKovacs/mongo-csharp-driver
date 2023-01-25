@@ -18,13 +18,14 @@ using System.Collections.Generic;
 using System.Linq;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization.Conventions;
+using MongoDB.Shared;
 
 namespace MongoDB.Bson.Serialization.Serializers
 {
     /// <summary>
     /// Represents a serializer for objects.
     /// </summary>
-    public class ObjectSerializer : ClassSerializerBase<object>
+    public sealed class ObjectSerializer : ClassSerializerBase<object>
     {
         #region static
         // private static fields
@@ -215,6 +216,20 @@ namespace MongoDB.Bson.Serialization.Serializers
                     throw new FormatException(message);
             }
         }
+
+        /// <inheritdoc/>
+        public override bool Equals(object obj) =>
+            obj is ObjectSerializer other &&
+            _allowedTypes.Equals(other._allowedTypes) &&
+            _discriminatorConvention.Equals(other._discriminatorConvention) &&
+            _guidRepresentation == other._guidRepresentation;
+
+        /// <inheritdoc/>
+        public override int GetHashCode() =>
+            new Hasher()
+            .Hash(_discriminatorConvention)
+            .Hash(_guidRepresentation)
+            .GetHashCode();
 
         /// <summary>
         /// Serializes a value.
@@ -446,6 +461,8 @@ namespace MongoDB.Bson.Serialization.Serializers
                 typeof(System.Collections.Hashtable),
                 typeof(System.Collections.Queue),
                 typeof(System.Collections.SortedList),
+                typeof(System.Collections.Specialized.ListDictionary),
+                typeof(System.Collections.Specialized.OrderedDictionary),
                 typeof(System.Collections.Stack),
                 typeof(System.DateTime),
                 typeof(System.DateTimeOffset),
@@ -470,13 +487,15 @@ namespace MongoDB.Bson.Serialization.Serializers
                 typeof(System.UInt16),
                 typeof(System.UInt32),
                 typeof(System.UInt64),
-                typeof(System.Uri)
+                typeof(System.Uri),
+                typeof(System.Version)
             };
 
             private readonly static HashSet<Type> __allowedGenericTypes = new HashSet<Type>
             {
                 typeof(System.Collections.Generic.Dictionary<,>),
                 typeof(System.Collections.Generic.HashSet<>),
+                typeof(System.Collections.Generic.KeyValuePair<,>),
                 typeof(System.Collections.Generic.LinkedList<>),
                 typeof(System.Collections.Generic.List<>),
                 typeof(System.Collections.Generic.Queue<>),
@@ -485,8 +504,11 @@ namespace MongoDB.Bson.Serialization.Serializers
                 typeof(System.Collections.Generic.SortedSet<>),
                 typeof(System.Collections.Generic.Stack<>),
                 typeof(System.Collections.ObjectModel.Collection<>),
+                typeof(System.Collections.ObjectModel.KeyedCollection<,>),
+                typeof(System.Collections.ObjectModel.ObservableCollection<>),
                 typeof(System.Collections.ObjectModel.ReadOnlyCollection<>),
                 typeof(System.Collections.ObjectModel.ReadOnlyDictionary<,>),
+                typeof(System.Collections.ObjectModel.ReadOnlyObservableCollection<>),
                 typeof(System.Nullable<>),
                 typeof(System.Tuple<>),
                 typeof(System.Tuple<,>),
@@ -495,6 +517,7 @@ namespace MongoDB.Bson.Serialization.Serializers
                 typeof(System.Tuple<,,,,>),
                 typeof(System.Tuple<,,,,,>),
                 typeof(System.Tuple<,,,,,,>),
+                typeof(System.Tuple<,,,,,,,>),
                 typeof(System.ValueTuple<,,,,,,,>),
                 typeof(System.ValueTuple<>),
                 typeof(System.ValueTuple<,>),
