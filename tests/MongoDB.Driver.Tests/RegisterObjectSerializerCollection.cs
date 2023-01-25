@@ -18,7 +18,7 @@ using Xunit;
 
 namespace MongoDB.Driver.Tests
 {
-    [Collection(RegisterObjectSerializerFixture.CollectionName)]
+    [CollectionDefinition(RegisterObjectSerializerFixture.CollectionName)]
     public sealed class RegisterObjectSerializerCollection : ICollectionFixture<RegisterObjectSerializerFixture>
     {
     }
