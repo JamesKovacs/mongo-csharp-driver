@@ -417,7 +417,7 @@ namespace MongoDB.Driver.Tests.Linq.Linq2ImplementationTestsOnLinq3.Translators
 
             AssertUsingCustomCollection(
                 c => !c.M.Any(a => !x.Contains(a)),
-                "{ M : { '$not' : { '$elemMatch' : { '$nin' : [1, 2] } } } } ");
+                "{ $nor : [{ M : { '$elemMatch' : { '$nin' : [1, 2] } } }] }");
         }
 
         [Fact]
@@ -462,7 +462,7 @@ namespace MongoDB.Driver.Tests.Linq.Linq2ImplementationTestsOnLinq3.Translators
             Assert(
                 x => x.G.Any(g => !g.S.Any(s => s.D == "Delilah")),
                 2,
-                "{ G : { $elemMatch : { S : { $not : { $elemMatch : { \"D\" : \"Delilah\" } } } } } }");
+                "{ G : { $elemMatch : { $nor : [{ S : { $elemMatch : { \"D\" : \"Delilah\" } } }] } } }");
         }
 
         [Fact]

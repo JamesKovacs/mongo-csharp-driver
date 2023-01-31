@@ -109,7 +109,7 @@ namespace MongoDB.Driver.Tests.Linq.Linq2ImplementationTestsOnLinq3.Translators
         [Fact]
         public void TestWhereAContains2Not()
         {
-            Assert<C>(c => !c.A.Contains(2), 4, "{ a : { $not : { $elemMatch : { $eq : 2 } } } }");
+            Assert<C>(c => !c.A.Contains(2), 4, "{ $nor : [{ a : 2 }] }");
         }
 
         [Fact]
@@ -303,7 +303,7 @@ namespace MongoDB.Driver.Tests.Linq.Linq2ImplementationTestsOnLinq3.Translators
         [Fact]
         public void TestWhereEAContainsBNot()
         {
-            Assert<C>(c => !c.EA.Contains(E.B), 4, "{ ea : { $not : { $elemMatch : { $eq : 2 } } } }");
+            Assert<C>(c => !c.EA.Contains(E.B), 4, "{ $nor : [{ ea : 2 }] }");
         }
 
         [Fact]
@@ -393,7 +393,7 @@ namespace MongoDB.Driver.Tests.Linq.Linq2ImplementationTestsOnLinq3.Translators
         [Fact]
         public void TestWhereLContains2Not()
         {
-            Assert<C>(c => !c.L.Contains(2), 4, "{ l : { $not : { $elemMatch : { $eq : 2 } } } }");
+            Assert<C>(c => !c.L.Contains(2), 4, "{ $nor : [{ l : 2 }] }");
         }
 
         [Fact]
