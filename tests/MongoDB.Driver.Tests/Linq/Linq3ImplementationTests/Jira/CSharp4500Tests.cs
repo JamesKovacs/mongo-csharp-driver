@@ -81,18 +81,7 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Jira
                 .Where(x => !x.List.Any(xx => xx.ToLower().Contains(input.ToLower())));
 
             var stages = Translate(collection, queryable);
-            if (linqProvider == LinqProvider.V2)
-            {
-                // this looked like it might be a bug but consulting with the server team this is actually correct
-                // $not works in an unusual way with array fields
-                AssertStages(stages, "{ $match : { List : { $not : /b/is } } }");
-            }
-            else
-            {
-                // this is not exactly the same as what LINQ2 translates to but I believe it to be equally correct
-                // I haven't found a good way to generate the same MQL as LINQ2
-                AssertStages(stages, "{ $match : { $nor : [{ List : /b/is }] } }");
-            }
+            AssertStages(stages, "{ $match : { List : { $not : /b/is } } }");
 
             var results = queryable.ToList();
             results.Select(x => x.Id).Should().Equal(2);

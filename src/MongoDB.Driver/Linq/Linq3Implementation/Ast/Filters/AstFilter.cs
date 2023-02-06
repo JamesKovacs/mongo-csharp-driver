@@ -169,10 +169,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Ast.Filters
                     return new AstFieldOperationFilter(fieldOperationFilter.Field, new AstInFilterOperation(ninFilterOperation.Values));
                 }
 
-                if (fieldOperationFilter.Operation is not AstElemMatchFilterOperation)
-                {
-                    return new AstFieldOperationFilter(fieldOperationFilter.Field, new AstNotFilterOperation(fieldOperationFilter.Operation));
-                }
+                return new AstFieldOperationFilter(fieldOperationFilter.Field, new AstNotFilterOperation(fieldOperationFilter.Operation));
             }
 
             if (filter is AstNorFilter norFilter && norFilter.Filters.Count == 1)

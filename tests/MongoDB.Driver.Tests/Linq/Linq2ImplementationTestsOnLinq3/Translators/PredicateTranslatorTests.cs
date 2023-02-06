@@ -24,6 +24,7 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using MongoDB.Driver.Core.TestHelpers.XunitExtensions;
 using MongoDB.Driver.Linq;
+using MongoDB.Driver.Linq.Linq3Implementation.Ast.Optimizers;
 using MongoDB.Driver.Linq.Linq3Implementation.Misc;
 using MongoDB.Driver.Linq.Linq3Implementation.Translators;
 using MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToFilterTranslators;
@@ -417,7 +418,7 @@ namespace MongoDB.Driver.Tests.Linq.Linq2ImplementationTestsOnLinq3.Translators
 
             AssertUsingCustomCollection(
                 c => !c.M.Any(a => !x.Contains(a)),
-                "{ $nor : [{ M : { '$elemMatch' : { '$nin' : [1, 2] } } }] }");
+                "{ M : { '$not' : { '$elemMatch' : { '$nin' : [1, 2] } } } } ");
         }
 
         [Fact]
@@ -462,7 +463,7 @@ namespace MongoDB.Driver.Tests.Linq.Linq2ImplementationTestsOnLinq3.Translators
             Assert(
                 x => x.G.Any(g => !g.S.Any(s => s.D == "Delilah")),
                 2,
-                "{ G : { $elemMatch : { $nor : [{ S : { $elemMatch : { \"D\" : \"Delilah\" } } }] } } }");
+                "{ G : { $elemMatch : { S : { $not : { $elemMatch : { \"D\" : \"Delilah\" } } } } } }");
         }
 
         [Fact]
@@ -1162,7 +1163,8 @@ namespace MongoDB.Driver.Tests.Linq.Linq2ImplementationTestsOnLinq3.Translators
             var symbol = context.CreateSymbol(parameter, serializer, isCurrent: true);
             context = context.WithSymbol(symbol);
             var filterAst = ExpressionToFilterTranslator.Translate(context, filter.Body);
-            var filterDocument = (BsonDocument)filterAst.Render();
+            var simplifiedFilterAst = AstSimplifier.Simplify(filterAst);
+            var filterDocument = (BsonDocument)simplifiedFilterAst.Render();
             filterDocument.Should().Be(expectedFilter);
 
             var list = collection.FindSync(filterDocument).ToList();
