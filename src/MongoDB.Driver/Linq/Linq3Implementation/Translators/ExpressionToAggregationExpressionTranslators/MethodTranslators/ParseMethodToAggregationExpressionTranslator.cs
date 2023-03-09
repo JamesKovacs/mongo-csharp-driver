@@ -31,6 +31,11 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 return TranslateDateTimeParse(context, expression);
             }
 
+            if (method.Is(DateTimeMethod.ParseExact))
+            {
+                return TranslateDateTimeParseExact(context, expression);
+            }
+
             throw new ExpressionNotSupportedException(expression);
         }
 
@@ -39,6 +44,16 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             var stringExpression = expression.Arguments[0];
             var stringTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, stringExpression);
             var ast = AstExpression.DateFromString(stringTranslation.Ast);
+            return new AggregationExpression(expression, ast, new DateTimeSerializer());
+        }
+
+        private static AggregationExpression TranslateDateTimeParseExact(TranslationContext context, MethodCallExpression expression)
+        {
+            var stringExpression = expression.Arguments[0];
+            var stringTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, stringExpression);
+            var formatExpression = expression.Arguments[1];
+            var formatTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, formatExpression);
+            var ast = AstExpression.DateFromString(stringTranslation.Ast, formatTranslation.Ast);
             return new AggregationExpression(expression, ast, new DateTimeSerializer());
         }
     }

@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using FluentAssertions;
@@ -965,6 +966,21 @@ namespace MongoDB.Driver.Tests.Linq.Linq2ImplementationTestsOnLinq3.Translators
 
             result.Value.Result.Should().Be(new DateTime(2017, 2, 8, 12, 10, 40, 787, DateTimeKind.Utc));
         }
+
+        [Fact]
+        public void Should_translate_DateTime_parseexact()
+        {
+            RequireServer.Check();
+
+            const string format = "%Y-%m-%dT%H:%M:%S.%L";
+
+            var result = Project(x => new { Result = DateTime.ParseExact(x.V, format, CultureInfo.InvariantCulture) });
+
+            result.Projection.Should().Be("{ Result: { \"$dateFromString\": { \"dateString\": \"$V\", \"format\": \"" + format + "\" } }, _id: 0 }");
+
+            result.Value.Result.Should().Be(new DateTime(2017, 2, 8, 12, 10, 40, 787, DateTimeKind.Utc));
+        }
+
 
         [Fact]
         public void Should_translate_pow()

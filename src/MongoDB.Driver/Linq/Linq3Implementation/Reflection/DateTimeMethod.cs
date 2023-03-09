@@ -45,6 +45,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         private static readonly MethodInfo __addYears;
         private static readonly MethodInfo __addYearsWithTimezone;
         private static readonly MethodInfo __parse;
+        private static readonly MethodInfo __parseExact;
         private static readonly MethodInfo __subtractWithDateTime;
         private static readonly MethodInfo __subtractWithDateTimeAndTimezone;
         private static readonly MethodInfo __subtractWithDateTimeAndUnit;
@@ -88,6 +89,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
             __addYears = ReflectionInfo.Method((DateTime @this, int value) => @this.AddYears(value));
             __addYearsWithTimezone = ReflectionInfo.Method((DateTime @this, int value, string timezone) => @this.AddYears(value, timezone));
             __parse = ReflectionInfo.Method((string s) => DateTime.Parse(s));
+            __parseExact = ReflectionInfo.Method((string s, string format, IFormatProvider provider) => DateTime.ParseExact(s, format, provider));
             __subtractWithDateTime = ReflectionInfo.Method((DateTime @this, DateTime value) => @this.Subtract(value));
             __subtractWithDateTimeAndTimezone = ReflectionInfo.Method((DateTime @this, DateTime value, string timezone) => @this.Subtract(value, timezone));
             __subtractWithDateTimeAndUnit = ReflectionInfo.Method((DateTime @this, DateTime value, DateTimeUnit unit) => @this.Subtract(value, unit));
@@ -130,6 +132,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
         public static MethodInfo AddYears => __addYears;
         public static MethodInfo AddYearsWithTimezone => __addYearsWithTimezone;
         public static MethodInfo Parse => __parse;
+        public static MethodInfo ParseExact => __parseExact;
         public static MethodInfo SubtractWithDateTime => __subtractWithDateTime;
         public static MethodInfo SubtractWithDateTimeAndTimezone => __subtractWithDateTimeAndTimezone;
         public static MethodInfo SubtractWithDateTimeAndUnit => __subtractWithDateTimeAndUnit;
