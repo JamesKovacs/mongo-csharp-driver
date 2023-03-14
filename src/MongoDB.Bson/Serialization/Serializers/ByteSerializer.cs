@@ -25,7 +25,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for Bytes.
     /// </summary>
-    public class ByteSerializer : StructSerializerBase<byte>, IRepresentationConfigurable<ByteSerializer>
+    public class ByteSerializer : StructSerializerBase<byte>, IRepresentationConfigurable<ByteSerializer>, IBsonNumericSerializer
     {
         // private fields
         private readonly BsonType _representation;
@@ -62,6 +62,9 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // public properties
+        /// <inheritdoc/>
+        public bool HasNumericRepresentation => _representation.IsNumeric();
+
         /// <summary>
         /// Gets the representation.
         /// </summary>

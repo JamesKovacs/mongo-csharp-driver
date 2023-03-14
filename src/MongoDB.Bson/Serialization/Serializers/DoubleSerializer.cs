@@ -22,7 +22,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for Doubles.
     /// </summary>
-    public class DoubleSerializer : StructSerializerBase<double>, IRepresentationConfigurable<DoubleSerializer>, IRepresentationConverterConfigurable<DoubleSerializer>
+    public class DoubleSerializer : StructSerializerBase<double>, IRepresentationConfigurable<DoubleSerializer>, IRepresentationConverterConfigurable<DoubleSerializer>, IBsonNumericSerializer
     {
         #region static
         private static readonly DoubleSerializer __instance = new DoubleSerializer();
@@ -91,6 +91,9 @@ namespace MongoDB.Bson.Serialization.Serializers
         {
             get { return _converter; }
         }
+
+        /// <inheritdoc/>
+        public bool HasNumericRepresentation => _representation.IsNumeric();
 
         /// <summary>
         /// Gets the representation.

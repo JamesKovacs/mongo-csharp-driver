@@ -24,7 +24,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for Chars.
     /// </summary>
-    public class CharSerializer : StructSerializerBase<char>, IRepresentationConfigurable<CharSerializer>
+    public class CharSerializer : StructSerializerBase<char>, IRepresentationConfigurable<CharSerializer>, IBsonNumericSerializer
     {
         // private fields
         private readonly BsonType _representation;
@@ -60,6 +60,9 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // public properties
+        /// <inheritdoc/>
+        public bool HasNumericRepresentation => _representation.IsNumeric();
+
         /// <summary>
         /// Gets the representation.
         /// </summary>

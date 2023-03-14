@@ -26,7 +26,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// Represents a serializer for SBytes.
     /// </summary>
     [CLSCompliant(false)]
-    public class SByteSerializer : StructSerializerBase<sbyte>, IRepresentationConfigurable<SByteSerializer>
+    public class SByteSerializer : StructSerializerBase<sbyte>, IRepresentationConfigurable<SByteSerializer>, IBsonNumericSerializer
     {
         // private fields
         private readonly BsonType _representation;
@@ -63,6 +63,9 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // public properties
+        /// <inheritdoc/>
+        public bool HasNumericRepresentation => _representation.IsNumeric();
+
         /// <summary>
         /// Gets the representation.
         /// </summary>

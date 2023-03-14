@@ -39,6 +39,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 var operandExpression = expression.Operand;
                 var operandTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, operandExpression);
 
+                // must check for enum conversions before numeric conversions
                 if (IsConvertEnumToUnderlyingType(expression))
                 {
                     return TranslateConvertEnumToUnderlyingType(expression, operandTranslation);
@@ -47,6 +48,11 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 if (IsConvertUnderlyingTypeToEnum(expression))
                 {
                     return TranslateConvertUnderlyingTypeToEnum(expression, operandTranslation);
+                }
+
+                if (IsNumericConversion(expression))
+                {
+                    return TranslateNumericConversion(expression, operandTranslation);
                 }
 
                 if (IsConvertToBaseType(sourceType: operandExpression.Type, targetType: expressionType))
@@ -124,6 +130,13 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             return
                 targetType.IsEnumOrNullableEnum(out _, out var underlyingType) &&
                 sourceType.IsSameAsOrNullableOf(underlyingType);
+        }
+
+        private static bool IsNumericConversion(UnaryExpression expression)
+        {
+            var sourceType = expression.Operand.Type;
+            var targetType = expression.Type;
+            return NumericConversionSerializer.IsNumericConversion(sourceType, targetType);
         }
 
         private static AggregationExpression TranslateConvertToBaseType(UnaryExpression expression, AggregationExpression operandTranslation)
@@ -209,6 +222,19 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             }
 
             return new AggregationExpression(expression, operandTranslation.Ast, targetSerializer);
+        }
+
+        private static AggregationExpression TranslateNumericConversion(UnaryExpression expression, AggregationExpression operandTranslation)
+        {
+            var ast = operandTranslation.Ast;
+            var sourceType = expression.Operand.Type;
+            var targetType = expression.Type;
+            var sourceSerializer= operandTranslation.Serializer;
+            var serializer = (sourceSerializer is IBsonNumericSerializer numericSerializer && numericSerializer.HasNumericRepresentation) ?
+                BsonSerializer.LookupSerializer(targetType) :
+                NumericConversionSerializer.Create(sourceType, targetType, sourceSerializer);
+
+            return new AggregationExpression(expression, ast, serializer);
         }
     }
 }

@@ -24,7 +24,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for Int16s.
     /// </summary>
-    public class Int16Serializer : StructSerializerBase<short>, IRepresentationConfigurable<Int16Serializer>, IRepresentationConverterConfigurable<Int16Serializer>
+    public class Int16Serializer : StructSerializerBase<short>, IRepresentationConfigurable<Int16Serializer>, IRepresentationConverterConfigurable<Int16Serializer>, IBsonNumericSerializer
     {
         // private fields
         private readonly BsonType _representation;
@@ -84,6 +84,9 @@ namespace MongoDB.Bson.Serialization.Serializers
         {
             get { return _converter; }
         }
+
+        /// <inheritdoc/>
+        public bool HasNumericRepresentation => _representation.IsNumeric();
 
         /// <summary>
         /// Gets the representation.

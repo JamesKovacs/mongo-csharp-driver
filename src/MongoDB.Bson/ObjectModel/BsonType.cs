@@ -14,6 +14,7 @@
 */
 
 using System;
+using System.Runtime.CompilerServices;
 
 namespace MongoDB.Bson
 {
@@ -107,5 +108,28 @@ namespace MongoDB.Bson
         /// A BSON MaxKey value.
         /// </summary>
         MaxKey = 0x7f
+    }
+
+    /// <summary>
+    /// Extension methods on BsonType.
+    /// </summary>
+    public static class BsonTypeExtensions
+    {
+        /// <summary>
+        /// Returns true if the BsonType is numeric.
+        /// </summary>
+        /// <param name="bsonType">The BsonType.</param>
+        /// <returns>True if the BsonType is numeric.</returns>
+        public static bool IsNumeric(this BsonType bsonType)
+        {
+            return bsonType switch
+            {
+                BsonType.Decimal128 or
+                BsonType.Double or
+                BsonType.Int32 or
+                BsonType.Int64 => true,
+                _ => false
+            };
+        }
     }
 }

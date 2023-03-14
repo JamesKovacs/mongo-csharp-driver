@@ -25,7 +25,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// Represents a serializer for UInt64s.
     /// </summary>
     [CLSCompliant(false)]
-    public class UInt64Serializer : StructSerializerBase<ulong>, IRepresentationConfigurable<UInt64Serializer>, IRepresentationConverterConfigurable<UInt64Serializer>
+    public class UInt64Serializer : StructSerializerBase<ulong>, IRepresentationConfigurable<UInt64Serializer>, IRepresentationConverterConfigurable<UInt64Serializer>, IBsonNumericSerializer
     {
         // private fields
         private readonly BsonType _representation;
@@ -85,6 +85,9 @@ namespace MongoDB.Bson.Serialization.Serializers
         {
             get { return _converter; }
         }
+
+        /// <inheritdoc/>
+        public bool HasNumericRepresentation => _representation.IsNumeric();
 
         /// <summary>
         /// Gets the representation.

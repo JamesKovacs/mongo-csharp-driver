@@ -22,7 +22,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for Int64s.
     /// </summary>
-    public class Int64Serializer : StructSerializerBase<long>, IRepresentationConfigurable<Int64Serializer>, IRepresentationConverterConfigurable<Int64Serializer>
+    public class Int64Serializer : StructSerializerBase<long>, IRepresentationConfigurable<Int64Serializer>, IRepresentationConverterConfigurable<Int64Serializer>, IBsonNumericSerializer
     {
         #region static
         private static readonly Int64Serializer __instance = new Int64Serializer();
@@ -91,6 +91,9 @@ namespace MongoDB.Bson.Serialization.Serializers
         {
             get { return _converter; }
         }
+
+        /// <inheritdoc/>
+        public bool HasNumericRepresentation => _representation.IsNumeric();
 
         /// <summary>
         /// Gets the representation.

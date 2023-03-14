@@ -34,6 +34,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToFilter
                 var fieldType = field.Serializer.ValueType;
                 var targetType = expression.Type;
 
+                // must check for enum conversions before numeric conversions
                 if (IsConvertEnumToUnderlyingType(fieldType, targetType))
                 {
                     return TranslateConvertEnumToUnderlyingType(field, targetType);
@@ -90,29 +91,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToFilter
 
         private static bool IsNumericConversion(Type fieldType, Type targetType)
         {
-            return IsNumericType(fieldType) && IsNumericType(targetType);
-        }
-
-        private static bool IsNumericType(Type type)
-        {
-            switch (Type.GetTypeCode(type))
-            {
-                case TypeCode.Byte:
-                case TypeCode.Decimal:
-                case TypeCode.Double:
-                case TypeCode.Int16:
-                case TypeCode.Int32:
-                case TypeCode.Int64:
-                case TypeCode.SByte:
-                case TypeCode.Single:
-                case TypeCode.UInt16:
-                case TypeCode.UInt32:
-                case TypeCode.UInt64:
-                    return true;
-
-                default:
-                    return false;
-            }
+            return NumericConversionSerializer.IsNumericConversion(fieldType, targetType);
         }
 
         private static AstFilterField TranslateConvertEnumToUnderlyingType(AstFilterField field, Type targetType)
@@ -167,36 +146,12 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToFilter
 
         private static AstFilterField TranslateNumericConversion(AstFilterField field, Type targetType)
         {
-            IBsonSerializer targetTypeSerializer = targetType switch
-            {
-                Type t when t == typeof(byte) => new ByteSerializer(),
-                Type t when t == typeof(sbyte) => new SByteSerializer(),
-                Type t when t == typeof(short) => new Int16Serializer(),
-                Type t when t == typeof(ushort) => new UInt16Serializer(),
-                Type t when t == typeof(int) => new Int32Serializer(),
-                Type t when t == typeof(uint) => new UInt32Serializer(),
-                Type t when t == typeof(long) => new Int64Serializer(),
-                Type t when t == typeof(ulong) => new UInt64Serializer(),
-                Type t when t == typeof(float) => new SingleSerializer(),
-                Type t when t == typeof(double) => new DoubleSerializer(),
-                Type t when t == typeof(decimal) => new DecimalSerializer(),
-                _ => throw new Exception($"Unexpected target type: {targetType}.")
-            };
-            if (field.Serializer is IRepresentationConfigurable representationConfigurableFieldSerializer &&
-                targetTypeSerializer is IRepresentationConfigurable representationConfigurableTargetTypeSerializer)
-            {
-                var fieldRepresentation = representationConfigurableFieldSerializer.Representation;
-                if (fieldRepresentation == BsonType.String)
-                {
-                    targetTypeSerializer = representationConfigurableTargetTypeSerializer.WithRepresentation(fieldRepresentation);
-                }
-            }
-            if (field.Serializer is IRepresentationConverterConfigurable converterConfigurableFieldSerializer &&
-                targetTypeSerializer is IRepresentationConverterConfigurable converterConfigurableTargetTypeSerializer)
-            {
-                targetTypeSerializer = converterConfigurableTargetTypeSerializer.WithConverter(converterConfigurableFieldSerializer.Converter);
-            }
-            return AstFilter.Field(field.Path, targetTypeSerializer);
+            var sourceSerializer = field.Serializer;
+            var sourceType = sourceSerializer.ValueType;
+            var targetSerializer = (sourceSerializer is IBsonNumericSerializer numericSerializer && numericSerializer.HasNumericRepresentation) ?
+                BsonSerializer.LookupSerializer(targetType) :
+                NumericConversionSerializer.Create(sourceType, targetType, sourceSerializer);
+            return AstFilter.Field(field.Path, targetSerializer);
         }
     }
 }
