@@ -32,7 +32,7 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Jira
                 .Select(x => new Tuple<int>(x.X));
 
             var stages = Translate(collection, queryable);
-            AssertStages(stages, "{ $project : { Item1 : '$X', _id : 0 } }");
+            AssertStages(stages, "{ $project : { _v : ['$X'], _id : 0 } }");
 
             var result = queryable.Single();
             result.Should().Be(new Tuple<int>(1));
@@ -48,7 +48,7 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Jira
                 .Select(x => new Tuple<int, int>(x.X, x.Y));
 
             var stages = Translate(collection, queryable);
-            AssertStages(stages, "{ $project : { Item1 : '$X', Item2 : '$Y', _id : 0 } }");
+            AssertStages(stages, "{ $project : { _v : ['$X', '$Y'], _id : 0 } }");
 
             var result = queryable.Single();
             result.Should().Be(new Tuple<int, int>(1, 11));
@@ -64,10 +64,58 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Jira
                 .Select(x => new Tuple<int, int, int>(x.X, x.Y, x.Z));
 
             var stages = Translate(collection, queryable);
-            AssertStages(stages, "{ $project : { Item1 : '$X', Item2 : '$Y', Item3 : '$Z', _id : 0 } }");
+            AssertStages(stages, "{ $project : { _v : ['$X', '$Y', '$Z'], _id : 0 } }");
 
             var result = queryable.Single();
             result.Should().Be(new Tuple<int, int, int>(1, 11, 111));
+        }
+
+        [Fact]
+        public void Projection_with_call_to_ValueTuple1_constructor_should_work()
+        {
+            var collection = CreateCollection();
+
+            var queryable = collection
+                .AsQueryable()
+                .Select(x => new ValueTuple<int>(x.X));
+
+            var stages = Translate(collection, queryable);
+            AssertStages(stages, "{ $project : { _v : ['$X'], _id : 0 } }");
+
+            var result = queryable.Single();
+            result.Should().Be(new ValueTuple<int>(1));
+        }
+
+        [Fact]
+        public void Projection_with_call_to_ValueTuple2_constructor_should_work()
+        {
+            var collection = CreateCollection();
+
+            var queryable = collection
+                .AsQueryable()
+                .Select(x => new ValueTuple<int, int>(x.X, x.Y));
+
+            var stages = Translate(collection, queryable);
+            AssertStages(stages, "{ $project : { _v : ['$X', '$Y'], _id : 0 } }");
+
+            var result = queryable.Single();
+            result.Should().Be(new ValueTuple<int, int>(1, 11));
+        }
+
+        [Fact]
+        public void Projection_with_call_to_ValueTuple3_constructor_should_work()
+        {
+            var collection = CreateCollection();
+
+            var queryable = collection
+                .AsQueryable()
+                .Select(x => new ValueTuple<int, int, int>(x.X, x.Y, x.Z));
+
+            var stages = Translate(collection, queryable);
+            AssertStages(stages, "{ $project : { _v : ['$X', '$Y', '$Z'], _id : 0 } }");
+
+            var result = queryable.Single();
+            result.Should().Be(new ValueTuple<int, int, int>(1, 11, 111));
         }
 
         [Fact]
@@ -83,8 +131,8 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Jira
             var stages = Translate(collection, queryable);
             AssertStages(
                 stages,
-                "{ $project : { Item1 : '$X', _id : 0 } }",
-                "{ $match : { Item1 : 1 } }");
+                "{ $project : { _v : ['$X'], _id : 0 } }",
+                "{ $match : { '_v.0' : 1 } }");
 
             var result = queryable.Single();
             result.Should().Be(new Tuple<int>(1));
@@ -103,8 +151,8 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Jira
             var stages = Translate(collection, queryable);
             AssertStages(
                 stages,
-                "{ $project : { Item1 : '$X', Item2 : '$Y', _id : 0 } }",
-                "{ $match : { Item1 : 1, Item2 : 11 } }");
+                "{ $project : { _v : ['$X', '$Y'], _id : 0 } }",
+                "{ $match : { '_v.0' : 1, '_v.1' : 11 } }");
 
             var result = queryable.Single();
             result.Should().Be(new Tuple<int, int>(1, 11));
@@ -123,11 +171,71 @@ namespace MongoDB.Driver.Tests.Linq.Linq3ImplementationTests.Jira
             var stages = Translate(collection, queryable);
             AssertStages(
                 stages,
-                "{ $project : { Item1 : '$X', Item2 : '$Y', Item3: '$Z', _id : 0 } }",
-                "{ $match : { Item1 : 1, Item2 : 11, Item3 : 111 } }");
+                "{ $project : { _v : ['$X', '$Y', '$Z'], _id : 0 } }",
+                "{ $match : { '_v.0' : 1, '_v.1' : 11, '_v.2' : 111 } }");
 
             var result = queryable.Single();
             result.Should().Be(new Tuple<int, int, int>(1, 11, 111));
+        }
+
+        [Fact]
+        public void Where_with_ValueTuple1_item_comparisons_should_work()
+        {
+            var collection = CreateCollection();
+
+            var queryable = collection
+                .AsQueryable()
+                .Select(x => new ValueTuple<int>(x.X))
+                .Where(x => x.Item1 == 1);
+
+            var stages = Translate(collection, queryable);
+            AssertStages(
+                stages,
+                "{ $project : { _v : ['$X'], _id : 0 } }",
+                "{ $match : { '_v.0' : 1 } }");
+
+            var result = queryable.Single();
+            result.Should().Be(new ValueTuple<int>(1));
+        }
+
+        [Fact]
+        public void Where_with_ValueTuple2_item_comparisons_should_work()
+        {
+            var collection = CreateCollection();
+
+            var queryable = collection
+                .AsQueryable()
+                .Select(x => new ValueTuple<int, int>(x.X, x.Y))
+                .Where(x => x.Item1 == 1 && x.Item2 == 11);
+
+            var stages = Translate(collection, queryable);
+            AssertStages(
+                stages,
+                "{ $project : { _v : ['$X', '$Y'], _id : 0 } }",
+                "{ $match : { '_v.0' : 1, '_v.1' : 11 } }");
+
+            var result = queryable.Single();
+            result.Should().Be(new ValueTuple<int, int>(1, 11));
+        }
+
+        [Fact]
+        public void Where_with_ValueTuple3_item_comparisons_should_work()
+        {
+            var collection = CreateCollection();
+
+            var queryable = collection
+                .AsQueryable()
+                .Select(x => new ValueTuple<int, int, int>(x.X, x.Y, x.Z))
+                .Where(x => x.Item1 == 1 && x.Item2 == 11 && x.Item3 == 111);
+
+            var stages = Translate(collection, queryable);
+            AssertStages(
+                stages,
+                "{ $project : { _v : ['$X', '$Y', '$Z'], _id : 0 } }",
+                "{ $match : { '_v.0' : 1, '_v.1' : 11, '_v.2' : 111 } }");
+
+            var result = queryable.Single();
+            result.Should().Be(new ValueTuple<int, int, int>(1, 11, 111));
         }
 
         private IMongoCollection<C> CreateCollection()

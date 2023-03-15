@@ -52,6 +52,11 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 containerTranslation = new AggregationExpression(containerExpression, unwrappedValueAst, wrappedValueSerializer.ValueSerializer);
             }
 
+            if (containerExpression.Type.IsTupleOrValueTuple())
+            {
+                return TranslateTupleItemProperty(expression, containerTranslation, member);
+            }
+
             if (!DocumentSerializerHelper.HasMemberSerializationInfo(containerTranslation.Serializer, member.Name))
             {
                 if (member is PropertyInfo propertyInfo  && propertyInfo.Name == "Length")
@@ -73,6 +78,24 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             var serializationInfo = DocumentSerializerHelper.GetMemberSerializationInfo(containerTranslation.Serializer, member.Name);
             var ast = AstExpression.GetField(containerTranslation.Ast, serializationInfo.ElementName);
             return new AggregationExpression(expression, ast, serializationInfo.Serializer);
+        }
+
+        private static AggregationExpression TranslateTupleItemProperty(MemberExpression expression, AggregationExpression container, MemberInfo memberInfo)
+        {
+            if (container.Serializer is IBsonTupleSerializer tupleSerializer)
+            {
+                var itemName = memberInfo.Name;
+                if (TupleSerializer.TryParseItemName(itemName, out var itemNumber))
+                {
+                    var ast = AstExpression.ArrayElemAt(container.Ast, index: itemNumber - 1);
+                    var itemSerializer = tupleSerializer.GetItemSerializer(itemNumber);
+                    return new AggregationExpression(expression, ast, itemSerializer);
+                }
+
+                throw new ExpressionNotSupportedException(expression, because: $"Item name is not valid: {itemName}");
+            }
+
+            throw new ExpressionNotSupportedException(expression, because: $"serializer {container.Serializer.GetType().FullName} does not implement IBsonTupleSerializer");
         }
 
         private static bool TryTranslateCollectionCountProperty(MemberExpression expression, AggregationExpression container, MemberInfo memberInfo, out AggregationExpression result)
