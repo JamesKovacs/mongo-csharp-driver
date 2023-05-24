@@ -29,27 +29,32 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
         public static AggregationExpression Translate(TranslationContext context, MemberInitExpression expression)
         {
             var newExpression = expression.NewExpression;
-            var constructorInfo = newExpression.Constructor;
+            var constructorInfo = newExpression.Constructor; // note: can be null when using the default constructor with a struct
             var constructorArguments = newExpression.Arguments;
 
             var classMap = CreateClassMap(expression.Type, constructorInfo, out var creatorMap);
-            var creatorMapParameters = creatorMap.Arguments?.ToArray();
-            if (constructorInfo.GetParameters().Length > 0 && creatorMapParameters == null )
-            {
-                throw new ExpressionNotSupportedException(expression, because: $"couldn't find matching properties for constructor parameters.");
-            }
-
             var computedFields = new List<AstComputedField>();
-            for (var i = 0; i < creatorMapParameters.Length; i++)
+            var membersBeingDeserialized = new List<BsonMemberMap>();
+            if (creatorMap != null)
             {
-                var creatorMapParameter = creatorMapParameters[i];
-                var constructorArgumentExpression = constructorArguments[i];
-                var constructorArgumentTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, constructorArgumentExpression);
-                var constructorArgumentType = constructorArgumentExpression.Type;
-                var constructorArgumentSerializer = constructorArgumentTranslation.Serializer ?? BsonSerializer.LookupSerializer(constructorArgumentType);
-                var memberMap = EnsureMemberMap(expression, classMap, creatorMapParameter);
-                memberMap.SetSerializer(constructorArgumentSerializer);
-                computedFields.Add(AstExpression.ComputedField(memberMap.ElementName, constructorArgumentTranslation.Ast));
+                var creatorMapParameters = creatorMap.Arguments?.ToArray();
+                if (constructorInfo.GetParameters().Length > 0 && creatorMapParameters == null)
+                {
+                    throw new ExpressionNotSupportedException(expression, because: $"couldn't find matching properties for constructor parameters.");
+                }
+
+                for (var i = 0; i < creatorMapParameters.Length; i++)
+                {
+                    var creatorMapParameter = creatorMapParameters[i];
+                    var constructorArgumentExpression = constructorArguments[i];
+                    var constructorArgumentTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, constructorArgumentExpression);
+                    var constructorArgumentType = constructorArgumentExpression.Type;
+                    var constructorArgumentSerializer = constructorArgumentTranslation.Serializer ?? BsonSerializer.LookupSerializer(constructorArgumentType);
+                    var memberMap = EnsureMemberMap(expression, classMap, creatorMapParameter);
+                    memberMap.SetSerializer(constructorArgumentSerializer);
+                    membersBeingDeserialized.Add(memberMap);
+                    computedFields.Add(AstExpression.ComputedField(memberMap.ElementName, constructorArgumentTranslation.Ast));
+                }
             }
 
             foreach (var binding in expression.Bindings)
@@ -57,12 +62,16 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                 var memberAssignment = (MemberAssignment)binding;
                 var member = memberAssignment.Member;
                 var memberMap = FindMemberMap(expression, classMap, member.Name);
-
                 var valueExpression = memberAssignment.Expression;
                 var valueTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, valueExpression);
-                computedFields.Add(AstExpression.ComputedField(memberMap.ElementName, valueTranslation.Ast));
-
                 memberMap.SetSerializer(valueTranslation.Serializer);
+                membersBeingDeserialized.Add(memberMap);
+                computedFields.Add(AstExpression.ComputedField(memberMap.ElementName, valueTranslation.Ast));
+            }
+
+            if (expression.Type.IsValueType)
+            {
+                EnsureConstructorRequiredToDeserializeStructIsMapped(expression, classMap, membersBeingDeserialized);
             }
 
             var ast = AstExpression.ComputedDocument(computedFields);
@@ -97,6 +106,52 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
             classMap.IdMemberMap?.SetElementName("_id"); // normally happens when Freeze is called but we need it sooner here
 
             return classMap;
+        }
+
+        private static void EnsureConstructorRequiredToDeserializeStructIsMapped(Expression expression, BsonClassMap classMap, List<BsonMemberMap> memberMapsBeingDeserialized)
+        {
+            foreach (var constructorInfo in classMap.ClassType.GetConstructors().OrderBy(c => c.GetParameters().Length))
+            {
+                if (ConstructorIsSuitableToDeserializeStruct(constructorInfo, memberMapsBeingDeserialized, out var matchingMembers))
+                {
+                    var creatorMap = classMap.MapConstructor(constructorInfo);
+                    creatorMap.SetArguments(matchingMembers);
+                    return;
+                }
+            }
+
+            throw new ExpressionNotSupportedException(expression, because: "no suitable constructor exists to deserialize this struct");
+
+            static bool ConstructorIsSuitableToDeserializeStruct(ConstructorInfo constructorInfo, List<BsonMemberMap> memberMapsBeingDeserialized, out List<MemberInfo> matchingMembers)
+            {
+                var unmatchedMemberMaps = new List<BsonMemberMap>(memberMapsBeingDeserialized);
+                matchingMembers = new List<MemberInfo>();
+
+                foreach (var parameterInfo in constructorInfo.GetParameters())
+                {
+                    var matchingMemberMap = FindMatchingMemberMap(parameterInfo, unmatchedMemberMaps);
+                    if (matchingMemberMap == null)
+                    {
+                        return false;
+                    }
+                    unmatchedMemberMaps.Remove(matchingMemberMap);
+                    matchingMembers.Add(matchingMemberMap.MemberInfo);
+                }
+
+                return unmatchedMemberMaps.Count == 0;
+            }
+
+            static BsonMemberMap FindMatchingMemberMap(ParameterInfo parameterInfo, List<BsonMemberMap> memberMapsBeingDeserialized)
+            {
+                return memberMapsBeingDeserialized.FirstOrDefault(m => MemberMapMatchesParameter(m, parameterInfo));
+            }
+
+            static bool MemberMapMatchesParameter(BsonMemberMap memberMap, ParameterInfo parameterInfo)
+            {
+                return
+                    memberMap.MemberType == parameterInfo.ParameterType &&
+                    memberMap.MemberName.Equals(parameterInfo.Name, StringComparison.OrdinalIgnoreCase);
+            }
         }
 
         private static BsonMemberMap EnsureMemberMap(Expression expression, BsonClassMap classMap, MemberInfo creatorMapParameter)
