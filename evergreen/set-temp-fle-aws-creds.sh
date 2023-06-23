@@ -28,7 +28,7 @@ export AWS_DEFAULT_REGION=us-east-1
 echo "Triggering temporary CSFLE credentials"
 
 get_creds() {
-    $PYTHON - "$@" << 'EOF'
+    python - "$@" << 'EOF'
 import sys
 import boto3
 client = boto3.client("sts")
@@ -37,8 +37,7 @@ sys.stdout.write(credentials["AccessKeyId"] + " " + credentials["SecretAccessKey
 EOF
 }
 
-PYTHON=${PYTHON:-python}
-$PYTHON -m pip install boto3
+python -m pip install boto3
 
 CREDS=$(get_creds)
 

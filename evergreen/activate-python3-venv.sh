@@ -10,26 +10,30 @@
 # Environment variables produced as output:
 #   PYTHON                                           The venv python path
 
-echo "Initialize PYTHON"
+echo "Initializing Python3 virtual environment..."
 
-if [ -e "/cygdrive/c/python/Python36/python" ]; then
-    export SYSTEM_PYTHON="/cygdrive/c/python/Python36/python"
+if [ -e "/cygdrive/c/python/Python311/python" ]; then
+    SYSTEM_PYTHON="/cygdrive/c/python/Python311/python"
 elif [ -e "/opt/mongodbtoolchain/v3/bin/python3" ]; then
-    export SYSTEM_PYTHON="/opt/mongodbtoolchain/v3/bin/python3"
+    SYSTEM_PYTHON="/opt/mongodbtoolchain/v3/bin/python3"
 elif python3 --version >/dev/null 2>&1; then
-    export SYSTEM_PYTHON=python3
+    SYSTEM_PYTHON=python3
 else
-    export SYSTEM_PYTHON=python
+    SYSTEM_PYTHON=python
 fi
 
 if [ ! -e venv ]; then
     $SYSTEM_PYTHON -m venv ./venv
 fi
 
+export VIRTUAL_ENV="$(pwd)/venv"
+
 if [ "Windows_NT" = "$OS" ]; then
-    export PYTHON="$(pwd)/venv/Scripts/python"
+    export PATH="$(pwd)/venv/Scripts:${PATH}"
 else
-    export PYTHON="$(pwd)/venv/bin/python"
+    export PYTHON="$(pwd)/venv/bin:${PATH}"
 fi
 
-echo "PYTHON has been initialized"
+unset PYTHONHOME
+
+echo "Python3 virtual environment has been initialized"
