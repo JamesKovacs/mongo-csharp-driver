@@ -31,7 +31,7 @@ export VIRTUAL_ENV="$(pwd)/venv"
 if [ "Windows_NT" = "$OS" ]; then
     export PATH="$(pwd)/venv/Scripts:${PATH}"
 else
-    export PYTHON="$(pwd)/venv/bin:${PATH}"
+    export PATH="$(pwd)/venv/bin:${PATH}"
 fi
 
 unset PYTHONHOME

@@ -80,8 +80,6 @@ functions:
               export TMPDIR="$MONGO_ORCHESTRATION_HOME/db"
               export PATH="$MONGODB_BINARIES:$PATH"
               export PROJECT="${project}"
-
-              . ./evergreen/activate-python3-venv.sh
            EOT
            # See what we've done
            cat expansion.yml

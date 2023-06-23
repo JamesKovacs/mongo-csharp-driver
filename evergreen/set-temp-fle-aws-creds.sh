@@ -37,6 +37,7 @@ sys.stdout.write(credentials["AccessKeyId"] + " " + credentials["SecretAccessKey
 EOF
 }
 
+. ./evergreen/activate-python3-virtualenv.sh
 python -m pip install boto3
 
 CREDS=$(get_creds)
