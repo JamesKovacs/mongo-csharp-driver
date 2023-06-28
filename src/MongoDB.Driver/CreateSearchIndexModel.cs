@@ -22,7 +22,7 @@ namespace MongoDB.Driver
     /// </summary>
     public sealed class CreateSearchIndexModel
     {
-        /// <summary>Gets index the name.</summary>
+        /// <summary>Gets the index name.</summary>
         /// <value>The index name.</value>
         public string Name { get; }
 
