@@ -1005,7 +1005,7 @@ functions:
           if [ "Windows_NT" = "$OS" ]; then
             choco install -y jq
           elif command -v brew 2>&1 /dev/null; then
-            brew install jq
+            brew list jq 2>&1 /dev/null || brew install jq
           fi
 
   make-files-executable:
