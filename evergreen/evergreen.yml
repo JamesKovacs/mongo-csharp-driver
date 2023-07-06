@@ -117,6 +117,7 @@ functions:
             git clone https://github.com/mongodb-labs/drivers-evergreen-tools.git $DRIVERS_TOOLS
           fi
           echo "{ \"releases\": { \"default\": \"$MONGODB_BINARIES\" }}" > $MONGO_ORCHESTRATION_HOME/orchestration.config
+          
 
   # Upload build artifacts that other tasks may depend on
   # Note this URL needs to be totally unique, while predictable for the next task
@@ -995,7 +996,16 @@ functions:
             done
             # Copy client certificate because symlinks do not work on Windows.
             cp ${DRIVERS_TOOLS}/.evergreen/x509gen/client.pem ${MONGO_ORCHESTRATION_HOME}/lib/client.pem
+          fi
+
+  install-build-tools:
+    - command: shell.exec
+      params:
+        script: |
+          if [ "Windows_NT" = "$OS" ]; then
             choco install -y jq
+          elif command -v brew 2>&1 /dev/null; then
+            brew install jq
           fi
 
   make-files-executable:
@@ -1018,6 +1028,7 @@ pre:
   - func: fetch-source
   - func: prepare-resources
   - func: windows-fix
+  - func: install-build-tools
   - func: fix-absolute-paths
   - func: init-test-results
   - func: make-files-executable
