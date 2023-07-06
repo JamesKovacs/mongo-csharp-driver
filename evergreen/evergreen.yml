@@ -459,7 +459,7 @@ functions:
         working_dir: mongo-csharp-driver
         script: |
           cat <<'EOF' > "${PROJECT_DIRECTORY}/prepare_mongodb_aws.sh"
-            function urlencode { printf %s "$1" |  jq -sRr @uri; }
+            function urlencode { printf %s "$1" |  jq -sRjr @uri; }
             USER=$(urlencode "${iam_auth_ecs_account}")
             PASS=$(urlencode "${iam_auth_ecs_secret_access_key}")
             MONGODB_URI="mongodb://$USER:$PASS@localhost"
@@ -486,7 +486,7 @@ functions:
         script: |
           # DO NOT ECHO WITH XTRACE (which PREPARE_SHELL does)
           cat <<'EOF' > "${PROJECT_DIRECTORY}/prepare_mongodb_aws.sh"
-            function urlencode { printf %s "$1" |  jq -sRr @uri; }
+            function urlencode { printf %s "$1" |  jq -sRjr @uri; }
             alias jsonkey='python -c "import json,sys;sys.stdout.write(json.load(sys.stdin)[sys.argv[1]])" < ${DRIVERS_TOOLS}/.evergreen/auth_aws/creds.json'
             USER=$(jsonkey AccessKeyId)
             USER=$(urlencode $USER)
