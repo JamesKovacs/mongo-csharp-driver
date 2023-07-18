@@ -14,21 +14,38 @@
 */
 
 using System.Collections.Generic;
+using System.Linq;
 using MongoDB.Bson;
 using MongoDB.Bson.TestHelpers.JsonDrivenTests;
 using MongoDB.Driver.Core.Events;
+using MongoDB.Driver.Core.Logging;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.TestHelpers.Logging;
 using MongoDB.Driver.Tests.UnifiedTestOperations;
 using Xunit;
 using Xunit.Abstractions;
-using System.Linq;
 
 namespace MongoDB.Driver.Tests.Specifications.server_discovery_and_monitoring
 {
     [Trait("Category", "SDAM")]
+    [Trait("Category", "SupportLoadBalancing")]
     public class ServerDiscoveryAndMonitoringUnifiedTestRunner : LoggableTestClass
     {
+        private static readonly HashSet<string> __ignoredLogsMessages = new HashSet<string>(
+            new[]
+            {
+               "Added server",
+               "Adding server",
+               "Removed server",
+               "Removing server",
+               "Started server monitoring",
+               "Stopping server monitoring",
+               "Started topology monitoring",
+               "Stopping topology monitoring"
+            });
+
+        private static string __sdamCategoryName = LogCategoryHelper.GetCategoryName<LogCategories.SDAM>();
+
         public ServerDiscoveryAndMonitoringUnifiedTestRunner(ITestOutputHelper output) : base(output)
         {
         }
@@ -38,7 +55,10 @@ namespace MongoDB.Driver.Tests.Specifications.server_discovery_and_monitoring
         [ClassData(typeof(TestCaseFactory))]
         public void Run(JsonDrivenTestCase testCase)
         {
-            using (var runner = new UnifiedTestRunner(loggingService: this, eventsProcessor: new SdamRunnerEventsProcessor(testCaseName: testCase.Name)))
+            using (var runner = new UnifiedTestRunner(
+                loggingService: this,
+                loggingFilter: IsLogValid,
+                eventsProcessor: new SdamRunnerEventsProcessor(testCaseName: testCase.Name)))
             {
                 runner.Run(testCase);
             }
@@ -85,6 +105,10 @@ namespace MongoDB.Driver.Tests.Specifications.server_discovery_and_monitoring
                 }
             }
         }
+
+        private static bool IsLogValid(LogEntry logEntry) =>
+            logEntry.Category != __sdamCategoryName ||
+            !__ignoredLogsMessages.Contains(logEntry.GetParameter<string>(StructuredLogTemplateProviders.Message));
 
         private sealed class SdamRunnerEventsProcessor : IEventsProcessor
         {
