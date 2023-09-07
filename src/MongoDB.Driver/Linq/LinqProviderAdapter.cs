@@ -18,6 +18,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
+using MongoDB.Driver.Linq.Linq3Implementation.Ast.Stages;
 using MongoDB.Driver.Linq.Linq3Implementation.Translators;
 
 namespace MongoDB.Driver.Linq
@@ -87,5 +88,10 @@ namespace MongoDB.Driver.Linq
             IBsonSerializer<TInput> inputSerializer,
             IBsonSerializerRegistry serializerRegistry,
             ExpressionTranslationOptions translationOptions);
+
+        internal abstract AstStage TranslateExpressionToSetStage<TDocument, TOutput>(
+            Expression<Func<TDocument, TOutput>> expression,
+            IBsonSerializer<TDocument> documentSerializer,
+            IBsonSerializerRegistry serializerRegistry);
     }
 }

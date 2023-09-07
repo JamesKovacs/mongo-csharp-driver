@@ -21,6 +21,7 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Linq.Linq2Implementation.Expressions;
 using MongoDB.Driver.Linq.Linq2Implementation.Processors;
 using MongoDB.Driver.Linq.Linq2Implementation.Translators;
+using MongoDB.Driver.Linq.Linq3Implementation.Ast.Stages;
 using MongoDB.Driver.Linq.Linq3Implementation.Translators;
 
 namespace MongoDB.Driver.Linq.Linq2Implementation
@@ -159,6 +160,14 @@ namespace MongoDB.Driver.Linq.Linq2Implementation
             }
 
             return AggregateProjectTranslator.Translate<TInput, TOutput>(expression, inputSerializer, serializerRegistry, translationOptions);
+        }
+
+        internal override AstStage TranslateExpressionToSetStage<TDocument, TFields>(
+            Expression<Func<TDocument, TFields>> expression,
+            IBsonSerializer<TDocument> documentSerializer,
+            IBsonSerializerRegistry serializerRegistry)
+        {
+            throw new NotSupportedException("This overload of Set is only supported when using LINQ3.");
         }
     }
 }
