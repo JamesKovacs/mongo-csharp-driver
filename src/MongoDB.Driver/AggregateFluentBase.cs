@@ -305,6 +305,16 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
+        public virtual IAggregateFluent<TResult> VectorSearch(
+            FieldDefinition<TResult> field,
+            VectorSearchQueryVector queryVector,
+            int limit,
+            VectorSearchOptions<TResult> options = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
         public virtual void ToCollection(CancellationToken cancellationToken)
         {
             throw new NotImplementedException();

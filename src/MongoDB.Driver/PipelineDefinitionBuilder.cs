@@ -1544,6 +1544,55 @@ namespace MongoDB.Driver
             Ensure.IsNotNull(pipeline, nameof(pipeline));
             return pipeline.AppendStage(PipelineStageDefinitionBuilder.Unwind(field, options));
         }
+
+        /// <summary>
+        /// Appends a $vectorSearch stage to the pipeline.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input.</typeparam>
+        /// <typeparam name="TField">The type of the field.</typeparam>
+        /// <typeparam name="TOutput">The type of the output.</typeparam>
+        /// <param name="pipeline">The pipeline.</param>
+        /// <param name="field">The field.</param>
+        /// <param name="queryVector">The query vector.</param>
+        /// <param name="limit">The limit.</param>
+        /// <param name="options">The vector search options.</param>
+        /// <returns></returns>
+        public static PipelineDefinition<TInput, TOutput> VectorSearch<TInput, TField, TOutput>(
+            this PipelineDefinition<TInput, TOutput> pipeline,
+            Expression<Func<TOutput, TField>> field,
+            VectorSearchQueryVector queryVector,
+            int limit,
+            VectorSearchOptions<TOutput> options = null)
+        {
+            Ensure.IsNotNull(pipeline, nameof(pipeline));
+            return pipeline.AppendStage(
+                PipelineStageDefinitionBuilder.VectorSearch(field, queryVector, limit, options),
+                pipeline.OutputSerializer);
+        }
+
+        /// <summary>
+        /// Appends a $vectorSearch stage to the pipeline.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input.</typeparam>
+        /// <typeparam name="TOutput">The type of the output.</typeparam>
+        /// <param name="pipeline">The pipeline.</param>
+        /// <param name="field">The field.</param>
+        /// <param name="queryVector">The query vector.</param>
+        /// <param name="limit">The limit.</param>
+        /// <param name="options">The vector search options.</param>
+        /// <returns></returns>
+        public static PipelineDefinition<TInput, TOutput> VectorSearch<TInput, TOutput>(
+            this PipelineDefinition<TInput, TOutput> pipeline,
+            FieldDefinition<TOutput> field,
+            VectorSearchQueryVector queryVector,
+            int limit,
+            VectorSearchOptions<TOutput> options = null)
+        {
+            Ensure.IsNotNull(pipeline, nameof(pipeline));
+            return pipeline.AppendStage(
+                PipelineStageDefinitionBuilder.VectorSearch(field, queryVector, limit, options),
+                pipeline.OutputSerializer);
+        }
     }
 
     /// <summary>
