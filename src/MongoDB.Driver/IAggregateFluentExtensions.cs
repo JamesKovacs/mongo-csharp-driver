@@ -953,7 +953,7 @@ namespace MongoDB.Driver
         }
 
         /// <summary>
-        /// Appends a vector search stage.
+        /// Appends a $vectorSearch stage.
         /// </summary>
         /// <typeparam name="TResult">The type of the result.</typeparam>
         /// <param name="aggregate">The aggregate.</param>

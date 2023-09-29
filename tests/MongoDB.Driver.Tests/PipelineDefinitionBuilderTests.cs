@@ -374,7 +374,7 @@ namespace MongoDB.Driver.Tests
             var result = pipeline.VectorSearch("x", new[] { 1.0, 2.0, 3.0 }, 1);
 
             var stages = RenderStages(result, BsonDocumentSerializer.Instance);
-            stages[0].Should().Be("{ $vectorSearch: { queryVector: [1.0, 2.0, 3.0], path: 'x', limit: 1, numCandidates: 1 } }");
+            stages[0].Should().Be("{ $vectorSearch: { queryVector: [1.0, 2.0, 3.0], path: 'x', limit: 1, numCandidates: 10, index : 'default' } }");
         }
 
         [Fact]
@@ -384,7 +384,7 @@ namespace MongoDB.Driver.Tests
             var result = pipeline.VectorSearch("x", new[] { 1f, 2f, 3f }, 1);
 
             var stages = RenderStages(result, BsonDocumentSerializer.Instance);
-            stages[0].Should().Be("{ $vectorSearch: { queryVector: [1.0, 2.0, 3.0],  path: 'x', limit: 1, numCandidates: 1 } }");
+            stages[0].Should().Be("{ $vectorSearch: { queryVector: [1.0, 2.0, 3.0],  path: 'x', limit: 1, numCandidates: 10, index : 'default'  } }");
         }
 
         [Fact]
