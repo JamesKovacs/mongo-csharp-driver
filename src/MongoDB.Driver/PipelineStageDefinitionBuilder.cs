@@ -1892,9 +1892,7 @@ namespace MongoDB.Driver
         /// <param name="queryVector">The query vector.</param>
         /// <param name="limit">The limit.</param>
         /// <param name="options">The options.</param>
-        /// <returns>
-        /// The stage.
-        /// </returns>
+        /// <returns>The stage.</returns>
         public static PipelineStageDefinition<TInput, TInput> VectorSearch<TInput, TField>(
             Expression<Func<TInput, TField>> field,
             VectorSearchQueryVector queryVector,
@@ -1910,6 +1908,10 @@ namespace MongoDB.Driver
         /// Creates a $vectorSearch stage.
         /// </summary>
         /// <typeparam name="TInput">The type of the input documents.</typeparam>
+        /// <param name="field">The field.</param>
+        /// <param name="queryVector">The query vector.</param>
+        /// <param name="limit">The limit.</param>
+        /// <param name="options">The options.</param>
         /// <returns>The stage.</returns>
         public static PipelineStageDefinition<TInput, TInput> VectorSearch<TInput>(
             FieldDefinition<TInput> field,
@@ -1919,13 +1921,14 @@ namespace MongoDB.Driver
         {
             Ensure.IsNotNull(field, nameof(field));
             Ensure.IsNotNull(queryVector, nameof(queryVector));
+            Ensure.IsGreaterThanZero(limit, nameof(limit));
 
             const string operatorName = "$vectorSearch";
             var stage = new DelegatedPipelineStageDefinition<TInput, TInput>(
                 operatorName,
                 (s, sr, linqProvider) =>
                 {
-                    var vectorSearchOperator = new BsonDocument()
+                    var vectorSearchOperator = new BsonDocument
                     {
                         { "queryVector", queryVector.Array },
                         { "path", field.Render(s, sr, linqProvider).FieldName },
