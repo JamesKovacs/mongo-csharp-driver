@@ -965,7 +965,7 @@ namespace MongoDB.Driver
         public static IAggregateFluent<TResult> VectorSearch<TResult>(
             this IAggregateFluent<TResult> aggregate,
             Expression<Func<TResult, object>> field,
-            VectorSearchQueryVector queryVector,
+            QueryVector queryVector,
             int limit,
             VectorSearchOptions<TResult> options = null)
         {

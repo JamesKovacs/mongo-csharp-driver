@@ -1895,7 +1895,7 @@ namespace MongoDB.Driver
         /// <returns>The stage.</returns>
         public static PipelineStageDefinition<TInput, TInput> VectorSearch<TInput, TField>(
             Expression<Func<TInput, TField>> field,
-            VectorSearchQueryVector queryVector,
+            QueryVector queryVector,
             int limit,
             VectorSearchOptions<TInput> options) =>
             VectorSearch(
@@ -1915,7 +1915,7 @@ namespace MongoDB.Driver
         /// <returns>The stage.</returns>
         public static PipelineStageDefinition<TInput, TInput> VectorSearch<TInput>(
             FieldDefinition<TInput> field,
-            VectorSearchQueryVector queryVector,
+            QueryVector queryVector,
             int limit,
             VectorSearchOptions<TInput> options = null)
         {

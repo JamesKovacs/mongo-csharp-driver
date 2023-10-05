@@ -26,78 +26,99 @@ namespace MongoDB.Driver
     /// <summary>
     /// Vector search query vector.
     /// </summary>
-    public sealed class VectorSearchQueryVector
+    public sealed class QueryVector
     {
         /// <summary>
         /// Gets the underlying BSON array.
         /// </summary>
         public BsonArray Array { get; }
 
-        private VectorSearchQueryVector(BsonArray array)
+        private QueryVector(BsonArray array)
         {
             Ensure.IsNotNullOrEmpty(array, nameof(array));
             Array = array;
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="T:double[]"/> to <see cref="VectorSearchQueryVector"/>.
+        /// Initializes a new instance of the <see cref="QueryVector" /> class.
+        /// </summary>
+        /// <param name="readOnlyMemory">The memory.</param>
+        public QueryVector(ReadOnlyMemory<double> readOnlyMemory) :
+            this(new QueryVectorBsonArray<double>(readOnlyMemory))
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="QueryVector" /> class.
+        /// </summary>
+        /// <param name="readOnlyMemory">The memory.</param>
+        public QueryVector(ReadOnlyMemory<float> readOnlyMemory) :
+            this(new QueryVectorBsonArray<float>(readOnlyMemory))
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="QueryVector" /> class.
+        /// </summary>
+        /// <param name="readOnlyMemory">The memory.</param>
+        public QueryVector(ReadOnlyMemory<int> readOnlyMemory) :
+            this(new QueryVectorBsonArray<int>(readOnlyMemory))
+        {
+        }
+
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="T:double[]"/> to <see cref="QueryVector"/>.
         /// </summary>
         /// <param name="array">The array.</param>
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator VectorSearchQueryVector(double[] array) =>
-            new(new QueryVectorBsonArray<double>(array));
+        public static implicit operator QueryVector(double[] array) => new(array);
 
         /// <summary>
-        /// Performs an implicit conversion from a of <see cref="ReadOnlyMemory{T}"/> to <see cref="VectorSearchQueryVector"/>.
+        /// Performs an implicit conversion from a of <see cref="ReadOnlyMemory{T}"/> to <see cref="QueryVector"/>.
         /// </summary>
         /// <param name="readOnlyMemory">The readOnlyMemory.</param>
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator VectorSearchQueryVector(ReadOnlyMemory<double> readOnlyMemory) =>
-            new(new QueryVectorBsonArray<double>(readOnlyMemory));
+        public static implicit operator QueryVector(ReadOnlyMemory<double> readOnlyMemory) => new(readOnlyMemory);
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="T:float[]"/> to <see cref="VectorSearchQueryVector"/>.
+        /// Performs an implicit conversion from <see cref="T:float[]"/> to <see cref="QueryVector"/>.
         /// </summary>
         /// <param name="array">The array.</param>
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator VectorSearchQueryVector(float[] array) =>
-            new(new QueryVectorBsonArray<float>(array));
+        public static implicit operator QueryVector(float[] array) => new(array);
 
         /// <summary>
-        /// Performs an implicit conversion from a of <see cref="ReadOnlyMemory{T}"/> to <see cref="VectorSearchQueryVector"/>.
+        /// Performs an implicit conversion from a of <see cref="ReadOnlyMemory{T}"/> to <see cref="QueryVector"/>.
         /// </summary>
         /// <param name="readOnlyMemory">The readOnlyMemory.</param>
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator VectorSearchQueryVector(ReadOnlyMemory<float> readOnlyMemory) =>
-            new(new QueryVectorBsonArray<float>(readOnlyMemory));
+        public static implicit operator QueryVector(ReadOnlyMemory<float> readOnlyMemory) => new(readOnlyMemory);
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="T:int[]"/> to <see cref="VectorSearchQueryVector"/>.
+        /// Performs an implicit conversion from <see cref="T:int[]"/> to <see cref="QueryVector"/>.
         /// </summary>
         /// <param name="array">The array.</param>
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator VectorSearchQueryVector(int[] array) =>
-            new(new QueryVectorBsonArray<int>(array));
+        public static implicit operator QueryVector(int[] array) => new(array);
 
         /// <summary>
-        /// Performs an implicit conversion from a of <see cref="ReadOnlyMemory{T}"/> to <see cref="VectorSearchQueryVector"/>.
+        /// Performs an implicit conversion from a of <see cref="ReadOnlyMemory{T}"/> to <see cref="QueryVector"/>.
         /// </summary>
         /// <param name="readOnlyMemory">The readOnlyMemory.</param>
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator VectorSearchQueryVector(ReadOnlyMemory<int> readOnlyMemory) =>
-            new(new QueryVectorBsonArray<int>(readOnlyMemory));
+        public static implicit operator QueryVector(ReadOnlyMemory<int> readOnlyMemory) => new(readOnlyMemory);
     }
 
     [BsonSerializer(typeof(QueryVectorArraySerializer<>))]
@@ -109,11 +130,6 @@ namespace MongoDB.Driver
         public QueryVectorBsonArray(ReadOnlyMemory<T> memory)
         {
             _memory = memory;
-        }
-
-        public QueryVectorBsonArray(T[] array)
-        {
-            _memory = new ReadOnlyMemory<T>(array);
         }
 
         public override int Count => _memory.Length;

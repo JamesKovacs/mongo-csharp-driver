@@ -505,7 +505,7 @@ namespace MongoDB.Driver
         /// <returns>The fluent aggregate interface.</returns>
         IAggregateFluent<TResult> VectorSearch(
             FieldDefinition<TResult> field,
-            VectorSearchQueryVector queryVector,
+            QueryVector queryVector,
             int limit,
             VectorSearchOptions<TResult> options = null);
     }

@@ -58,9 +58,7 @@ namespace MongoDB.Driver
         /// <typeparam name="TOutput">The type of the output documents.</typeparam>
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="outputSerializer">The output serializer.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, TOutput> As<TInput, TIntermediate, TOutput>(
             this PipelineDefinition<TInput, TIntermediate> pipeline,
             IBsonSerializer<TOutput> outputSerializer = null)
@@ -79,9 +77,7 @@ namespace MongoDB.Driver
         /// <param name="groupBy">The group by expression.</param>
         /// <param name="boundaries">The boundaries.</param>
         /// <param name="options">The options.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, AggregateBucketResult<TValue>> Bucket<TInput, TIntermediate, TValue>(
             this PipelineDefinition<TInput, TIntermediate> pipeline,
             AggregateExpressionDefinition<TIntermediate, TValue> groupBy,
@@ -104,9 +100,7 @@ namespace MongoDB.Driver
         /// <param name="boundaries">The boundaries.</param>
         /// <param name="output">The output projection.</param>
         /// <param name="options">The options.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, TOutput> Bucket<TInput, TIntermediate, TValue, TOutput>(
             this PipelineDefinition<TInput, TIntermediate> pipeline,
             AggregateExpressionDefinition<TIntermediate, TValue> groupBy,
@@ -177,9 +171,7 @@ namespace MongoDB.Driver
         /// <param name="groupBy">The group by expression.</param>
         /// <param name="buckets">The number of buckets.</param>
         /// <param name="options">The options.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, AggregateBucketAutoResult<TValue>> BucketAuto<TInput, TIntermediate, TValue>(
             this PipelineDefinition<TInput, TIntermediate> pipeline,
             AggregateExpressionDefinition<TIntermediate, TValue> groupBy,
@@ -202,9 +194,7 @@ namespace MongoDB.Driver
         /// <param name="buckets">The number of buckets.</param>
         /// <param name="output">The output projection.</param>
         /// <param name="options">The options.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, TOutput> BucketAuto<TInput, TIntermediate, TValue, TOutput>(
             this PipelineDefinition<TInput, TIntermediate> pipeline,
             AggregateExpressionDefinition<TIntermediate, TValue> groupBy,
@@ -316,9 +306,7 @@ namespace MongoDB.Driver
         /// <typeparam name="TInput">The type of the input documents.</typeparam>
         /// <typeparam name="TIntermediate">The type of the intermediate documents.</typeparam>
         /// <param name="pipeline">The pipeline.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, AggregateCountResult> Count<TInput, TIntermediate>(
             this PipelineDefinition<TInput, TIntermediate> pipeline)
         {
@@ -335,9 +323,7 @@ namespace MongoDB.Driver
         /// <param name="field">The field.</param>
         /// <param name="range">The range.</param>
         /// <param name="partitionByFields">The partition by fields.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, TOutput> Densify<TInput, TOutput>(
             this PipelineDefinition<TInput, TOutput> pipeline,
             FieldDefinition<TOutput> field,
@@ -357,9 +343,7 @@ namespace MongoDB.Driver
         /// <param name="field">The field.</param>
         /// <param name="range">The range.</param>
         /// <param name="partitionByFields">The partition by fields.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, TOutput> Densify<TInput, TOutput>(
             this PipelineDefinition<TInput, TOutput> pipeline,
             FieldDefinition<TOutput> field,
@@ -379,9 +363,7 @@ namespace MongoDB.Driver
         /// <param name="field">The field.</param>
         /// <param name="range">The range.</param>
         /// <param name="partitionByFields">The partition by fields.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, TOutput> Densify<TInput, TOutput>(
             this PipelineDefinition<TInput, TOutput> pipeline,
             Expression<Func<TOutput, object>> field,
@@ -401,9 +383,7 @@ namespace MongoDB.Driver
         /// <param name="field">The field.</param>
         /// <param name="range">The range.</param>
         /// <param name="partitionByFields">The partition by fields.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, TOutput> Densify<TInput, TOutput>(
             this PipelineDefinition<TInput, TOutput> pipeline,
             Expression<Func<TOutput, object>> field,
@@ -421,9 +401,7 @@ namespace MongoDB.Driver
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="documents">The documents.</param>
         /// <param name="documentSerializer">The document serializer.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<NoPipelineInput, TDocument> Documents<TDocument>(
             this PipelineDefinition<NoPipelineInput, NoPipelineInput> pipeline,
             AggregateExpressionDefinition<NoPipelineInput, IEnumerable<TDocument>> documents,
@@ -440,9 +418,7 @@ namespace MongoDB.Driver
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="documents">The documents.</param>
         /// <param name="documentSerializer">The document serializer.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<NoPipelineInput, TDocument> Documents<TDocument>(
             this PipelineDefinition<NoPipelineInput, NoPipelineInput> pipeline,
             IEnumerable<TDocument> documents,
@@ -461,9 +437,7 @@ namespace MongoDB.Driver
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="facets">The facets.</param>
         /// <param name="options">The options.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, TOutput> Facet<TInput, TIntermediate, TOutput>(
             this PipelineDefinition<TInput, TIntermediate> pipeline,
             IEnumerable<AggregateFacet<TIntermediate>> facets,
@@ -587,9 +561,7 @@ namespace MongoDB.Driver
         /// <param name="startWith">The start with value.</param>
         /// <param name="as">The as field.</param>
         /// <param name="options">The options.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, TOutput> GraphLookup<TInput, TIntermediate, TFrom, TConnectFrom, TConnectTo, TStartWith, TAs, TOutput>(
             this PipelineDefinition<TInput, TIntermediate> pipeline,
             IMongoCollection<TFrom> from,
@@ -650,9 +622,7 @@ namespace MongoDB.Driver
         /// <param name="as">The as field.</param>
         /// <param name="options">The options.</param>
         /// <param name="translationOptions">The translation options.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, TOutput> GraphLookup<TInput, TIntermediate, TFrom, TConnectFrom, TConnectTo, TStartWith, TAs, TOutput>(
             this PipelineDefinition<TInput, TIntermediate> pipeline,
             IMongoCollection<TFrom> from,
@@ -689,9 +659,7 @@ namespace MongoDB.Driver
         /// <param name="depthField">The depth field.</param>
         /// <param name="options">The options.</param>
         /// <param name="translationOptions">The translation options.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, TOutput> GraphLookup<TInput, TIntermediate, TFrom, TConnectFrom, TConnectTo, TStartWith, TAsElement, TAs, TOutput>(
             this PipelineDefinition<TInput, TIntermediate> pipeline,
             IMongoCollection<TFrom> from,
@@ -716,9 +684,7 @@ namespace MongoDB.Driver
         /// <typeparam name="TOutput">The type of the output documents.</typeparam>
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="group">The group projection.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>s
         public static PipelineDefinition<TInput, TOutput> Group<TInput, TIntermediate, TOutput>(
             this PipelineDefinition<TInput, TIntermediate> pipeline,
             ProjectionDefinition<TIntermediate, TOutput> group)
@@ -773,9 +739,7 @@ namespace MongoDB.Driver
         /// <typeparam name="TOutput">The type of the output documents.</typeparam>
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="limit">The limit.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, TOutput> Limit<TInput, TOutput>(
             this PipelineDefinition<TInput, TOutput> pipeline,
             long limit)
@@ -797,9 +761,7 @@ namespace MongoDB.Driver
         /// <param name="foreignField">The foreign field.</param>
         /// <param name="as">The "as" field.</param>
         /// <param name="options">The options.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, TOutput> Lookup<TInput, TIntermediate, TForeignDocument, TOutput>(
             this PipelineDefinition<TInput, TIntermediate> pipeline,
             IMongoCollection<TForeignDocument> foreignCollection,
@@ -853,9 +815,7 @@ namespace MongoDB.Driver
         /// <param name="lookupPipeline">The lookup pipeline.</param>
         /// <param name="as">The as field in <typeparamref name="TOutput" /> in which to place the results of the lookup pipeline.</param>
         /// <param name="options">The options.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, TOutput> Lookup<TInput, TIntermediate, TForeignDocument, TAsElement, TAs, TOutput>(
             this PipelineDefinition<TInput, TIntermediate> pipeline,
             IMongoCollection<TForeignDocument> foreignCollection,
@@ -890,9 +850,7 @@ namespace MongoDB.Driver
         /// <param name="lookupPipeline">The lookup pipeline.</param>
         /// <param name="as">The as field in <typeparamref name="TOutput" /> in which to place the results of the lookup pipeline.</param>
         /// <param name="options">The options.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, TOutput> Lookup<TInput, TIntermediate, TForeignDocument, TAsElement, TAs, TOutput>(
             this PipelineDefinition<TInput, TIntermediate> pipeline,
             IMongoCollection<TForeignDocument> foreignCollection,
@@ -919,9 +877,7 @@ namespace MongoDB.Driver
         /// <typeparam name="TOutput">The type of the output documents.</typeparam>
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="filter">The filter.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, TOutput> Match<TInput, TOutput>(
             this PipelineDefinition<TInput, TOutput> pipeline,
             FilterDefinition<TOutput> filter)
@@ -954,9 +910,7 @@ namespace MongoDB.Driver
         /// <typeparam name="TOutput">The type of the output documents.</typeparam>
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="outputSerializer">The output serializer.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>>
         /// <exception cref="System.NotSupportedException"></exception>
         public static PipelineDefinition<TInput, TOutput> OfType<TInput, TIntermediate, TOutput>(
             this PipelineDefinition<TInput, TIntermediate> pipeline,
@@ -976,9 +930,7 @@ namespace MongoDB.Driver
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="outputCollection">The output collection.</param>
         /// <param name="mergeOptions">The merge options.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         /// <exception cref="System.NotSupportedException"></exception>
         public static PipelineDefinition<TInput, TOutput> Merge<TInput, TIntermediate, TOutput>(
             this PipelineDefinition<TInput, TIntermediate> pipeline,
@@ -996,9 +948,7 @@ namespace MongoDB.Driver
         /// <typeparam name="TOutput">The type of the output documents.</typeparam>
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="outputCollection">The output collection.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         /// <exception cref="System.NotSupportedException"></exception>
         public static PipelineDefinition<TInput, TOutput> Out<TInput, TOutput>(
             this PipelineDefinition<TInput, TOutput> pipeline,
@@ -1016,9 +966,7 @@ namespace MongoDB.Driver
         /// <typeparam name="TOutput">The type of the output documents.</typeparam>
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="projection">The projection.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         /// <exception cref="System.NotSupportedException"></exception>
         public static PipelineDefinition<TInput, TOutput> Project<TInput, TIntermediate, TOutput>(
             this PipelineDefinition<TInput, TIntermediate> pipeline,
@@ -1107,9 +1055,7 @@ namespace MongoDB.Driver
         /// <typeparam name="TOutput">The type of the output documents.</typeparam>
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="newRoot">The new root.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, TOutput> ReplaceWith<TInput, TIntermediate, TOutput>(
             this PipelineDefinition<TInput, TIntermediate> pipeline,
             AggregateExpressionDefinition<TIntermediate, TOutput> newRoot)
@@ -1155,9 +1101,7 @@ namespace MongoDB.Driver
         /// Flag that specifies whether to return a detailed breakdown
         /// of the score for each document in the result. 
         /// </param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, TOutput> Search<TInput, TOutput>(
             this PipelineDefinition<TInput, TOutput> pipeline,
             SearchDefinition<TOutput> searchDefinition,
@@ -1321,9 +1265,7 @@ namespace MongoDB.Driver
         /// <param name="partitionBy">The partitionBy expression.</param>
         /// <param name="sortBy">The sortBy expression.</param>
         /// <param name="output">The window fields expression.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, BsonDocument> SetWindowFields<TInput, TIntermediate, TPartitionBy, TWindowFields>(
             this PipelineDefinition<TInput, TIntermediate> pipeline,
             Expression<Func<TIntermediate, TPartitionBy>> partitionBy,
@@ -1343,9 +1285,7 @@ namespace MongoDB.Driver
         /// <typeparam name="TOutput">The type of the output documents.</typeparam>
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="skip">The number of documents to skip.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, TOutput> Skip<TInput, TOutput>(
             this PipelineDefinition<TInput, TOutput> pipeline,
             long skip)
@@ -1361,9 +1301,7 @@ namespace MongoDB.Driver
         /// <typeparam name="TOutput">The type of the output documents.</typeparam>
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="sort">The sort definition.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, TOutput> Sort<TInput, TOutput>(
             this PipelineDefinition<TInput, TOutput> pipeline,
             SortDefinition<TOutput> sort)
@@ -1380,9 +1318,7 @@ namespace MongoDB.Driver
         /// <typeparam name="TValue">The type of the values.</typeparam>
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="value">The value expression.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, AggregateSortByCountResult<TValue>> SortByCount<TInput, TIntermediate, TValue>(
             this PipelineDefinition<TInput, TIntermediate> pipeline,
             AggregateExpressionDefinition<TIntermediate, TValue> value)
@@ -1440,9 +1376,7 @@ namespace MongoDB.Driver
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="field">The field.</param>
         /// <param name="options">The options.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, TOutput> Unwind<TInput, TIntermediate, TOutput>(
             this PipelineDefinition<TInput, TIntermediate> pipeline,
             FieldDefinition<TIntermediate> field,
@@ -1460,9 +1394,7 @@ namespace MongoDB.Driver
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="field">The field to unwind.</param>
         /// <param name="options">The options.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, BsonDocument> Unwind<TInput, TIntermediate>(
             this PipelineDefinition<TInput, TIntermediate> pipeline,
             FieldDefinition<TIntermediate> field,
@@ -1480,9 +1412,7 @@ namespace MongoDB.Driver
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="field">The field to unwind.</param>
         /// <param name="options">The options.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, BsonDocument> Unwind<TInput, TIntermediate>(
             this PipelineDefinition<TInput, TIntermediate> pipeline,
             Expression<Func<TIntermediate, object>> field,
@@ -1501,9 +1431,7 @@ namespace MongoDB.Driver
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="field">The field to unwind.</param>
         /// <param name="options">The options.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, TOutput> Unwind<TInput, TIntermediate, TOutput>(
             this PipelineDefinition<TInput, TIntermediate> pipeline,
             Expression<Func<TIntermediate, object>> field,
@@ -1524,13 +1452,11 @@ namespace MongoDB.Driver
         /// <param name="queryVector">The query vector.</param>
         /// <param name="limit">The limit.</param>
         /// <param name="options">The vector search options.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, TOutput> VectorSearch<TInput, TField, TOutput>(
             this PipelineDefinition<TInput, TOutput> pipeline,
             Expression<Func<TOutput, TField>> field,
-            VectorSearchQueryVector queryVector,
+            QueryVector queryVector,
             int limit,
             VectorSearchOptions<TOutput> options = null)
         {
@@ -1550,13 +1476,11 @@ namespace MongoDB.Driver
         /// <param name="queryVector">The query vector.</param>
         /// <param name="limit">The limit.</param>
         /// <param name="options">The vector search options.</param>
-        /// <returns>
-        /// A new pipeline with an additional stage.
-        /// </returns>
+        /// <returns>A new pipeline with an additional stage.</returns>
         public static PipelineDefinition<TInput, TOutput> VectorSearch<TInput, TOutput>(
             this PipelineDefinition<TInput, TOutput> pipeline,
             FieldDefinition<TOutput> field,
-            VectorSearchQueryVector queryVector,
+            QueryVector queryVector,
             int limit,
             VectorSearchOptions<TOutput> options = null)
         {

@@ -343,7 +343,7 @@ namespace MongoDB.Driver
 
         public override IAggregateFluent<TResult> VectorSearch(
             FieldDefinition<TResult> field,
-            VectorSearchQueryVector queryVector,
+            QueryVector queryVector,
             int limit,
             VectorSearchOptions<TResult> options = null)
         {

@@ -3500,7 +3500,7 @@ namespace MongoDB.Driver.Linq
         public static IMongoQueryable<TSource> VectorSearch<TSource, TField>(
             this IMongoQueryable<TSource> source,
             FieldDefinition<TSource> field,
-            VectorSearchQueryVector queryVector,
+            QueryVector queryVector,
             int limit,
             VectorSearchOptions<TSource> options = null)
         {
@@ -3525,7 +3525,7 @@ namespace MongoDB.Driver.Linq
         public static IMongoQueryable<TSource> VectorSearch<TSource, TField>(
             this IMongoQueryable<TSource> source,
             Expression<Func<TSource, TField>> field,
-            VectorSearchQueryVector queryVector,
+            QueryVector queryVector,
             int limit,
             VectorSearchOptions<TSource> options = null)
         {
