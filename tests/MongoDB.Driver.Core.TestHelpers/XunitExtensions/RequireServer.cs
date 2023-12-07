@@ -292,7 +292,10 @@ namespace MongoDB.Driver.Core.TestHelpers.XunitExtensions
             return requirements.All(IsRequirementSatisfied);
         }
 
-        private bool IsAuthenticated() => CoreTestConfiguration.ConnectionString.Username != null;
+        private bool IsAuthenticated()
+        {
+            return CoreTestConfiguration.ConnectionString.Username != null;
+        }
 
         private bool IsRequirementSatisfied(BsonElement requirement)
         {
@@ -313,6 +316,10 @@ namespace MongoDB.Driver.Core.TestHelpers.XunitExtensions
                         var maxServerVersion = SemanticVersion.Parse(requirement.Value.AsString);
                         return SemanticVersionCompareToAsReleased(actualVersion, maxServerVersion) <= 0;
                     }
+                case "authMechanism":
+                    var actualValue = CoreTestConfiguration.GetServerParameters().GetValue("authenticationMechanisms").AsBsonArray;
+                    var requiredValue = requirement.Value.AsString;
+                    return actualValue.Contains(requiredValue);
                 case "serverless":
                     var serverlessValue = requirement.Value.AsString;
                     switch (serverlessValue)

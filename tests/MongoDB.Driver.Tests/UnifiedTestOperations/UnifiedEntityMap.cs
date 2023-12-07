@@ -21,6 +21,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver.Core;
+using MongoDB.Driver.Core.Authentication.Oidc;
 using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Configuration;
 using MongoDB.Driver.Core.Events;
@@ -482,6 +483,8 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
             private (DisposableMongoClient Client, Dictionary<string, EventCapturer> ClientEventCapturers, Dictionary<string, LogLevel> LoggingComponents) CreateClient(BsonDocument entity, bool async)
             {
                 string appName = null;
+                string authMechanism = null;
+                var authMechanismProperties = new Dictionary<string, object>();
                 var clientEventCapturers = new Dictionary<string, EventCapturer>();
                 Dictionary<string, LogLevel> loggingComponents = null;
                 string clientId = null;
@@ -500,7 +503,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                 var retryWrites = true;
                 TimeSpan? serverSelectionTimeout = null;
                 int? waitQueueSize = null;
-                TimeSpan? socketTimeout = null;                
+                TimeSpan? socketTimeout = null;
                 var useMultipleShardRouters = false;
                 TimeSpan? waitQueueTimeout = null;
                 var writeConcern = WriteConcern.Acknowledged;
@@ -521,6 +524,23 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                                     case "appname":
                                     case "appName":
                                         appName = option.Value.AsString;
+                                        break;
+                                    case "authMechanism":
+                                        authMechanism = option.Value.AsString;
+                                        break;
+                                    case "authMechanismProperties":
+                                        foreach (var property in option.Value.AsBsonDocument)
+                                        {
+                                            if (string.Equals(property.Name, "$$placeholder"))
+                                            {
+                                                var providerName = Environment.GetEnvironmentVariable("OIDC_PROVIDER_NAME");
+                                                authMechanismProperties.Add(MongoOidcAuthenticator.ProviderMechanismPropertyName, providerName);
+                                            }
+                                            else
+                                            {
+                                                authMechanismProperties.Add(property.Name, property.Value.AsString);
+                                            }
+                                        }
                                         break;
                                     case "heartbeatFrequencyMS":
                                         heartbeatFrequency = TimeSpan.FromMilliseconds(option.Value.AsInt32);
@@ -714,6 +734,23 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                                     c.Subscribe(eventCapturer);
                                 }
                             };
+                        }
+
+                        if (!string.IsNullOrEmpty(authMechanism))
+                        {
+                            settings.Credential = authMechanism switch
+                            {
+                                "MONGODB-OIDC" => MongoCredential.CreateRawOidcCredential(null),
+                                _ => throw new NotSupportedException($"Cannot create credential for {authMechanism} auth mechanism")
+                            };
+
+                            if (authMechanismProperties.Count > 0)
+                            {
+                                foreach (var mechanismProperty in authMechanismProperties)
+                                {
+                                    settings.Credential = settings.Credential.WithMechanismProperty(mechanismProperty.Key, mechanismProperty.Value);
+                                }
+                            }
                         }
                     },
                     _loggingSettings,
