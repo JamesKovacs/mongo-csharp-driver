@@ -23,6 +23,7 @@ using MongoDB.TestHelpers.XunitExtensions;
 using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Compression;
 using MongoDB.Driver.Core.Configuration;
+using MongoDB.Driver.Core.Servers;
 using Xunit;
 
 namespace MongoDB.Driver.Tests
@@ -72,6 +73,7 @@ namespace MongoDB.Driver.Tests
         [InlineData("SendBufferSize", true)]
         [InlineData("ServerApi", true)]
         [InlineData("Servers", false)]
+        [InlineData("ServerMonitoringMode", true)]
         [InlineData("ServerSelectionTimeout", true)]
         [InlineData("SocketTimeout", true)]
         [InlineData("SrvMaxHosts", true)]
@@ -218,6 +220,7 @@ namespace MongoDB.Driver.Tests
             var sendBufferSize = 1;
             var serverApi = new ServerApi(ServerApiVersion.V1, true, true);
             var servers = new[] { new MongoServerAddress("localhost") };
+            var serverMonitoringMode = ServerMonitoringMode.Stream;
             var serverSelectionTimeout = TimeSpan.FromSeconds(6);
             var socketTimeout = TimeSpan.FromSeconds(4);
             var srvMaxHosts = 0;
@@ -279,6 +282,7 @@ namespace MongoDB.Driver.Tests
                     case "SendBufferSize": sendBufferSize = 2; break;
                     case "ServerApi": serverApi = new ServerApi(ServerApiVersion.V1); break;
                     case "Servers": servers = new[] { new MongoServerAddress("different") }; break;
+                    case "ServerMonitoringMode": serverMonitoringMode = ServerMonitoringMode.Poll; break;
                     case "ServerSelectionTimeout": serverSelectionTimeout = TimeSpan.FromSeconds(98); break;
                     case "SocketTimeout": socketTimeout = TimeSpan.FromSeconds(99); break;
                     case "SrvMaxHosts": srvMaxHosts = 3; break;
@@ -319,6 +323,7 @@ namespace MongoDB.Driver.Tests
                 sendBufferSize,
                 serverApi,
                 servers,
+                serverMonitoringMode,
                 serverSelectionTimeout,
                 socketTimeout,
                 srvMaxHosts,
@@ -369,6 +374,7 @@ namespace MongoDB.Driver.Tests
             var sendBufferSize = 1;
             var serverApi = new ServerApi(ServerApiVersion.V1, true, true);
             var servers = new[] { new MongoServerAddress("localhost") };
+            var serverMonitoringMode = ServerMonitoringMode.Stream;
             var serverSelectionTimeout = TimeSpan.FromSeconds(6);
             var socketTimeout = TimeSpan.FromSeconds(4);
             var srvMaxHosts = 3;
@@ -410,6 +416,7 @@ namespace MongoDB.Driver.Tests
                 sendBufferSize,
                 serverApi,
                 servers,
+                serverMonitoringMode,
                 serverSelectionTimeout,
                 socketTimeout,
                 srvMaxHosts,
