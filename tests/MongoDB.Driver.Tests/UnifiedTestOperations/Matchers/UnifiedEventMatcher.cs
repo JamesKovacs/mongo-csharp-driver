@@ -319,6 +319,45 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations.Matchers
                             throw new FormatException($"Unexpected {expectedEventType} fields.");
                         }
                         break;
+                    case ServerHeartbeatStartedEvent serverHeartbeatStartedEvent:
+                        foreach (var element in expectedEventValue)
+                        {
+                            switch (element.Name)
+                            {
+                                case "awaited":
+                                    serverHeartbeatStartedEvent.Awaited.Should().Be(element.Value.AsBoolean);
+                                    break;
+                                default:
+                                    throw new FormatException($"Unexpected {expectedEventType} field: '{element.Name}'.");
+                            }
+                        }
+                        break;
+                    case ServerHeartbeatSucceededEvent serverHeartbeatSucceededEvent:
+                        foreach (var element in expectedEventValue)
+                        {
+                            switch (element.Name)
+                            {
+                                case "awaited":
+                                    serverHeartbeatSucceededEvent.Awaited.Should().Be(element.Value.AsBoolean);
+                                    break;
+                                default:
+                                    throw new FormatException($"Unexpected {expectedEventType} field: '{element.Name}'.");
+                            }
+                        }
+                        break;
+                    case ServerHeartbeatFailedEvent serverHeartbeatFailedEvent:
+                        foreach (var element in expectedEventValue)
+                        {
+                            switch (element.Name)
+                            {
+                                case "awaited":
+                                    serverHeartbeatFailedEvent.Awaited.Should().Be(element.Value.AsBoolean);
+                                    break;
+                                default:
+                                    throw new FormatException($"Unexpected {expectedEventType} field: '{element.Name}'.");
+                            }
+                        }
+                        break;
                     default:
                         throw new FormatException($"Unrecognized event type: '{expectedEventType}'.");
                 }
