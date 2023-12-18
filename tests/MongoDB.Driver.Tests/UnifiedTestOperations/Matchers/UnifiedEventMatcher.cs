@@ -410,6 +410,30 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations.Matchers
                         };
                         actualEventsDocuments.Add(new BsonDocument("commandFailedEvent", commandFailedDocument));
                         break;
+                    case ServerHeartbeatStartedEvent serverHeartbeatStartedEvent:
+                        var serverHeartbeatStartedEventDocument = new BsonDocument
+                        {
+                            { "awaited", serverHeartbeatStartedEvent.Awaited }
+                        };
+                        actualEventsDocuments.Add(new BsonDocument(actualEvent.GetType().Name,
+                            serverHeartbeatStartedEventDocument));
+                        break;
+                    case ServerHeartbeatSucceededEvent serverHeartbeatSucceededEvent:
+                        var serverHeartbeatSucceededEventDocument = new BsonDocument
+                        {
+                            { "awaited", serverHeartbeatSucceededEvent.Awaited }
+                        };
+                        actualEventsDocuments.Add(new BsonDocument(actualEvent.GetType().Name,
+                            serverHeartbeatSucceededEventDocument));
+                        break;
+                    case ServerHeartbeatFailedEvent serverHeartbeatFailedEvent:
+                        var serverHeartbeatFailedEventDocument = new BsonDocument
+                        {
+                            { "awaited", serverHeartbeatFailedEvent.Awaited }
+                        };
+                        actualEventsDocuments.Add(new BsonDocument(actualEvent.GetType().Name,
+                            serverHeartbeatFailedEventDocument));
+                        break;
                     default:
                         actualEventsDocuments.Add(new BsonDocument(actualEvent.GetType().Name, actualEvent.ToString()));
                         break;
