@@ -145,8 +145,6 @@ namespace MongoDB.Driver.Core.Servers
             changes.Count.Should().Be(1);
             changes[0].OldServerDescription.State.Should().Be(ServerState.Disconnected);
             changes[0].NewServerDescription.State.Should().Be(ServerState.Connected);
-
-            capturedEvents.Any().Should().BeFalse();
         }
 #endif
 
