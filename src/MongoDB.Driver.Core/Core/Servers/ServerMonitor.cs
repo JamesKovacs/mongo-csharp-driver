@@ -210,17 +210,25 @@ namespace MongoDB.Driver.Core.Servers
         {
             var connection = _connectionFactory.CreateConnection(_serverId, _endPoint);
 
+            _eventLoggerSdam.LogAndPublish(new ServerHeartbeatStartedEvent(connection.ConnectionId, _streamingEnabled && connection.Description.HelloResult.TopologyVersion != null));
+
             var stopwatch = Stopwatch.StartNew();
             try
             {
                 // if we are cancelling, it's because the server has
                 // been shut down and we really don't need to wait.
                 connection.Open(cancellationToken);
+
+                var helloResult = connection.Description.HelloResult;
+                _eventLoggerSdam.LogAndPublish(new ServerHeartbeatSucceededEvent(connection.ConnectionId, stopwatch.Elapsed, _streamingEnabled && helloResult.TopologyVersion != null, helloResult.Wrapped));
             }
-            catch
+            catch (Exception ex)
             {
                 // dispose it here because the _connection is not initialized yet
                 try { connection.Dispose(); } catch { }
+
+                _eventLoggerSdam.LogAndPublish(new ServerHeartbeatFailedEvent(connection.ConnectionId, stopwatch.Elapsed, ex, _streamingEnabled && connection.Description.HelloResult.TopologyVersion != null));
+
                 throw;
             }
             stopwatch.Stop();

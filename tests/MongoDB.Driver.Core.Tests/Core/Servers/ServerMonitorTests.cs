@@ -163,8 +163,8 @@ namespace MongoDB.Driver.Core.Servers
             subject.Description.State.Should().Be(ServerState.Connected);
             subject.Description.Type.Should().Be(ServerType.Standalone);
 
-            // no ServerHeartbeat events should be triggered during initial handshake
-            capturedEvents.Any().Should().BeFalse();
+            capturedEvents.Next().Should().BeOfType<ServerHeartbeatStartedEvent>().Subject.Awaited.Should().Be(false);
+            capturedEvents.Next().Should().BeOfType<ServerHeartbeatSucceededEvent>().Subject.Awaited.Should().Be(false);
         }
 
         [Fact]
@@ -232,6 +232,7 @@ namespace MongoDB.Driver.Core.Servers
                     events.Count(e => e is ServerDescriptionChangedEvent) >= expectedServerDescriptionChangedEventCount,  // the connection has been initialized and the first heatbeat event has been fired
                 TimeSpan.FromSeconds(10));
 
+            capturedEvents.Next().Should().BeOfType<ServerHeartbeatSucceededEvent>();
             capturedEvents.Next().Should().BeOfType<ServerDescriptionChangedEvent>(); // connection initialized
             AssertHeartbeatAttempt();
             capturedEvents.Any().Should().BeFalse(); // the next attempt will be in 10 seconds because the second stremable respone has 10 seconds delay
@@ -247,6 +248,8 @@ namespace MongoDB.Driver.Core.Servers
 
                     var serverDescriptionChangedEvent = capturedEvents.Next().Should().BeOfType<ServerDescriptionChangedEvent>().Subject;
                     serverDescriptionChangedEvent.NewDescription.HeartbeatException.Should().Be(exception);
+
+                    capturedEvents.Next().Should().BeOfType<ServerHeartbeatSucceededEvent>(); // since we emitting serverheartbeat events on connection open, we will trigger this event if open was successful
 
                     serverDescriptionChangedEvent = capturedEvents.Next().Should().BeOfType<ServerDescriptionChangedEvent>().Subject;  // when we catch exceptions, we close the current connection, so opening connection will trigger one more ServerDescriptionChangedEvent
                     serverDescriptionChangedEvent.OldDescription.HeartbeatException.Should().Be(exception);
@@ -364,7 +367,6 @@ namespace MongoDB.Driver.Core.Servers
             subject.Initialize();
             SpinWait.SpinUntil(() => mockConnection.GetSentMessages().Count >= 2, TimeSpan.FromSeconds(5)).Should().BeTrue();
 
-            capturedEvents.Events.Count.Should().Be(4);
             capturedEvents.Next().Should().BeOfType<ServerHeartbeatStartedEvent>().Subject.Awaited.Should().Be(false);
             capturedEvents.Next().Should().BeOfType<ServerHeartbeatSucceededEvent>().Subject.Awaited.Should().Be(false);
             capturedEvents.Next().Should().BeOfType<ServerHeartbeatStartedEvent>().Subject.Awaited.Should().Be(false);
@@ -453,7 +455,6 @@ namespace MongoDB.Driver.Core.Servers
             subject.Initialize();
             SpinWait.SpinUntil(() => mockConnection.GetSentMessages().Count >= 2, TimeSpan.FromSeconds(5)).Should().BeTrue();
 
-            capturedEvents.Events.Count.Should().Be(4);
             capturedEvents.Next().Should().BeOfType<ServerHeartbeatStartedEvent>().Subject.Awaited.Should().Be(false);
             capturedEvents.Next().Should().BeOfType<ServerHeartbeatSucceededEvent>().Subject.Awaited.Should().Be(false);
             capturedEvents.Next().Should().BeOfType<ServerHeartbeatStartedEvent>().Subject.Awaited.Should().Be(false);

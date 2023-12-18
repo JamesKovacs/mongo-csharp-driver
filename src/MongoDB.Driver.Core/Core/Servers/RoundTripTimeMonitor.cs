@@ -134,7 +134,7 @@ namespace MongoDB.Driver.Core.Servers
         // According to the spec, we MUST NOT use a dedicated connection for RTT when using polling protocol.
         public void Run(IConnection connection)
         {
-            // _logger?.LogDebug(_serverId, "RTT Monitoring Check");
+            _logger?.LogDebug(_serverId, "RTT Monitoring Check");
 
             try
             {
