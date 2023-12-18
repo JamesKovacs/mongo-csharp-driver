@@ -210,7 +210,7 @@ namespace MongoDB.Driver.Core.Servers
         {
             var connection = _connectionFactory.CreateConnection(_serverId, _endPoint);
 
-            _eventLoggerSdam.LogAndPublish(new ServerHeartbeatStartedEvent(connection.ConnectionId, _streamingEnabled && connection.Description?.HelloResult.TopologyVersion != null));
+            _eventLoggerSdam.LogAndPublish(new ServerHeartbeatStartedEvent(connection.ConnectionId, _streamingEnabled && _currentDescription.TopologyVersion != null));
 
             var stopwatch = Stopwatch.StartNew();
             try
@@ -220,14 +220,14 @@ namespace MongoDB.Driver.Core.Servers
                 connection.Open(cancellationToken);
 
                 var helloResult = connection.Description.HelloResult;
-                _eventLoggerSdam.LogAndPublish(new ServerHeartbeatSucceededEvent(connection.ConnectionId, stopwatch.Elapsed, _streamingEnabled && helloResult.TopologyVersion != null, helloResult.Wrapped));
+                _eventLoggerSdam.LogAndPublish(new ServerHeartbeatSucceededEvent(connection.ConnectionId, stopwatch.Elapsed, _streamingEnabled && _currentDescription.TopologyVersion != null, helloResult.Wrapped));
             }
             catch (Exception ex)
             {
                 // dispose it here because the _connection is not initialized yet
                 try { connection.Dispose(); } catch { }
 
-                _eventLoggerSdam.LogAndPublish(new ServerHeartbeatFailedEvent(connection.ConnectionId, stopwatch.Elapsed, ex, _streamingEnabled && connection.Description?.HelloResult.TopologyVersion != null));
+                _eventLoggerSdam.LogAndPublish(new ServerHeartbeatFailedEvent(connection.ConnectionId, stopwatch.Elapsed, ex, _streamingEnabled && _currentDescription.TopologyVersion != null));
 
                 throw;
             }
@@ -429,11 +429,7 @@ namespace MongoDB.Driver.Core.Servers
 
                 if (_streamingEnabled && serverSupportsStreaming && !_roundTripTimeMonitor.Started)
                 {
-                    _roundTripTimeMonitor.Start(); // streaming RTT monitoring
-                }
-                else if ((!_streamingEnabled || (_streamingEnabled && !serverSupportsStreaming)) && heartbeatHelloResult != null)
-                {
-                    _roundTripTimeMonitor.Run(_connection); // polling RTT monitoring
+                    _roundTripTimeMonitor.Start(); // start RTT monitoring on separate thread
                 }
 
                 processAnother = (_streamingEnabled && (serverSupportsStreaming || connectionIsStreaming)) || transitionedWithNetworkError;
@@ -459,6 +455,12 @@ namespace MongoDB.Driver.Core.Servers
             {
                 var helloResult = HelloHelper.GetResult(connection, helloProtocol, cancellationToken);
                 stopwatch.Stop();
+
+                // RTT check if using polling monitoring
+                if ((!_streamingEnabled || (_streamingEnabled && connection.Description.HelloResult.TopologyVersion == null)) && helloResult != null)
+                {
+                    _roundTripTimeMonitor.AddSample(stopwatch.Elapsed);
+                }
 
                 _eventLoggerSdam.LogAndPublish(new ServerHeartbeatSucceededEvent(connection.ConnectionId, stopwatch.Elapsed, _streamingEnabled && connection.Description.HelloResult.TopologyVersion != null, helloResult.Wrapped));
 

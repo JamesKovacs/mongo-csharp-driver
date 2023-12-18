@@ -311,23 +311,6 @@ namespace MongoDB.Driver.Core.Servers
         }
 
         [Fact]
-        public void RoundTripTimeMonitor_should_be_run_expected_num_of_times_if_using_polling_protocol()
-        {
-            var serverMonitorSettings = new ServerMonitorSettings(TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(2));
-            var subject = CreateSubject(out var mockConnection, out _, out var mockRoundTripTimeMonitor, serverMonitorSettings: serverMonitorSettings);
-            mockRoundTripTimeMonitor.Setup(m => m.Run(mockConnection));
-
-            SetupHeartbeatConnection(mockConnection, autoFillStreamingResponses: false);
-            mockConnection.EnqueueCommandResponseMessage(CreateHeartbeatCommandResponseMessage());
-            mockConnection.EnqueueCommandResponseMessage(CreateHeartbeatCommandResponseMessage());
-
-            subject.Initialize();
-            SpinWait.SpinUntil(() => mockConnection.GetSentMessages().Count >= 2, TimeSpan.FromSeconds(5)).Should().BeTrue();
-
-            mockRoundTripTimeMonitor.Verify(m => m.Run(mockConnection), Times.AtLeast(2));
-        }
-
-        [Fact]
         public void RequestHeartbeat_should_force_another_heartbeat()
         {
             var capturedEvents = new EventCapturer();
@@ -358,7 +341,6 @@ namespace MongoDB.Driver.Core.Servers
 
             var serverMonitorSettings = new ServerMonitorSettings(TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(1), serverMonitoringMode: ServerMonitoringMode.Poll);
             var subject = CreateSubject(out var mockConnection, out _, out var mockRoundTripTimeMonitor, capturedEvents, serverMonitorSettings: serverMonitorSettings);
-            mockRoundTripTimeMonitor.Setup(m => m.Run(mockConnection));
 
             SetupHeartbeatConnection(mockConnection, isStreamable: true, autoFillStreamingResponses: false);
             mockConnection.EnqueueCommandResponseMessage(CreateHeartbeatCommandResponseMessage());

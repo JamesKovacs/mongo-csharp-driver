@@ -31,7 +31,6 @@ namespace MongoDB.Driver.Core.Servers
         void AddSample(TimeSpan roundTripTime);
         void Reset();
         void Start();
-        void Run(IConnection connection);
     }
 
     internal sealed class RoundTripTimeMonitor : IRoundTripTimeMonitor
@@ -127,30 +126,6 @@ namespace MongoDB.Driver.Core.Servers
                 {
                     // ignore OperationCanceledException
                 }
-            }
-        }
-
-        // Only used when operating under the polling monitoring protocol.
-        // According to the spec, we MUST NOT use a dedicated connection for RTT when using polling protocol.
-        public void Run(IConnection connection)
-        {
-            _logger?.LogDebug(_serverId, "RTT Monitoring Check");
-
-            try
-            {
-                var helloOk = connection.Description.HelloResult.HelloOk;
-                var helloCommand = HelloHelper.CreateCommand(_serverApi, helloOk, loadBalanced: connection.Settings.LoadBalanced);
-                var helloProtocol = HelloHelper.CreateProtocol(helloCommand, _serverApi);
-
-                var stopwatch = Stopwatch.StartNew();
-                HelloHelper.GetResult(connection, helloProtocol, _cancellationToken);
-                stopwatch.Stop();
-                AddSample(stopwatch.Elapsed);
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogDebug(ex, StructuredLogTemplateProviders.DriverConnectionId_Message, connection.ConnectionId?.LongLocalValue, "RTT Monitoring exception");
-                throw;
             }
         }
 
