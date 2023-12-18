@@ -210,7 +210,7 @@ namespace MongoDB.Driver.Core.Servers
         {
             var connection = _connectionFactory.CreateConnection(_serverId, _endPoint);
 
-            _eventLoggerSdam.LogAndPublish(new ServerHeartbeatStartedEvent(connection.ConnectionId, _streamingEnabled && connection.Description.HelloResult.TopologyVersion != null));
+            _eventLoggerSdam.LogAndPublish(new ServerHeartbeatStartedEvent(connection.ConnectionId, _streamingEnabled && connection.Description?.HelloResult.TopologyVersion != null));
 
             var stopwatch = Stopwatch.StartNew();
             try
@@ -227,7 +227,7 @@ namespace MongoDB.Driver.Core.Servers
                 // dispose it here because the _connection is not initialized yet
                 try { connection.Dispose(); } catch { }
 
-                _eventLoggerSdam.LogAndPublish(new ServerHeartbeatFailedEvent(connection.ConnectionId, stopwatch.Elapsed, ex, _streamingEnabled && connection.Description.HelloResult.TopologyVersion != null));
+                _eventLoggerSdam.LogAndPublish(new ServerHeartbeatFailedEvent(connection.ConnectionId, stopwatch.Elapsed, ex, _streamingEnabled && connection.Description?.HelloResult.TopologyVersion != null));
 
                 throw;
             }
