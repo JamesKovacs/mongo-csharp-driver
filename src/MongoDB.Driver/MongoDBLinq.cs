@@ -13,25 +13,19 @@
 * limitations under the License.
 */
 
-namespace MongoDB.Driver.Linq
+using MongoDB.Driver.Linq;
+
+namespace MongoDB.Driver
 {
     /// <summary>
-    /// Used to define extension methods that can be used in LINQ queries against MongoDB.
+    /// Static class that is an entry point for various MongoDB specific LINQ features.
     /// </summary>
-    public sealed class MongoDBFunctions
+    public static class MongoDBLinq
     {
-        // private static fields
-        private static readonly MongoDBFunctions _instance = new MongoDBFunctions();
-
-        // constructors
-        internal MongoDBFunctions()
-        {
-        }
-
         // public static properties
         /// <summary>
-        /// Gets the singleton instance of MongoDBFunctions.
+        /// Gets the MongoDBFunctions object against which extension methods are defined for MongoDB specific database functions.
         /// </summary>
-        public static MongoDBFunctions Instance => _instance;
+        public static MongoDBFunctions Functions => MongoDBFunctions.Instance;
     }
 }

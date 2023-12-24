@@ -28,8 +28,8 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
     {
         private static readonly MethodInfo[] __isMissingMethods =
         {
-            MongoDBFunctionsMethod.IsMissing,
-            MongoDBFunctionsMethod.IsNullOrMissing,
+            MongoDBFunctionsExtensionsMethod.IsMissing,
+            MongoDBFunctionsExtensionsMethod.IsNullOrMissing,
        };
 
         public static AggregationExpression Translate(TranslationContext context, MethodCallExpression expression)
@@ -39,7 +39,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
 
             if (method.IsOneOf(__isMissingMethods))
             {
-                var fieldExpression = arguments[0];
+                var fieldExpression = arguments[1];
                 var fieldTranslation = ExpressionToAggregationExpressionTranslator.Translate(context, fieldExpression);
                 var fieldAst = fieldTranslation.Ast;
                 if (fieldAst.NodeType != AstNodeType.GetFieldExpression)
@@ -47,7 +47,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                     throw new ExpressionNotSupportedException(expression, because: $"argument to {method.Name} must be a reference to a field");
                 }
 
-                var ast = method.Is(MongoDBFunctionsMethod.IsNullOrMissing) ?
+                var ast = method.Is(MongoDBFunctionsExtensionsMethod.IsNullOrMissing) ?
                     AstExpression.In(AstExpression.Type(fieldAst), new BsonArray { "null", "missing" }) :
                     AstExpression.Eq(AstExpression.Type(fieldAst), "missing");
 

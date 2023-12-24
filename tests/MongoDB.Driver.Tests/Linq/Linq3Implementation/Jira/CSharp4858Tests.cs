@@ -29,7 +29,7 @@ namespace MongoDB.Driver.Tests.Linq.Linq3Implementation.Jira
             var collection = GetCollection();
 
             var queryable = collection.AsQueryable()
-                .Select(x => MongoDBFunctions.IsMissing(x.S));
+                .Select(x => MongoDBLinq.Functions.IsMissing(x.S));
 
             var stages = Translate(collection, queryable);
             AssertStages(stages, "{ $project : { _v : { $eq : [{ $type : '$S' }, 'missing'] }, _id : 0 } }");
@@ -44,7 +44,7 @@ namespace MongoDB.Driver.Tests.Linq.Linq3Implementation.Jira
             var collection = GetCollection();
 
             var queryable = collection.AsQueryable()
-                .Select(x => MongoDBFunctions.IsNullOrMissing(x.S));
+                .Select(x => MongoDBLinq.Functions.IsNullOrMissing(x.S));
 
             var stages = Translate(collection, queryable);
             AssertStages(stages, "{ $project : { _v : { $in : [{ $type : '$S' }, ['null', 'missing']] }, _id : 0 } }");

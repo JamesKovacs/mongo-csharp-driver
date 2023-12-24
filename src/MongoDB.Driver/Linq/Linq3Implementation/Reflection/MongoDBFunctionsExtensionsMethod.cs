@@ -17,17 +17,17 @@ using System.Reflection;
 
 namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
 {
-    internal static class MongoDBFunctionsMethod
+    internal static class MongoDBFunctionsExtensionsMethod
     {
         // private static fields
         private static readonly MethodInfo __isMissing;
         private static readonly MethodInfo __isNullOrMissing;
 
         // static constructor
-        static MongoDBFunctionsMethod()
+        static MongoDBFunctionsExtensionsMethod()
         {
-            __isMissing = ReflectionInfo.Method((object field) => MongoDBFunctions.IsMissing(field));
-            __isNullOrMissing = ReflectionInfo.Method((object field) => MongoDBFunctions.IsNullOrMissing(field));
+            __isMissing = ReflectionInfo.Method((MongoDBFunctions functions, object field) => functions.IsMissing(field));
+            __isNullOrMissing = ReflectionInfo.Method((MongoDBFunctions functions, object field) => functions.IsNullOrMissing(field));
         }
 
         // public properties
