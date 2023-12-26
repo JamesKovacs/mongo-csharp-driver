@@ -24,6 +24,21 @@ namespace MongoDB.Driver.Tests.Linq.Linq3Implementation.Jira
     public class CSharp4858Tests : Linq3IntegrationTest
     {
         [Fact]
+        public void Select_Exists_should_work()
+        {
+            var collection = GetCollection();
+
+            var queryable = collection.AsQueryable()
+                .Select(x => MongoDBLinq.Functions.Exists(x.S));
+
+            var stages = Translate(collection, queryable);
+            AssertStages(stages, "{ $project : { _v : { $ne : [{ $type : '$S' }, 'missing'] }, _id : 0 } }");
+
+            var results = queryable.ToList();
+            results.Should().Equal(false, true, true);
+        }
+
+        [Fact]
         public void Select_IsMissing_should_work()
         {
             var collection = GetCollection();

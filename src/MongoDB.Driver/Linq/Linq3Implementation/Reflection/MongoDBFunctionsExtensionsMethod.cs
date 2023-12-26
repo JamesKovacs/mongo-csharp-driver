@@ -20,17 +20,20 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Reflection
     internal static class MongoDBFunctionsExtensionsMethod
     {
         // private static fields
+        private static readonly MethodInfo __exists;
         private static readonly MethodInfo __isMissing;
         private static readonly MethodInfo __isNullOrMissing;
 
         // static constructor
         static MongoDBFunctionsExtensionsMethod()
         {
+            __exists = ReflectionInfo.Method((MongoDBFunctions functions, object field) => functions.Exists(field));
             __isMissing = ReflectionInfo.Method((MongoDBFunctions functions, object field) => functions.IsMissing(field));
             __isNullOrMissing = ReflectionInfo.Method((MongoDBFunctions functions, object field) => functions.IsNullOrMissing(field));
         }
 
         // public properties
+        public static MethodInfo Exists => __exists;
         public static MethodInfo IsMissing => __isMissing;
         public static MethodInfo IsNullOrMissing => __isNullOrMissing;
     }

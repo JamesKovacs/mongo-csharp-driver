@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using MongoDB.Bson;
@@ -24,13 +25,14 @@ using MongoDB.Driver.Linq.Linq3Implementation.Reflection;
 
 namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggregationExpressionTranslators.MethodTranslators
 {
-    internal static class IsMissingMethodToAggregationExpressionTranslator
+    internal static class FieldExistsOrIsMissingMethodToAggregationExpressionTranslator
     {
         private static readonly MethodInfo[] __isMissingMethods =
         {
+            MongoDBFunctionsExtensionsMethod.Exists,
             MongoDBFunctionsExtensionsMethod.IsMissing,
             MongoDBFunctionsExtensionsMethod.IsNullOrMissing,
-       };
+        };
 
         public static AggregationExpression Translate(TranslationContext context, MethodCallExpression expression)
         {
@@ -47,9 +49,13 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
                     throw new ExpressionNotSupportedException(expression, because: $"argument to {method.Name} must be a reference to a field");
                 }
 
-                var ast = method.Is(MongoDBFunctionsExtensionsMethod.IsNullOrMissing) ?
-                    AstExpression.In(AstExpression.Type(fieldAst), new BsonArray { "null", "missing" }) :
-                    AstExpression.Eq(AstExpression.Type(fieldAst), "missing");
+                var ast = method switch
+                {
+                    _ when method.Is(MongoDBFunctionsExtensionsMethod.Exists) => AstExpression.Ne(AstExpression.Type(fieldAst), "missing"),
+                    _ when method.Is(MongoDBFunctionsExtensionsMethod.IsMissing) => AstExpression.Eq(AstExpression.Type(fieldAst), "missing"),
+                    _ when method.Is(MongoDBFunctionsExtensionsMethod.IsNullOrMissing) => AstExpression.In(AstExpression.Type(fieldAst), new BsonArray { "null", "missing" }),
+                    _ => throw new InvalidOperationException("Unexpected method."),
+                }; ;
 
                 return new AggregationExpression(expression, ast, new BooleanSerializer());
             }

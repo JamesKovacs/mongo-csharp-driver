@@ -23,6 +23,18 @@ namespace MongoDB.Driver.Linq
     public static class MongoDBFunctionsExtensions
     {
         /// <summary>
+        /// Tests whether a field exists.
+        /// </summary>
+        /// <typeparam name="TField">The type of the field.</typeparam>
+        /// <param name="functions">The functions object.</param>
+        /// <param name="field">The field.</param>
+        /// <returns>True if the field is missing.</returns>
+        public static bool Exists<TField>(this MongoDBFunctions functions, TField field)
+        {
+            throw new NotSupportedException("This method is not functional. It is only usable in MongoDB LINQ queries.");
+        }
+
+        /// <summary>
         /// Tests whether a field is missing.
         /// </summary>
         /// <typeparam name="TField">The type of the field.</typeparam>

@@ -140,7 +140,7 @@ namespace MongoDB.Driver.Linq.Linq3Implementation.Translators.ExpressionToAggreg
 
                 case "IsMissing":
                 case "IsNullOrMissing":
-                    return IsMissingMethodToAggregationExpressionTranslator.Translate(context, expression);
+                    return FieldExistsOrIsMissingMethodToAggregationExpressionTranslator.Translate(context, expression);
 
                 case "Log":
                 case "Log10":
