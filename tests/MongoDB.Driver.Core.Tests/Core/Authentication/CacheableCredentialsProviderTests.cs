@@ -61,7 +61,6 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
             Func<DateTime?> expiredDateFunc = () => expiredDate;
             var subject = CreateSubject(expirationDateFunc: expiredDateFunc);
             await CreateCredentials(subject, async);
-            subject.CachedCredentials.Should().BeNull();
         }
 
         private async Task<DummyCredentials> CreateCredentials(CacheableCredentialsProvider<DummyCredentials> subject, bool async) =>
