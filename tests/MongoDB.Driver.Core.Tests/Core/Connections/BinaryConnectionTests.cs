@@ -162,10 +162,19 @@ namespace MongoDB.Driver.Core.Connections
                 new CompressorConfiguration[0],
                 new ServerApi(ServerApiVersion.V1), // use serverApi to choose command message protocol
                 null);
+
+            var authenticatorMock = new Mock<IAuthenticator>();
+            authenticatorMock
+                .Setup(a => a.CustomizeInitialHelloCommand(It.IsAny<BsonDocument>(), It.IsAny<CancellationToken>()))
+                .Returns(new BsonDocument(OppressiveLanguageConstants.LegacyHelloCommandName, 1));
+            authenticatorMock
+                .Setup(a => a.CustomizeInitialHelloCommandAsync(It.IsAny<BsonDocument>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(new BsonDocument(OppressiveLanguageConstants.LegacyHelloCommandName, 1)));
+
             var authenticatorFactoryMock = new Mock<IAuthenticatorFactory>();
             authenticatorFactoryMock
                 .Setup(a => a.Create(It.IsAny<IAuthenticationContext>()))
-                .Returns(Mock.Of<IAuthenticator>(a => a.CustomizeInitialHelloCommand(It.IsAny<BsonDocument>(), It.IsAny<CancellationToken>()) == new BsonDocument(OppressiveLanguageConstants.LegacyHelloCommandName, 1)));
+                .Returns(authenticatorMock.Object);
 
             using var subject = new BinaryConnection(
                 serverId: _serverId,
