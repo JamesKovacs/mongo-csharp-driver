@@ -144,7 +144,7 @@ namespace MongoDB.Driver.Core.TestHelpers
 
         public bool IsInitialized
         {
-            get => _isInitialized ?? Description?.ConnectionId?.LongServerValue.HasValue ?? true;
+            get => _isInitialized ?? Description?.ConnectionId?.LongServerValue.HasValue ?? false;
             set => _isInitialized = value;
         }
 
