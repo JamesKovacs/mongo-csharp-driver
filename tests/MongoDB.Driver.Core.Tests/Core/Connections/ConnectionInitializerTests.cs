@@ -504,6 +504,6 @@ namespace MongoDB.Driver.Core.Connections
             this ConnectionInitializer initializer,
             IReadOnlyList<IAuthenticator> authenticators,
             bool loadBalanced) =>
-                (BsonDocument)Reflector.Invoke(initializer, nameof(CreateInitialHelloCommand), authenticators, loadBalanced);
+                (BsonDocument)Reflector.Invoke(initializer, nameof(CreateInitialHelloCommand), authenticators, loadBalanced, CancellationToken.None);
     }
 }
