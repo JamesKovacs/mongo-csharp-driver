@@ -67,14 +67,16 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
 
             try
             {
-                if (_cachedCredentials != null && !_cachedCredentials.IsExpired)
+                credentials = _cachedCredentials;
+                if (credentials != null && !credentials.IsExpired)
                 {
-                    return _cachedCredentials;
+                    return credentials;
                 }
 
                 var response = _wrappedCallbackProvider.GetResponse(parameters, cancellationToken);
-                _cachedCredentials = new OidcCredentials(response.AccessToken, response.ExpiresIn, _clock);
-                return _cachedCredentials;
+                credentials = new OidcCredentials(response.AccessToken, response.ExpiresIn, _clock);
+                _cachedCredentials = credentials;
+                return credentials;
             }
             finally
             {
@@ -94,14 +96,16 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
 
             try
             {
-                if (_cachedCredentials != null && !_cachedCredentials.IsExpired)
+                credentials = _cachedCredentials;
+                if (credentials != null && !credentials.IsExpired)
                 {
-                    return _cachedCredentials;
+                    return credentials;
                 }
 
                 var response = await _wrappedCallbackProvider.GetResponseAsync(parameters, cancellationToken).ConfigureAwait(false);
-                _cachedCredentials = new OidcCredentials(response.AccessToken, response.ExpiresIn, _clock);
-                return _cachedCredentials;
+                credentials = new OidcCredentials(response.AccessToken, response.ExpiresIn, _clock);
+                _cachedCredentials = credentials;
+                return credentials;
             }
             finally
             {
