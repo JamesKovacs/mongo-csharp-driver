@@ -37,14 +37,20 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
             SaslConversation conversation,
             ConnectionDescription description,
             CancellationToken cancellationToken)
-            => StartAuthenticationFlow(default);
+        {
+            var credentials = _oidcCallback.GetCredentials(new OidcCallbackParameters(1), cancellationToken);
+            return CreateNoTransitionClientLastSaslStep(credentials);
+        }
 
-        public Task<ISaslStep> InitializeAsync(
+        public async Task<ISaslStep> InitializeAsync(
             IConnection connection,
             SaslConversation conversation,
             ConnectionDescription description,
             CancellationToken cancellationToken)
-            => StartAuthenticationFlowAsync(cancellationToken);
+        {
+            var credentials =  await _oidcCallback.GetCredentialsAsync(new OidcCallbackParameters(1), cancellationToken);
+            return CreateNoTransitionClientLastSaslStep(credentials);
+        }
 
         public ISaslStep CreateSpeculativeAuthenticationStep(CancellationToken cancellationToken)
         {
@@ -62,17 +68,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
 
         public void ClearCache() => _oidcCallback.ClearCache();
 
-        private ISaslStep StartAuthenticationFlow(CancellationToken cancellationToken)
-        {
-            var credentials = _oidcCallback.GetCredentials(new OidcCallbackParameters(1), cancellationToken);
-            return CreateNoTransitionClientLastSaslStep(credentials);
-        }
-
-        private async Task<ISaslStep> StartAuthenticationFlowAsync(CancellationToken cancellationToken)
-        {
-            var credentials =  await _oidcCallback.GetCredentialsAsync(new OidcCallbackParameters(1), cancellationToken);
-            return CreateNoTransitionClientLastSaslStep(credentials);
-        }
+        public bool HasCachedCredentials() => _oidcCallback.CachedCredentials != null;
 
         private static ISaslStep CreateNoTransitionClientLastSaslStep(OidcCredentials oidcCredentials)
         {

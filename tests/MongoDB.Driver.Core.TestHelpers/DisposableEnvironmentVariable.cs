@@ -15,7 +15,7 @@
 
 using System;
 
-namespace MongoDB.Driver.Tests.Communication.Security
+namespace MongoDB.Driver.Core.TestHelpers
 {
     internal class DisposableEnvironmentVariable : IDisposable
     {

@@ -115,11 +115,15 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
         /// <inheritdoc/>
         public override void Authenticate(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
         {
+            // Capture the cache state to decide if we want retry on auth error or not.
+            // Not the best solution, but let us not to introduce the retry logic into SaslAuthenticator to reduce affected areas for now.
+            // Consider to move this code into SaslAuthenticator when retry logic will be applicable not only for Oidc Auth.
+            var allowRetryOnAuthError = OidcMechanism.HasCachedCredentials();
             try
             {
                 base.Authenticate(connection, description, cancellationToken);
             }
-            catch (MongoAuthenticationException authenticationException) when (ShouldReauthenticateIfSaslError(authenticationException, connection))
+            catch (MongoAuthenticationException authenticationException) when (allowRetryOnAuthError && ShouldReauthenticateIfSaslError(authenticationException, connection))
             {
                 ClearCredentialsCache();
                 Thread.Sleep(100);
@@ -143,11 +147,15 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
         /// <inheritdoc/>
         public override async Task AuthenticateAsync(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
         {
+            // Capture the cache state to decide if we want retry on auth error or not.
+            // Not the best solution, but let us not to introduce the retry logic into SaslAuthenticator to reduce affected areas for now.
+            // Consider to move this code into SaslAuthenticator when retry logic will be applicable not only for Oidc Auth.
+            var allowRetryOnAuthError = OidcMechanism.HasCachedCredentials();
             try
             {
                 await base.AuthenticateAsync(connection, description, cancellationToken).ConfigureAwait(false);
             }
-            catch (MongoAuthenticationException authenticationException) when (ShouldReauthenticateIfSaslError(authenticationException, connection))
+            catch (MongoAuthenticationException authenticationException) when (allowRetryOnAuthError && ShouldReauthenticateIfSaslError(authenticationException, connection))
             {
                 ClearCredentialsCache();
                 await Task.Delay(100, cancellationToken).ConfigureAwait(false);
@@ -199,7 +207,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
         private static bool ShouldReauthenticateIfSaslError(MongoAuthenticationException ex, IConnection connection)
         {
             return ex.InnerException is MongoCommandException mongoCommandException
-                   && mongoCommandException.Code == (int)ServerErrorCode.ReauthenticationRequired
+                   && mongoCommandException.Code == (int)ServerErrorCode.AuthenticationFailed
                    && !connection.IsInitialized;
         }
 

@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Driver.Core.Misc;
@@ -30,7 +31,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
         ValueTask<OidcCredentials> GetCredentialsAsync(OidcCallbackParameters parameters, CancellationToken cancellationToken);
     }
 
-    internal sealed class OidcCallbackAdapter : IOidcCallbackAdapter, System.IDisposable
+    internal sealed class OidcCallbackAdapter : IOidcCallbackAdapter, IDisposable
     {
         private readonly IClock _clock;
         private readonly IOidcCallbackProvider _wrappedCallbackProvider;
@@ -74,6 +75,11 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
                 }
 
                 var response = _wrappedCallbackProvider.GetResponse(parameters, cancellationToken);
+                if (response == null)
+                {
+                    throw new InvalidOperationException("Unexpected response from OIDC Callback.");
+                }
+
                 credentials = new OidcCredentials(response.AccessToken, response.ExpiresIn, _clock);
                 _cachedCredentials = credentials;
                 return credentials;
@@ -103,6 +109,11 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
                 }
 
                 var response = await _wrappedCallbackProvider.GetResponseAsync(parameters, cancellationToken).ConfigureAwait(false);
+                if (response == null)
+                {
+                    throw new InvalidOperationException("Unexpected response from OIDC Callback.");
+                }
+
                 credentials = new OidcCredentials(response.AccessToken, response.ExpiresIn, _clock);
                 _cachedCredentials = credentials;
                 return credentials;
