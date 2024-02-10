@@ -62,9 +62,9 @@ namespace MongoDB.Driver.Core
             return this;
         }
 
-        public EventCapturer CaptureCommandEvents(params string[] commandName)
+        public EventCapturer CaptureCommandEvents(string commandName = null)
         {
-            Func<string, bool> predicate = s => commandName == null || commandName.Length == 0 || commandName.Any(c => c == s);
+            Func<string, bool> predicate = s => commandName == null || commandName == s;
 
             _eventsToCapture.Add(typeof(CommandStartedEvent), o => predicate(((CommandStartedEvent)o).CommandName));
             _eventsToCapture.Add(typeof(CommandSucceededEvent), o => predicate(((CommandSucceededEvent)o).CommandName));
