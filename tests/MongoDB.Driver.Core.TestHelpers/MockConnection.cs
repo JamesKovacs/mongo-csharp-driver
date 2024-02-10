@@ -22,7 +22,6 @@ using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Configuration;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Events;
-using MongoDB.Driver.Core.Helpers;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.Servers;
 using MongoDB.Driver.Core.WireProtocol.Messages;
@@ -168,12 +167,6 @@ namespace MongoDB.Driver.Core.TestHelpers
         public void EnqueueCommandResponseMessage(Exception exception)
         {
             _replyActions.Enqueue(new ActionQueueItem(message: null, exception: exception));
-        }
-
-        public void EnqueueCommandResponseMessage(string replyMessage)
-        {
-            var builtMessage = MessageHelper.BuildCommandResponse(replyMessage);
-            EnqueueCommandResponseMessage(builtMessage);
         }
 
         public void EnqueueCommandResponseMessage(CommandResponseMessage replyMessage)
