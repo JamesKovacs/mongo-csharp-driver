@@ -61,6 +61,7 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
             Func<DateTime?> expiredDateFunc = () => expiredDate;
             var subject = CreateSubject(expirationDateFunc: expiredDateFunc);
             await CreateCredentials(subject, async);
+            subject.Credentials.Should().BeNull();
         }
 
         private async Task<DummyCredentials> CreateCredentials(CacheableCredentialsProvider<DummyCredentials> subject, bool async) =>
@@ -96,7 +97,6 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
             _isExpiredFunc = Ensure.IsNotNull(isExpiredFunc, nameof(isExpiredFunc));
         }
 
-        public string AccessToken => throw new NotImplementedException();
         public DateTime? Expiration => _expirationDateFunc();
 
         public bool ShouldBeRefreshed => _isExpiredFunc();

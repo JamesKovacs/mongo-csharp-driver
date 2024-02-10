@@ -14,7 +14,6 @@
 */
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -22,22 +21,17 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using MongoDB.Bson;
 using MongoDB.Driver.Core;
-using MongoDB.Driver.Core.Authentication.External;
 using MongoDB.Driver.Core.Authentication.Oidc;
 using MongoDB.Driver.Core.Bindings;
-using MongoDB.Driver.Core.Events;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.TestHelpers;
-using MongoDB.Driver.Core.TestHelpers.Authentication;
 using MongoDB.Driver.Core.TestHelpers.Logging;
-using MongoDB.Driver.TestHelpers;
 using MongoDB.TestHelpers.XunitExtensions;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 
-namespace MongoDB.Driver.Tests.Communication.Security
+namespace MongoDB.Driver.Tests.Specifications.auth
 {
     [Trait("Category", "Authentication")]
     [Trait("Category", "OidcMechanism")]
@@ -46,12 +40,7 @@ namespace MongoDB.Driver.Tests.Communication.Security
         // some auth configuration may support only this name
         private const string DatabaseName = "test";
         private const string CollectionName = "collName";
-
         private const string OidcTokensDirEnvName = "OIDC_TOKEN_DIR";
-
-        private const string SecondaryPreferedConnectionStringSuffix = "&readPreference=secondaryPreferred";
-        private const string DirectConnectionStringSuffix = "&directConnection=true";
-        private const string DirectConnectionSecondaryPreferedConnectionStringSuffix = SecondaryPreferedConnectionStringSuffix + DirectConnectionStringSuffix;
         private const string DefaultTokenName = "test_user1";
 
         public OidcAuthenticationProseTests(ITestOutputHelper output) : base(output)
@@ -61,7 +50,7 @@ namespace MongoDB.Driver.Tests.Communication.Security
             OidcCallbackAdapterCachingFactory.Instance.Reset();
         }
 
-        // https://github.com/mongodb/specifications/blob/3b8e7e4135f2615fedef1ea6cd2046f5be5a1725/source/auth/tests/mongodb-oidc.rst?plain=1#L49
+        // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L41
         [Theory]
         [ParameterAttributeData]
         public async Task Callback_authentication_callback_called_during_authentication([Values(false, true)]bool async)
@@ -90,7 +79,7 @@ namespace MongoDB.Driver.Tests.Communication.Security
             }
         }
 
-        // https://github.com/mongodb/specifications/blob/3b8e7e4135f2615fedef1ea6cd2046f5be5a1725/source/auth/tests/mongodb-oidc.rst?plain=1#L57
+        // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L48
         [Theory]
         [ParameterAttributeData]
         public async Task Callback_authentication_callback_called_once_for_multiple_connections([Values(false, true)]bool async)
@@ -131,7 +120,7 @@ namespace MongoDB.Driver.Tests.Communication.Security
             }
         }
 
-        //https://github.com/mongodb/specifications/blob/3b8e7e4135f2615fedef1ea6cd2046f5be5a1725/source/auth/tests/mongodb-oidc.rst?plain=1#L69
+        // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L57
         [Theory]
         [ParameterAttributeData]
         public async Task Callback_validation_valid_callback_inputs([Values(false, true)] bool async)
@@ -160,7 +149,7 @@ namespace MongoDB.Driver.Tests.Communication.Security
             }
         }
 
-        // https://github.com/mongodb/specifications/blob/3b8e7e4135f2615fedef1ea6cd2046f5be5a1725/source/auth/tests/mongodb-oidc.rst?plain=1#L78
+        // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L64
         [Theory]
         [ParameterAttributeData]
         public async Task Callback_validation_callback_returns_null([Values(false, true)] bool async)
@@ -179,7 +168,7 @@ namespace MongoDB.Driver.Tests.Communication.Security
             exception.Should().BeOfType<MongoConnectionException>();
         }
 
-        // https://github.com/mongodb/specifications/blob/3b8e7e4135f2615fedef1ea6cd2046f5be5a1725/source/auth/tests/mongodb-oidc.rst?plain=1#L85
+        // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L70
         [Theory]
         [ParameterAttributeData]
         public async Task Callback_validation_callback_returns_missing_data([Values(false, true)] bool async)
@@ -198,7 +187,7 @@ namespace MongoDB.Driver.Tests.Communication.Security
             exception.Should().BeOfType<MongoConnectionException>();
         }
 
-        // https://github.com/mongodb/specifications/blob/3b8e7e4135f2615fedef1ea6cd2046f5be5a1725/source/auth/tests/mongodb-oidc.rst?plain=1#L92
+        // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L77
         [Theory]
         [ParameterAttributeData]
         public async Task Callback_validation_invalid_client_configuration([Values(false, true)] bool async)
@@ -219,7 +208,7 @@ namespace MongoDB.Driver.Tests.Communication.Security
             exception.Should().BeOfType<MongoConnectionException>();
         }
 
-        // https://github.com/mongodb/specifications/blob/3b8e7e4135f2615fedef1ea6cd2046f5be5a1725/source/auth/tests/mongodb-oidc.rst?plain=1#L101C7-L101C81
+        // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L84
         // [Theory]
         // [ParameterAttributeData]
         // public async Task Authentication_failure_with_cached_tokens_fetch_new_and_retry([Values(false, true)] bool async)
@@ -250,7 +239,7 @@ namespace MongoDB.Driver.Tests.Communication.Security
         //     }
         // }
 
-        // https://github.com/mongodb/specifications/blob/3b8e7e4135f2615fedef1ea6cd2046f5be5a1725/source/auth/tests/mongodb-oidc.rst?plain=1#L110C31-L110C68
+        // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L92
         [Theory]
         [ParameterAttributeData]
         public async Task Authentication_failure_without_cached_tokens_return_error([Values(false, true)] bool async)
@@ -270,17 +259,47 @@ namespace MongoDB.Driver.Tests.Communication.Security
             if (async)
             {
                 callbackProviderMock.Verify(x => x.GetResponse(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
-                // Check for 2 calls because first call will return poisoned response that cause failure of initial auth, clear the cache and second call to get proper token
                 callbackProviderMock.Verify(x => x.GetResponseAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Once());
             }
             else
             {
-                // Check for 2 calls because first call will return poisoned response that cause failure of initial auth, clear the cache and second call to get proper token
                 callbackProviderMock.Verify(x => x.GetResponse(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Once());
                 callbackProviderMock.Verify(x => x.GetResponseAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
             }
         }
 
+        // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L99
+        [Theory]
+        [ParameterAttributeData]
+        public async Task ReAuthentication([Values(false, true)] bool async)
+        {
+            var callbackProviderMock = CreateOidcCallback(GetAccessTokenValue("test_user1"));
+            var clientSettings = CreateOidcMongoClientSettings(MongoCredential.CreateOidcCredential(callbackProviderMock.Object));
+            var client = DriverTestConfiguration.CreateDisposableClient(clientSettings);
+
+            var db = client.GetDatabase(DatabaseName);
+            var collection = db.GetCollection<BsonDocument>(CollectionName);
+
+            Exception exception;
+            using (var failPoint = ConfigureFailPoint(1, (int)ServerErrorCode.ReauthenticationRequired, "find"))
+            {
+                exception = async
+                    ? await Record.ExceptionAsync(() => collection.FindAsync(Builders<BsonDocument>.Filter.Empty))
+                    : Record.Exception(() => collection.FindSync(Builders<BsonDocument>.Filter.Empty));
+            }
+
+            exception.Should().BeNull();
+            if (async)
+            {
+                callbackProviderMock.Verify(x => x.GetResponse(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
+                callbackProviderMock.Verify(x => x.GetResponseAsync(It.Is<OidcCallbackParameters>(p => p.Version == 1), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            }
+            else
+            {
+                callbackProviderMock.Verify(x => x.GetResponse(It.Is<OidcCallbackParameters>(p => p.Version == 1), It.IsAny<CancellationToken>()), Times.Exactly(2));
+                callbackProviderMock.Verify(x => x.GetResponseAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
+            }
+        }
 
         private void EnsureOidcIsConfigured() =>
             // EG also requires aws_test_secrets_role
@@ -288,6 +307,33 @@ namespace MongoDB.Driver.Tests.Communication.Security
                 .Check()
                 .EnvironmentVariable(OidcTokensDirEnvName)
                 .EnvironmentVariable("OIDC_TESTS_ENABLED");
+
+
+        private FailPoint ConfigureFailPoint(
+            int times,
+            int errorCode,
+            params string[] command)
+        {
+            var failPointCommand = new BsonDocument
+            {
+                { "configureFailPoint", FailPointName.FailCommand },
+                { "mode", new BsonDocument("times", times) },
+                {
+                    "data",
+                    new BsonDocument
+                    {
+                        { "failCommands", new BsonArray(command.Select(c => new BsonString(c))) },
+                        { "errorCode",  errorCode }
+                    }
+                }
+            };
+
+            var cluster = DriverTestConfiguration.Client.Cluster;
+            var session = NoCoreSession.NewHandle();
+
+            return FailPoint.Configure(cluster, session, failPointCommand);
+        }
+
 
         private MongoClientSettings CreateOidcMongoClientSettings(MongoCredential credential, string applicationName = null, EventCapturer eventCapturer = null)
         {

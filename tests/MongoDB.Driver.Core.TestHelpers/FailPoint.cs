@@ -43,25 +43,6 @@ namespace MongoDB.Driver.Core.TestHelpers
         #region static
         // public static methods
 
-        public static BsonDocument CreateFailPointCommand(
-            int times,
-            int errorCode,
-            string applicationName,
-            params string[] command) =>
-            new BsonDocument
-            {
-                { "configureFailPoint", FailPointName.FailCommand },
-                { "mode", new BsonDocument("times", times) },
-                {
-                    "data",
-                    new BsonDocument
-                    {
-                        { "failCommands", new BsonArray(command.Select(c => new BsonString(c))) },
-                        { "errorCode",  errorCode },
-                        { "appName", applicationName }
-                    }
-                }
-            };
         /// <summary>
         /// Create a FailPoint and executes a configureFailPoint command on the selected server.
         /// </summary>
