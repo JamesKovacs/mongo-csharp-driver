@@ -15,10 +15,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Authentication;
-using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Misc;
 
 namespace MongoDB.Driver.Core.Operations
@@ -162,7 +160,7 @@ namespace MongoDB.Driver.Core.Operations
         public static bool IsReauthenticationRequested(MongoCommandException mongoCommandException, BsonDocument command)
             => mongoCommandException.Code == (int)ServerErrorCode.ReauthenticationRequired
                // SASL commands should not be reauthenticated on sending level
-               && !command.Names.Any(__saslCommands.Contains);
+               && !__saslCommands.Overlaps(command.Names);
 
         public static bool IsRetryableReadException(Exception exception)
         {

@@ -587,10 +587,10 @@ namespace MongoDB.Driver
 
                         if (evidence == null || (evidence is not ExternalEvidence))
                         {
-                            throw new ArgumentException("A MONGODB - OIDC does not support a password.");
+                            throw new ArgumentException("A MONGODB-OIDC does not support a password.");
                         }
 
-                        // request and refresh callbacks will be set in the following step via WithMechanismProperty calls
+                        // Callback will be set in the following step via WithMechanismProperty calls
                         return new MongoCredential(
                             mechanism,
                             new MongoOidcIdentity(username),
