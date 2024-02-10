@@ -41,7 +41,6 @@ namespace MongoDB.Driver.Core.TestHelpers
 
         #region static
         // public static methods
-
         /// <summary>
         /// Create a FailPoint and executes a configureFailPoint command on the selected server.
         /// </summary>

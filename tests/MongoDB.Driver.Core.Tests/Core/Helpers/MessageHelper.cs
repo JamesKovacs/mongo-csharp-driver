@@ -104,8 +104,6 @@ namespace MongoDB.Driver.Core.Helpers
 #pragma warning restore 618
         }
 
-        public static CommandResponseMessage BuildCommandResponse(string command) => BuildCommandResponse(RawBsonDocumentHelper.FromJson(command));
-
         public static CommandResponseMessage BuildCommandResponse(
             RawBsonDocument command,
             int requestId = 0,
