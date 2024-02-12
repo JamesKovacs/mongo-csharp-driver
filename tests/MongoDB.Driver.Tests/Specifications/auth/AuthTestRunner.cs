@@ -49,6 +49,11 @@ namespace MongoDB.Driver.Tests.Specifications.auth
                 throw new SkipException("Test skipped because CANONICALIZE_HOST_NAME is not supported.");
             }
 
+            if (connectionString.Contains("PROVIDER_NAME:aws"))
+            {
+                RequireEnvironment.Check().EnvironmentVariable("AWS_WEB_IDENTITY_TOKEN_FILE"); // required for OIDC
+            }
+
             try
             {
                 mongoCredential = MongoClientSettings.FromConnectionString(connectionString).Credential;
