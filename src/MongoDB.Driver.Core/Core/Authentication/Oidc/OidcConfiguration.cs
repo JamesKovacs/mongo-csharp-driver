@@ -105,22 +105,14 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
 
         private void EnsureOptionsValid()
         {
-            if (ProviderName == null && Callback == null)
+            if (string.IsNullOrEmpty(ProviderName) && Callback == null)
             {
                 throw new InvalidOperationException($"{MongoOidcAuthenticator.ProviderMechanismPropertyName} or {MongoOidcAuthenticator.CallbackMechanismPropertyName} must be configured.");
             }
 
-            if (ProviderName != null)
+            if (!string.IsNullOrEmpty(ProviderName) && Callback != null)
             {
-                if (PrincipalName != null)
-                {
-                    throw new InvalidOperationException($"PrincipalName is mutually exclusive with {MongoOidcAuthenticator.ProviderMechanismPropertyName}.");
-                }
-
-                if (Callback != null)
-                {
-                    throw new InvalidOperationException($"{MongoOidcAuthenticator.CallbackMechanismPropertyName} is mutually exclusive with {MongoOidcAuthenticator.ProviderMechanismPropertyName}.");
-                }
+                throw new InvalidOperationException($"{MongoOidcAuthenticator.CallbackMechanismPropertyName} is mutually exclusive with {MongoOidcAuthenticator.ProviderMechanismPropertyName}.");
             }
         }
     }

@@ -131,7 +131,6 @@ namespace MongoDB.Driver.Core.Configuration
 
         [Theory]
         [InlineData("mongodb://localhost/?authMechanism=MONGODB-OIDC", null)]
-        [InlineData("mongodb://localhost/?authMechanism=MONGODB-OIDC&authMechanismProperties=PRINCIPAL_NAME:Name", "PRINCIPAL_NAME:Name")]
         [InlineData("mongodb://localhost/?authMechanism=MONGODB-OIDC&authMechanismProperties=PROVIDER_NAME:aws", "PROVIDER_NAME:aws")]
         public void Resolve_against_mongodb_oidc_configuration_should_return_the_expected_output(string connectionStringStr, string expectedAuthProperties)
         {

@@ -48,10 +48,6 @@ namespace MongoDB.Driver.Tests.Specifications.auth
                 // have to skip CANONICALIZE_HOST_NAME tests. Not implemented yet. See: https://jira.mongodb.org/browse/CSHARP-3796
                 throw new SkipException("Test skipped because CANONICALIZE_HOST_NAME is not supported.");
             }
-            if (connectionString.Contains("PROVIDER_NAME:aws"))
-            {
-                RequireEnvironment.Check().EnvironmentVariable("AWS_WEB_IDENTITY_TOKEN_FILE"); // required for OIDC aws device
-            }
 
             try
             {
@@ -62,10 +58,10 @@ namespace MongoDB.Driver.Tests.Specifications.auth
                 parseException = ex;
             }
 
-            var dummyEndpoint = new DnsEndPoint("localhost", 27017);
             IAuthenticator authenticator = null;
             if (parseException == null && !SkipActualAuthenticatorCreating(testCase.Name))
             {
+                var dummyEndpoint = new DnsEndPoint("localhost", 27017);
                 parseException = Record.Exception(() => authenticator = mongoCredential?.ToAuthenticator(new AuthenticationContext(dummyEndpoint), serverApi: null));
             }
             if (parseException == null)
