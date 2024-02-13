@@ -7,7 +7,7 @@ namespace MongoDB.Driver.Core.Authentication
     /// <summary>
     /// Represents a last SASL step.
     /// </summary>
-    internal sealed class NoTransitionClientLastSaslStep : ISaslStep
+    internal sealed class NoTransitionClientLastSaslStep : SaslAuthenticator.ISaslStep
     {
         private readonly byte[] _bytesToSendToServer;
 
@@ -26,7 +26,7 @@ namespace MongoDB.Driver.Core.Authentication
         public bool IsComplete => false;
 
         /// <inheritdoc/>
-        public ISaslStep Transition(SaslConversation conversation, byte[] bytesReceivedFromServer)
+        public SaslAuthenticator.ISaslStep Transition(SaslAuthenticator.SaslConversation conversation, byte[] bytesReceivedFromServer)
         {
             if (bytesReceivedFromServer?.Length > 0)
             {
@@ -34,11 +34,11 @@ namespace MongoDB.Driver.Core.Authentication
                 throw new InvalidOperationException("Not all authentication response has been handled.");
             }
 
-            return new CompletedSaslStep();
+            return new SaslAuthenticator.CompletedSaslStep();
         }
 
-        public Task<ISaslStep> TransitionAsync(
-            SaslConversation conversation,
+        public Task<SaslAuthenticator.ISaslStep> TransitionAsync(
+            SaslAuthenticator.SaslConversation conversation,
             byte[] bytesReceivedFromServer,
             CancellationToken cancellationToken = default)
             => Task.FromResult(Transition(conversation, bytesReceivedFromServer));

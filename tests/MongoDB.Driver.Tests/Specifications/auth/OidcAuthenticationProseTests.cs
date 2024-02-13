@@ -45,7 +45,6 @@ namespace MongoDB.Driver.Tests.Specifications.auth
 
         public OidcAuthenticationProseTests(ITestOutputHelper output) : base(output)
         {
-            //OidcTestHelper.ClearStaticCache(ExternalCredentialsAuthenticators.Instance);
             EnsureOidcIsConfigured();
             OidcCallbackAdapterCachingFactory.Instance.Reset();
         }
@@ -209,35 +208,36 @@ namespace MongoDB.Driver.Tests.Specifications.auth
         }
 
         // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L84
-        // [Theory]
-        // [ParameterAttributeData]
-        // public async Task Authentication_failure_with_cached_tokens_fetch_new_and_retry([Values(false, true)] bool async)
-        // {
-        //     var callbackProviderMock = CreateOidcCallback("wrong token", GetAccessTokenValue("test_user1"));
-        //     var clientSettings = CreateOidcMongoClientSettings(MongoCredential.CreateOidcCredential(callbackProviderMock.Object));
-        //     var client = DriverTestConfiguration.CreateDisposableClient(clientSettings);
-        //
-        //     var db = client.GetDatabase(DatabaseName);
-        //     var collection = db.GetCollection<BsonDocument>(CollectionName);
-        //
-        //     var exception = async
-        //         ? await Record.ExceptionAsync(() => collection.FindAsync(Builders<BsonDocument>.Filter.Empty))
-        //         : Record.Exception(() => collection.FindSync(Builders<BsonDocument>.Filter.Empty));
-        //
-        //     exception.Should().BeNull();
-        //     if (async)
-        //     {
-        //         callbackProviderMock.Verify(x => x.GetResponse(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
-        //         // Check for 2 calls because first call will return poisoned response that cause failure of initial auth, clear the cache and second call to get proper token
-        //         callbackProviderMock.Verify(x => x.GetResponseAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
-        //     }
-        //     else
-        //     {
-        //         // Check for 2 calls because first call will return poisoned response that cause failure of initial auth, clear the cache and second call to get proper token
-        //         callbackProviderMock.Verify(x => x.GetResponse(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
-        //         callbackProviderMock.Verify(x => x.GetResponseAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
-        //     }
-        // }
+        [Theory]
+        [ParameterAttributeData]
+        public async Task Authentication_failure_with_cached_tokens_fetch_new_and_retry([Values(false, true)] bool async)
+        {
+            var callbackProviderMock = CreateOidcCallback(GetAccessTokenValue("test_user1"));
+            var clientSettings = CreateOidcMongoClientSettings(MongoCredential.CreateOidcCredential(callbackProviderMock.Object));
+            var client = DriverTestConfiguration.CreateDisposableClient(clientSettings);
+
+            var db = client.GetDatabase(DatabaseName);
+            var collection = db.GetCollection<BsonDocument>(CollectionName);
+
+            OidcCallbackAdapterCachingFactory.Instance.Reset();
+            var exception = async
+                ? await Record.ExceptionAsync(() => collection.FindAsync(Builders<BsonDocument>.Filter.Empty))
+                : Record.Exception(() => collection.FindSync(Builders<BsonDocument>.Filter.Empty));
+
+            exception.Should().BeNull();
+            if (async)
+            {
+                callbackProviderMock.Verify(x => x.GetResponse(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
+                // Check for 2 calls because first call will return poisoned response that cause failure of initial auth, clear the cache and second call to get proper token
+                callbackProviderMock.Verify(x => x.GetResponseAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            }
+            else
+            {
+                // Check for 2 calls because first call will return poisoned response that cause failure of initial auth, clear the cache and second call to get proper token
+                callbackProviderMock.Verify(x => x.GetResponse(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+                callbackProviderMock.Verify(x => x.GetResponseAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
+            }
+        }
 
         // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L92
         [Theory]

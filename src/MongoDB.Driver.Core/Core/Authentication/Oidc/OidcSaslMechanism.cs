@@ -21,7 +21,7 @@ using MongoDB.Driver.Core.Connections;
 
 namespace MongoDB.Driver.Core.Authentication.Oidc
 {
-    internal class OidcSaslMechanism : ISaslMechanism
+    internal class OidcSaslMechanism : SaslAuthenticator.ISaslMechanism
     {
         private readonly IOidcCallbackAdapter _oidcCallback;
 
@@ -32,9 +32,9 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
 
         public string Name => MongoOidcAuthenticator.MechanismName;
 
-        public ISaslStep Initialize(
+        public SaslAuthenticator.ISaslStep Initialize(
             IConnection connection,
-            SaslConversation conversation,
+            SaslAuthenticator.SaslConversation conversation,
             ConnectionDescription description,
             CancellationToken cancellationToken)
         {
@@ -42,9 +42,9 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
             return CreateNoTransitionClientLastSaslStep(credentials);
         }
 
-        public async Task<ISaslStep> InitializeAsync(
+        public async Task<SaslAuthenticator.ISaslStep> InitializeAsync(
             IConnection connection,
-            SaslConversation conversation,
+            SaslAuthenticator.SaslConversation conversation,
             ConnectionDescription description,
             CancellationToken cancellationToken)
         {
@@ -52,7 +52,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
             return CreateNoTransitionClientLastSaslStep(credentials);
         }
 
-        public ISaslStep CreateSpeculativeAuthenticationStep(CancellationToken cancellationToken)
+        public SaslAuthenticator.ISaslStep CreateSpeculativeAuthenticationStep(CancellationToken cancellationToken)
         {
             var cachedCredentials = _oidcCallback.CachedCredentials;
             if (cachedCredentials == null)
@@ -63,14 +63,14 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
             return CreateNoTransitionClientLastSaslStep(cachedCredentials);
         }
 
-        public Task<ISaslStep> CreateSpeculativeAuthenticationStepAsync(CancellationToken cancellationToken)
+        public Task<SaslAuthenticator.ISaslStep> CreateSpeculativeAuthenticationStepAsync(CancellationToken cancellationToken)
             => Task.FromResult(CreateSpeculativeAuthenticationStep(cancellationToken));
 
         public void ClearCache() => _oidcCallback.ClearCache();
 
         public bool HasCachedCredentials() => _oidcCallback.CachedCredentials != null;
 
-        private static ISaslStep CreateNoTransitionClientLastSaslStep(OidcCredentials oidcCredentials)
+        private static SaslAuthenticator.ISaslStep CreateNoTransitionClientLastSaslStep(OidcCredentials oidcCredentials)
         {
             if (oidcCredentials == null)
             {

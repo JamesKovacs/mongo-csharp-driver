@@ -206,15 +206,15 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
 
         private static bool ShouldReauthenticateIfSaslError(MongoAuthenticationException ex, IConnection connection)
         {
-            return ex.InnerException is MongoCommandException mongoCommandException
-                   && mongoCommandException.Code == (int)ServerErrorCode.AuthenticationFailed
-                   && !connection.IsInitialized;
+            return ex.InnerException is MongoCommandException mongoCommandException &&
+                   mongoCommandException.Code == (int)ServerErrorCode.AuthenticationFailed &&
+                   !connection.IsInitialized;
         }
 
         private static Exception UnwrapMongoAuthenticationException(Exception ex)
         {
-            if (ex is MongoAuthenticationException mongoAuthenticationException
-                && mongoAuthenticationException.InnerException != null)
+            if (ex is MongoAuthenticationException mongoAuthenticationException &&
+                mongoAuthenticationException.InnerException != null)
             {
                 return mongoAuthenticationException.InnerException;
             }

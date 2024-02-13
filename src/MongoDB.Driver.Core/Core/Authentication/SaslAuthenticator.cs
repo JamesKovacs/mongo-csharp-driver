@@ -14,6 +14,7 @@
 */
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
@@ -49,7 +50,7 @@ namespace MongoDB.Driver.Core.Authentication
         /// </summary>
         /// <param name="mechanism">The mechanism.</param>
         [Obsolete("Use the newest overload instead.")]
-        private protected SaslAuthenticator(ISaslMechanism mechanism)
+        protected SaslAuthenticator(ISaslMechanism mechanism)
             : this(mechanism, serverApi: null)
         {
         }
@@ -59,7 +60,7 @@ namespace MongoDB.Driver.Core.Authentication
         /// </summary>
         /// <param name="mechanism">The mechanism.</param>
         /// <param name="serverApi">The server API.</param>
-        private protected SaslAuthenticator(ISaslMechanism mechanism, ServerApi serverApi)
+        protected SaslAuthenticator(ISaslMechanism mechanism, ServerApi serverApi)
         {
             _mechanism = Ensure.IsNotNull(mechanism, nameof(mechanism));
             _serverApi = serverApi; // can be null
@@ -269,6 +270,201 @@ namespace MongoDB.Driver.Core.Authentication
             }
 
             return currentStep;
+        }
+
+        /// <summary>
+        /// Represents a SASL conversation.
+        /// </summary>
+        protected internal sealed class SaslConversation : IDisposable
+        {
+            // fields
+            private readonly ConnectionId _connectionId;
+            private readonly List<IDisposable> _itemsNeedingDisposal;
+            private bool _isDisposed;
+
+            // constructors
+            /// <summary>
+            /// Initializes a new instance of the <see cref="SaslConversation"/> class.
+            /// </summary>
+            /// <param name="connectionId">The connection identifier.</param>
+            public SaslConversation(ConnectionId connectionId)
+            {
+                _connectionId = connectionId;
+                _itemsNeedingDisposal = new List<IDisposable>();
+            }
+
+            // properties
+            /// <summary>
+            /// Gets the connection identifier.
+            /// </summary>
+            /// <value>
+            /// The connection identifier.
+            /// </value>
+            public ConnectionId ConnectionId
+            {
+                get { return _connectionId; }
+            }
+
+            /// <summary>
+            /// Registers the item for disposal.
+            /// </summary>
+            /// <param name="item">The disposable item.</param>
+            public void RegisterItemForDisposal(IDisposable item)
+            {
+                Ensure.IsNotNull(item, nameof(item));
+                _itemsNeedingDisposal.Add(item);
+            }
+
+            /// <inheritdoc/>
+            public void Dispose()
+            {
+                if (!_isDisposed)
+                {
+                    for (int i = _itemsNeedingDisposal.Count - 1; i >= 0; i--)
+                    {
+                        _itemsNeedingDisposal[i].Dispose();
+                    }
+
+                    _itemsNeedingDisposal.Clear();
+                    _isDisposed = true;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Represents a SASL mechanism.
+        /// </summary>
+        protected internal interface ISaslMechanism
+        {
+            // properties
+            /// <summary>
+            /// Gets the name of the mechanism.
+            /// </summary>
+            /// <value>
+            /// The name.
+            /// </value>
+            string Name { get; }
+
+            // methods
+            /// <summary>
+            /// Initializes the mechanism.
+            /// </summary>
+            /// <param name="connection">The connection.</param>
+            /// <param name="conversation">The SASL conversation.</param>
+            /// <param name="description">The connection description.</param>
+            /// <param name="cancellationToken">The cancellation token.</param>
+            /// <returns>The initial SASL step.</returns>
+            ISaslStep Initialize(IConnection connection, SaslConversation conversation, ConnectionDescription description, CancellationToken cancellationToken);
+
+            /// <summary>
+            /// Initializes the mechanism.
+            /// </summary>
+            /// <param name="connection">The connection.</param>
+            /// <param name="conversation">The SASL conversation.</param>
+            /// <param name="description">The connection description.</param>
+            /// <param name="cancellationToken">The cancellation token.</param>
+            /// <returns>The initial SASL step.</returns>
+            Task<ISaslStep> InitializeAsync(IConnection connection, SaslConversation conversation, ConnectionDescription description, CancellationToken cancellationToken);
+        }
+
+        /// <summary>
+        /// Represents a SASL step.
+        /// </summary>
+        protected internal interface ISaslStep
+        {
+            // properties
+            /// <summary>
+            /// Gets the bytes to send to server.
+            /// </summary>
+            /// <value>
+            /// The bytes to send to server.
+            /// </value>
+            byte[] BytesToSendToServer { get; }
+
+            /// <summary>
+            /// Gets a value indicating whether this instance is complete.
+            /// </summary>
+            /// <value>
+            /// <c>true</c> if this instance is complete; otherwise, <c>false</c>.
+            /// </value>
+            bool IsComplete { get; }
+
+            // methods
+            /// <summary>
+            /// Transitions the SASL conversation to the next step.
+            /// </summary>
+            /// <param name="conversation">The SASL conversation.</param>
+            /// <param name="bytesReceivedFromServer">The bytes received from server.</param>
+            /// <returns>The next SASL step.</returns>
+            ISaslStep Transition(SaslConversation conversation, byte[] bytesReceivedFromServer);
+
+            /// <summary>
+            /// Transitions the SASL conversation to the next step.
+            /// </summary>
+            /// <param name="conversation">The SASL conversation.</param>
+            /// <param name="bytesReceivedFromServer">The bytes received from server.</param>
+            /// <param name="cancellationToken">The cancellation token.</param>
+            /// <returns>The next SASL step.</returns>
+            Task<ISaslStep> TransitionAsync(SaslConversation conversation, byte[] bytesReceivedFromServer, CancellationToken cancellationToken = default);
+        }
+
+        /// <summary>
+        /// Represents a completed SASL step.
+        /// </summary>
+        protected internal sealed class CompletedSaslStep : ISaslStep
+        {
+            // fields
+            private readonly byte[] _bytesToSendToServer;
+
+            // constructors
+            /// <summary>
+            /// Initializes a new instance of the <see cref="CompletedSaslStep"/> class.
+            /// </summary>
+            public CompletedSaslStep()
+                : this(Array.Empty<byte>())
+            {
+            }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="CompletedSaslStep"/> class.
+            /// </summary>
+            /// <param name="bytesToSendToServer">The bytes to send to server.</param>
+            public CompletedSaslStep(byte[] bytesToSendToServer)
+            {
+                _bytesToSendToServer = bytesToSendToServer;
+            }
+
+            // properties
+            /// <inheritdoc/>
+            public byte[] BytesToSendToServer
+            {
+                get { return _bytesToSendToServer; }
+            }
+
+            /// <inheritdoc/>
+            public bool IsComplete
+            {
+                get { return true; }
+            }
+
+            /// <inheritdoc/>
+            public ISaslStep Transition(SaslConversation conversation, byte[] bytesReceivedFromServer)
+            {
+                if (bytesReceivedFromServer?.Length > 0)
+                {
+                    // should not be reached
+                    throw new InvalidOperationException("Not all authentication response has been handled.");
+                }
+
+                throw new InvalidOperationException("Sasl conversation has completed.");
+            }
+
+            /// <inheritdoc/>
+            public Task<ISaslStep> TransitionAsync(
+                SaslConversation conversation,
+                byte[] bytesReceivedFromServer,
+                CancellationToken cancellationToken = default)
+                => Task.FromResult(Transition(conversation, bytesReceivedFromServer));
         }
     }
 }

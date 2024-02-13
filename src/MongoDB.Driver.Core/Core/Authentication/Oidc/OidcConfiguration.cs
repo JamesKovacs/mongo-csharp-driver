@@ -65,7 +65,6 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
                     _ => throw new InvalidOperationException($"Not supported value of {MongoOidcAuthenticator.ProviderMechanismPropertyName} mechanism property: {ProviderName}.")
                 };
             }
-            return;
 
             static T GetProperty<T>(KeyValuePair<string, object> property)
             {

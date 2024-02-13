@@ -418,27 +418,6 @@ namespace MongoDB.Driver.Core.Connections
                 return connectionInitializer.Authenticate(connection, connectionInitializerContext, cancellationToken).Description;
             }
         }
-
-        // private class DummyAuthenticator : IAuthenticator, IWithAuthenticationContext
-        // {
-        //     public string Name => "DUMMY";
-        //
-        //     public IAuthenticationContext AuthenticationContext => new DummyAuthenticationContext();
-        //
-        //     public void Authenticate(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
-        //     {
-        //     }
-        //     public Task AuthenticateAsync(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken) => Task.CompletedTask;
-        //     public BsonDocument CustomizeInitialHelloCommand(BsonDocument helloCommand) => new BsonDocument();
-        //     public Task<BsonDocument> CustomizeInitialHelloCommandAsync(BsonDocument helloCommand, CancellationToken cancellationToken) => Task.FromResult(new BsonDocument());
-        // }
-        //
-        // private class DummyAuthenticationContext : IAuthenticationContext
-        // {
-        //     private static int __counter;
-        //     public EndPoint CurrentEndPoint => __serverId.EndPoint;
-        //     public int CreatedAt { get; } = Interlocked.Increment(ref __counter);
-        // }
     }
 
     internal static class ConnectionInitializerReflector
