@@ -104,7 +104,7 @@ namespace MongoDB.Driver.Core.Authentication
                     _credential.GetInsecurePassword());
 
                 var bytes = Utf8Encodings.Strict.GetBytes(dataString);
-                return new CompletedSaslStep(bytes);
+                return new CompletedStep(bytes);
             }
 
             public Task<ISaslStep> InitializeAsync(

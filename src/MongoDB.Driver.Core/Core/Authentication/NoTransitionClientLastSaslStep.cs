@@ -34,7 +34,7 @@ namespace MongoDB.Driver.Core.Authentication
                 throw new InvalidOperationException("Not all authentication response has been handled.");
             }
 
-            return new SaslAuthenticator.CompletedSaslStep();
+            return new SaslAuthenticator.CompletedStep();
         }
 
         public Task<SaslAuthenticator.ISaslStep> TransitionAsync(

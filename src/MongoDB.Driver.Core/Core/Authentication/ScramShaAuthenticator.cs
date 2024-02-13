@@ -349,7 +349,7 @@ namespace MongoDB.Driver.Core.Authentication
                     throw new MongoAuthenticationException(conversation.ConnectionId, message: "Server signature was invalid.");
                 }
 
-                return new CompletedSaslStep();
+                return new CompletedStep();
             }
 
             public Task<ISaslStep> TransitionAsync(

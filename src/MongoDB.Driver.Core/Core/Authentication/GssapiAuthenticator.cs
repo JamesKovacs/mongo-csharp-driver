@@ -437,7 +437,7 @@ namespace MongoDB.Driver.Core.Authentication
                     throw new MongoAuthenticationException(conversation.ConnectionId, "Unable to encrypt message.", ex);
                 }
 
-                return new CompletedSaslStep(bytesToSendToServer);
+                return new CompletedStep(bytesToSendToServer);
             }
 
             public Task<ISaslStep> TransitionAsync(
