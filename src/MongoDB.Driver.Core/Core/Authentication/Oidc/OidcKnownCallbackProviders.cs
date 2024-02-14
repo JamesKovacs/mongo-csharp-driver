@@ -18,23 +18,23 @@ using MongoDB.Driver.Core.Misc;
 
 namespace MongoDB.Driver.Core.Authentication.Oidc
 {
-    internal interface IOidcCredentialsProviders
+    internal interface IOidcKnownCallbackProviders
     {
-        IOidcCallbackProvider Aws { get; }
+        IOidcCallback Aws { get; }
     }
 
-    internal class OidcCredentialsProviders : IOidcCredentialsProviders
+    internal sealed class OidcKnownCallbackProviders : IOidcKnownCallbackProviders
     {
-        public static readonly IOidcCredentialsProviders Instance = new OidcCredentialsProviders(EnvironmentVariableProvider.Instance);
+        public static readonly IOidcKnownCallbackProviders Instance = new OidcKnownCallbackProviders(EnvironmentVariableProvider.Instance);
 
-        private readonly Lazy<IOidcCallbackProvider> _aws;
+        private readonly Lazy<IOidcCallback> _aws;
 
-        public OidcCredentialsProviders(IEnvironmentVariableProvider environmentVariableProvider)
+        public OidcKnownCallbackProviders(IEnvironmentVariableProvider environmentVariableProvider)
         {
             Ensure.IsNotNull(environmentVariableProvider, nameof(environmentVariableProvider));
-            _aws = new(() => FileOidcCallbackProvider.CreateFromEnvironmentVariable("AWS_WEB_IDENTITY_TOKEN_FILE", environmentVariableProvider));
+            _aws = new(() => FileOidcCallback.CreateFromEnvironmentVariable("AWS_WEB_IDENTITY_TOKEN_FILE", environmentVariableProvider));
         }
 
-        public IOidcCallbackProvider Aws => _aws.Value;
+        public IOidcCallback Aws => _aws.Value;
     }
 }

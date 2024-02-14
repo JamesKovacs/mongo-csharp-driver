@@ -68,13 +68,13 @@ namespace MongoDB.Driver.Tests.Specifications.auth
             exception.Should().BeNull();
             if (async)
             {
-                callbackProviderMock.Verify(x => x.GetResponse(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
-                callbackProviderMock.Verify(x => x.GetResponseAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Once());
+                callbackProviderMock.Verify(x => x.GetOidcAccessToken(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
+                callbackProviderMock.Verify(x => x.GetOidcAccessTokenAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Once());
             }
             else
             {
-                callbackProviderMock.Verify(x => x.GetResponse(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Once());
-                callbackProviderMock.Verify(x => x.GetResponseAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
+                callbackProviderMock.Verify(x => x.GetOidcAccessToken(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Once());
+                callbackProviderMock.Verify(x => x.GetOidcAccessTokenAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
             }
         }
 
@@ -109,13 +109,13 @@ namespace MongoDB.Driver.Tests.Specifications.auth
 
             if (async)
             {
-                callbackProviderMock.Verify(x => x.GetResponse(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
-                callbackProviderMock.Verify(x => x.GetResponseAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Once());
+                callbackProviderMock.Verify(x => x.GetOidcAccessToken(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
+                callbackProviderMock.Verify(x => x.GetOidcAccessTokenAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Once());
             }
             else
             {
-                callbackProviderMock.Verify(x => x.GetResponse(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Once());
-                callbackProviderMock.Verify(x => x.GetResponseAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
+                callbackProviderMock.Verify(x => x.GetOidcAccessToken(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Once());
+                callbackProviderMock.Verify(x => x.GetOidcAccessTokenAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
             }
         }
 
@@ -138,13 +138,13 @@ namespace MongoDB.Driver.Tests.Specifications.auth
             exception.Should().BeNull();
             if (async)
             {
-                callbackProviderMock.Verify(x => x.GetResponse(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
-                callbackProviderMock.Verify(x => x.GetResponseAsync(It.Is<OidcCallbackParameters>(p => p.Version == 1), It.IsAny<CancellationToken>()), Times.Once());
+                callbackProviderMock.Verify(x => x.GetOidcAccessToken(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
+                callbackProviderMock.Verify(x => x.GetOidcAccessTokenAsync(It.Is<OidcCallbackParameters>(p => p.Version == 1), It.IsAny<CancellationToken>()), Times.Once());
             }
             else
             {
-                callbackProviderMock.Verify(x => x.GetResponse(It.Is<OidcCallbackParameters>(p => p.Version == 1), It.IsAny<CancellationToken>()), Times.Once());
-                callbackProviderMock.Verify(x => x.GetResponseAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
+                callbackProviderMock.Verify(x => x.GetOidcAccessToken(It.Is<OidcCallbackParameters>(p => p.Version == 1), It.IsAny<CancellationToken>()), Times.Once());
+                callbackProviderMock.Verify(x => x.GetOidcAccessTokenAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
             }
         }
 
@@ -153,7 +153,7 @@ namespace MongoDB.Driver.Tests.Specifications.auth
         [ParameterAttributeData]
         public async Task Callback_validation_callback_returns_null([Values(false, true)] bool async)
         {
-            var callbackProviderMock = new Mock<IOidcCallbackProvider>();
+            var callbackProviderMock = new Mock<IOidcCallback>();
             var clientSettings = CreateOidcMongoClientSettings(MongoCredential.CreateOidcCredential(callbackProviderMock.Object));
             var client = DriverTestConfiguration.CreateDisposableClient(clientSettings);
 
@@ -257,13 +257,13 @@ namespace MongoDB.Driver.Tests.Specifications.auth
             exception.Should().BeOfType<MongoConnectionException>();
             if (async)
             {
-                callbackProviderMock.Verify(x => x.GetResponse(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
-                callbackProviderMock.Verify(x => x.GetResponseAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Once());
+                callbackProviderMock.Verify(x => x.GetOidcAccessToken(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
+                callbackProviderMock.Verify(x => x.GetOidcAccessTokenAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Once());
             }
             else
             {
-                callbackProviderMock.Verify(x => x.GetResponse(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Once());
-                callbackProviderMock.Verify(x => x.GetResponseAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
+                callbackProviderMock.Verify(x => x.GetOidcAccessToken(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Once());
+                callbackProviderMock.Verify(x => x.GetOidcAccessTokenAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
             }
         }
 
@@ -290,13 +290,13 @@ namespace MongoDB.Driver.Tests.Specifications.auth
             exception.Should().BeNull();
             if (async)
             {
-                callbackProviderMock.Verify(x => x.GetResponse(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
-                callbackProviderMock.Verify(x => x.GetResponseAsync(It.Is<OidcCallbackParameters>(p => p.Version == 1), It.IsAny<CancellationToken>()), Times.Exactly(2));
+                callbackProviderMock.Verify(x => x.GetOidcAccessToken(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
+                callbackProviderMock.Verify(x => x.GetOidcAccessTokenAsync(It.Is<OidcCallbackParameters>(p => p.Version == 1), It.IsAny<CancellationToken>()), Times.Exactly(2));
             }
             else
             {
-                callbackProviderMock.Verify(x => x.GetResponse(It.Is<OidcCallbackParameters>(p => p.Version == 1), It.IsAny<CancellationToken>()), Times.Exactly(2));
-                callbackProviderMock.Verify(x => x.GetResponseAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
+                callbackProviderMock.Verify(x => x.GetOidcAccessToken(It.Is<OidcCallbackParameters>(p => p.Version == 1), It.IsAny<CancellationToken>()), Times.Exactly(2));
+                callbackProviderMock.Verify(x => x.GetOidcAccessTokenAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
             }
         }
 
@@ -350,15 +350,15 @@ namespace MongoDB.Driver.Tests.Specifications.auth
             return settings;
         }
 
-        private Mock<IOidcCallbackProvider> CreateOidcCallback(string accessToken)
+        private Mock<IOidcCallback> CreateOidcCallback(string accessToken)
         {
-            var callbackProvider = new Mock<IOidcCallbackProvider>();
+            var callbackProvider = new Mock<IOidcCallback>();
             var response = new OidcCallbackResponse(accessToken, null);
             callbackProvider
-                .Setup(c => c.GetResponse(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()))
+                .Setup(c => c.GetOidcAccessToken(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()))
                 .Returns(response);
             callbackProvider
-                .Setup(c => c.GetResponseAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()))
+                .Setup(c => c.GetOidcAccessTokenAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(response));
 
             return callbackProvider;

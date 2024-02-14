@@ -120,12 +120,12 @@ namespace MongoDB.Driver.Core.WireProtocol
 
                 try
                 {
-                    return SendMessage(message, responseTo, connection, cancellationToken);
+                    return SendMessageAndProcessResponse(message, responseTo, connection, cancellationToken);
                 }
                 catch (MongoCommandException commandException) when (RetryabilityHelper.IsReauthenticationRequested(commandException, _command))
                 {
                     connection.Reauthenticate(cancellationToken);
-                    return SendMessage(message, responseTo, connection, cancellationToken);
+                    return SendMessageAndProcessResponse(message, responseTo, connection, cancellationToken);
                 }
             }
             catch (Exception exception)
@@ -540,8 +540,7 @@ namespace MongoDB.Driver.Core.WireProtocol
             _moreToCome = response.WrappedMessage.MoreToCome;
         }
 
-
-        private TCommandResult SendMessage(CommandRequestMessage message, int responseTo, IConnection connection, CancellationToken cancellationToken)
+        private TCommandResult SendMessageAndProcessResponse(CommandRequestMessage message, int responseTo, IConnection connection, CancellationToken cancellationToken)
         {
             var responseExpected = true;
             if (message != null)

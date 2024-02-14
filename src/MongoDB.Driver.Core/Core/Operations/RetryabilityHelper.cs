@@ -158,9 +158,9 @@ namespace MongoDB.Driver.Core.Operations
         /// This logic is completely separate from a standard retry mechanism and related only to authentication.
         /// </remarks>
         public static bool IsReauthenticationRequested(MongoCommandException mongoCommandException, BsonDocument command)
-            => mongoCommandException.Code == (int)ServerErrorCode.ReauthenticationRequired
+            => mongoCommandException.Code == (int)ServerErrorCode.ReauthenticationRequired &&
                // SASL commands should not be reauthenticated on sending level
-               && !__saslCommands.Overlaps(command.Names);
+               !__saslCommands.Overlaps(command.Names);
 
         public static bool IsRetryableReadException(Exception exception)
         {

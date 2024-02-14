@@ -55,14 +55,14 @@ namespace MongoDB.Driver.Tests
         public void CreateOidcCredential_should_initialize_all_required_properties_in_callback_mode()
         {
             const string principalName = "principalName";
-            var oidcTokenProvider = new Mock<IOidcCallbackProvider>();
+            var oidcTokenProvider = new Mock<IOidcCallback>();
 
             var credential = MongoCredential.CreateOidcCredential(oidcTokenProvider.Object, principalName);
 
             credential.Mechanism.Should().Be("MONGODB-OIDC");
             credential.Username.Should().Be(principalName);
             credential.Evidence.Should().BeOfType<ExternalEvidence>();
-            credential.GetMechanismProperty<IOidcCallbackProvider>("OIDC_CALLBACK", null)
+            credential.GetMechanismProperty<IOidcCallback>("OIDC_CALLBACK", null)
                 .Should().Be(oidcTokenProvider.Object);
         }
 

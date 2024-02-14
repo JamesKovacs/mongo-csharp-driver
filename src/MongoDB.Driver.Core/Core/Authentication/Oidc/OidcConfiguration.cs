@@ -27,7 +27,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
             EndPoint endpoint,
             string principalName,
             IEnumerable<KeyValuePair<string, object>> properties,
-            IOidcCredentialsProviders oidcCredentialsProviders)
+            IOidcKnownCallbackProviders oidcKnownCallbackProviders)
         {
             EndPoint = Ensure.IsNotNull(endpoint, nameof(endpoint));
             PrincipalName = principalName;
@@ -40,7 +40,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
                     {
                         case MongoOidcAuthenticator.CallbackMechanismPropertyName:
                             {
-                                Callback = GetProperty<IOidcCallbackProvider>(authorizationProperty);
+                                Callback = GetProperty<IOidcCallback>(authorizationProperty);
                             }
                             break;
                         case MongoOidcAuthenticator.ProviderMechanismPropertyName:
@@ -55,13 +55,13 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
                 }
             }
 
-            EnsureOptionsValid();
+            ValidateOptions();
 
             if (!string.IsNullOrEmpty(ProviderName))
             {
                 Callback = ProviderName switch
                 {
-                    "aws" => oidcCredentialsProviders.Aws,
+                    "aws" => oidcKnownCallbackProviders.Aws,
                     _ => throw new InvalidOperationException($"Not supported value of {MongoOidcAuthenticator.ProviderMechanismPropertyName} mechanism property: {ProviderName}.")
                 };
             }
@@ -80,7 +80,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
         public EndPoint EndPoint { get; }
         public string PrincipalName { get; }
         public string ProviderName { get; }
-        public IOidcCallbackProvider Callback { get; }
+        public IOidcCallback Callback { get; }
 
         // public methods
         public override int GetHashCode() =>
@@ -102,7 +102,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
                 EndPointHelper.Equals(EndPoint, rhs.EndPoint);
         }
 
-        private void EnsureOptionsValid()
+        private void ValidateOptions()
         {
             if (string.IsNullOrEmpty(ProviderName) && Callback == null)
             {

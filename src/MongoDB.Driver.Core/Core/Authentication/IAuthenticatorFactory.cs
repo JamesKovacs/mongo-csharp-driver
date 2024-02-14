@@ -23,6 +23,7 @@ namespace MongoDB.Driver.Core.Authentication
         /// <summary>
         /// Create an authenticator.
         /// </summary>
+        /// <param name="authenticationContext">The authentication context.</param>
         /// <returns>The authenticator.</returns>
         IAuthenticator Create(IAuthenticationContext authenticationContext);
     }

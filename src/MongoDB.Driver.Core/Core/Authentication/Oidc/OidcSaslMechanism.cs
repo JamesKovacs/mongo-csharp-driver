@@ -21,7 +21,7 @@ using MongoDB.Driver.Core.Connections;
 
 namespace MongoDB.Driver.Core.Authentication.Oidc
 {
-    internal class OidcSaslMechanism : SaslAuthenticator.ISaslMechanism
+    internal sealed class OidcSaslMechanism : SaslAuthenticator.ISaslMechanism
     {
         private readonly IOidcCallbackAdapter _oidcCallback;
 

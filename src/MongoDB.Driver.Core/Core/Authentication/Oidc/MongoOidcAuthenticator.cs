@@ -23,9 +23,6 @@ using MongoDB.Driver.Core.Misc;
 
 namespace MongoDB.Driver.Core.Authentication.Oidc
 {
-    /// <summary>
-    /// The Mongo OIDC authenticator.
-    /// </summary>
     internal sealed class MongoOidcAuthenticator : SaslAuthenticator
     {
         #region static
@@ -33,15 +30,6 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
         public const string MechanismName = "MONGODB-OIDC";
         public const string ProviderMechanismPropertyName = "PROVIDER_NAME";
 
-        /// <summary>
-        /// Create OIDC authenticator.
-        /// </summary>
-        /// <param name="source">The source.</param>
-        /// <param name="principalName">The principal name.</param>
-        /// <param name="properties">The properties.</param>
-        /// <param name="context">The authentication context.</param>
-        /// <param name="serverApi">The server API.</param>
-        /// <returns>The oidc authenticator.</returns>
         public static MongoOidcAuthenticator CreateAuthenticator(
             string source,
             string principalName,
@@ -55,78 +43,60 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
                 context,
                 serverApi,
                 OidcCallbackAdapterCachingFactory.Instance,
-                OidcCredentialsProviders.Instance);
+                OidcKnownCallbackProviders.Instance);
 
-        /// <summary>
-        /// Create OIDC authenticator by explicitly providing inner components, used for tests mostly.
-        /// </summary>
-        /// <param name="source">The source.</param>
-        /// <param name="principalName">The principal name.</param>
-        /// <param name="properties">The properties.</param>
-        /// <param name="context">The authentication context.</param>
-        /// <param name="serverApi">The server API.</param>
-        /// <param name="callbackAdapterFactory">Oidc callback adapter factory to use, OidcCallbackAdapterCachingFactory is used by default</param>
-        /// <param name="oidcCredentialsProviders">Oidc credentials providers</param>
-        /// <returns>The oidc authenticator.</returns>
-        internal static MongoOidcAuthenticator CreateAuthenticator(
+        public static MongoOidcAuthenticator CreateAuthenticator(
             string source,
             string principalName,
             IEnumerable<KeyValuePair<string, object>> properties,
             IAuthenticationContext context,
             ServerApi serverApi,
             IOidcCallbackAdapterFactory callbackAdapterFactory,
-            IOidcCredentialsProviders oidcCredentialsProviders)
+            IOidcKnownCallbackProviders oidcKnownCallbackProviders)
         {
             Ensure.IsNotNull(context, nameof(context));
             var endPoint = Ensure.IsNotNull(context.CurrentEndPoint, nameof(context.CurrentEndPoint));
             Ensure.IsNotNull(callbackAdapterFactory, nameof(callbackAdapterFactory));
-            Ensure.IsNotNull(oidcCredentialsProviders, nameof(oidcCredentialsProviders));
+            Ensure.IsNotNull(oidcKnownCallbackProviders, nameof(oidcKnownCallbackProviders));
 
             if (source != "$external")
             {
                 throw new ArgumentException("MONGODB-OIDC authentication may only use the $external source.", nameof(source));
             }
 
-            var configuration = new OidcConfiguration(endPoint, principalName, properties, oidcCredentialsProviders);
+            var configuration = new OidcConfiguration(endPoint, principalName, properties, oidcKnownCallbackProviders);
             var callbackAdapter = callbackAdapterFactory.Get(configuration);
             var mechanism = new OidcSaslMechanism(callbackAdapter);
             return new MongoOidcAuthenticator(mechanism, serverApi, configuration);
         }
         #endregion
 
-        internal MongoOidcAuthenticator(
+        private MongoOidcAuthenticator(
             OidcSaslMechanism mechanism,
             ServerApi serverApi,
             OidcConfiguration configuration)
             : base(mechanism, serverApi)
         {
+            OidcMechanism = mechanism;
             Configuration = configuration;
         }
 
-        /// <summary>
-        /// The database name.
-        /// </summary>
         public override string DatabaseName => "$external";
 
         public OidcConfiguration Configuration { get; }
 
-        private OidcSaslMechanism OidcMechanism => (OidcSaslMechanism)_mechanism;
+        private OidcSaslMechanism OidcMechanism { get; }
 
-        /// <inheritdoc/>
         public override void Authenticate(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
         {
             // Capture the cache state to decide if we want retry on auth error or not.
             // Not the best solution, but let us not to introduce the retry logic into SaslAuthenticator to reduce affected areas for now.
             // Consider to move this code into SaslAuthenticator when retry logic will be applicable not only for Oidc Auth.
             var allowRetryOnAuthError = OidcMechanism.HasCachedCredentials();
-            try
+            TryAuthenticate(allowRetryOnAuthError);
+
+            void TryAuthenticate(bool retryOnFailure)
             {
-                base.Authenticate(connection, description, cancellationToken);
-            }
-            catch (MongoAuthenticationException authenticationException) when (allowRetryOnAuthError && ShouldReauthenticateIfSaslError(authenticationException, connection))
-            {
-                ClearCredentialsCache();
-                Thread.Sleep(100);
                 try
                 {
                     base.Authenticate(connection, description, cancellationToken);
@@ -134,31 +104,30 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
                 catch (Exception ex)
                 {
                     ClearCredentialsCache();
-                    throw UnwrapMongoAuthenticationException(ex);
+
+                    if (retryOnFailure && ShouldReauthenticateIfSaslError(ex, connection))
+                    {
+                        Thread.Sleep(100);
+                        TryAuthenticate(false);
+                    }
+                    else
+                    {
+                        throw UnwrapMongoAuthenticationException(ex);
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                ClearCredentialsCache();
-                throw UnwrapMongoAuthenticationException(ex);
             }
         }
 
-        /// <inheritdoc/>
-        public override async Task AuthenticateAsync(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
+        public override Task AuthenticateAsync(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
         {
             // Capture the cache state to decide if we want retry on auth error or not.
             // Not the best solution, but let us not to introduce the retry logic into SaslAuthenticator to reduce affected areas for now.
             // Consider to move this code into SaslAuthenticator when retry logic will be applicable not only for Oidc Auth.
             var allowRetryOnAuthError = OidcMechanism.HasCachedCredentials();
-            try
+            return TryAuthenticateAsync(allowRetryOnAuthError);
+
+            async Task TryAuthenticateAsync(bool retryOnFailure)
             {
-                await base.AuthenticateAsync(connection, description, cancellationToken).ConfigureAwait(false);
-            }
-            catch (MongoAuthenticationException authenticationException) when (allowRetryOnAuthError && ShouldReauthenticateIfSaslError(authenticationException, connection))
-            {
-                ClearCredentialsCache();
-                await Task.Delay(100, cancellationToken).ConfigureAwait(false);
                 try
                 {
                     await base.AuthenticateAsync(connection, description, cancellationToken).ConfigureAwait(false);
@@ -166,47 +135,50 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
                 catch (Exception ex)
                 {
                     ClearCredentialsCache();
-                    throw UnwrapMongoAuthenticationException(ex);
+
+                    if (retryOnFailure && ShouldReauthenticateIfSaslError(ex, connection))
+                    {
+                        Thread.Sleep(100);
+                        await TryAuthenticateAsync(false).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        throw UnwrapMongoAuthenticationException(ex);
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                ClearCredentialsCache();
-                throw UnwrapMongoAuthenticationException(ex);
             }
         }
 
-        /// <inheritdoc/>
         public override BsonDocument CustomizeInitialHelloCommand(BsonDocument helloCommand, CancellationToken cancellationToken)
         {
             _speculativeFirstStep = OidcMechanism.CreateSpeculativeAuthenticationStep(cancellationToken);
-            if (_speculativeFirstStep != null)
-            {
-                var firstCommand = CreateStartCommand(_speculativeFirstStep);
-                firstCommand.Add("db", DatabaseName);
-                helloCommand.Add("speculativeAuthenticate", firstCommand);
-            }
-            return helloCommand;
+            return AddSpeculativeInfo(helloCommand, _speculativeFirstStep);
         }
 
         public override async Task<BsonDocument> CustomizeInitialHelloCommandAsync(BsonDocument helloCommand, CancellationToken cancellationToken)
         {
             _speculativeFirstStep = await OidcMechanism.CreateSpeculativeAuthenticationStepAsync(cancellationToken).ConfigureAwait(false);
-            if (_speculativeFirstStep != null)
+            return AddSpeculativeInfo(helloCommand, _speculativeFirstStep);
+        }
+
+        public void ClearCredentialsCache() => OidcMechanism.ClearCache();
+
+        private BsonDocument AddSpeculativeInfo(BsonDocument helloCommand, ISaslStep speculativeFirstStep)
+        {
+            if (speculativeFirstStep != null)
             {
-                var firstCommand = CreateStartCommand(_speculativeFirstStep);
+                var firstCommand = CreateStartCommand(speculativeFirstStep);
                 firstCommand.Add("db", DatabaseName);
                 helloCommand.Add("speculativeAuthenticate", firstCommand);
             }
+
             return helloCommand;
         }
 
-        public void ClearCredentialsCache()
-            => OidcMechanism.ClearCache();
-
-        private static bool ShouldReauthenticateIfSaslError(MongoAuthenticationException ex, IConnection connection)
+        private static bool ShouldReauthenticateIfSaslError(Exception ex, IConnection connection)
         {
-            return ex.InnerException is MongoCommandException mongoCommandException &&
+            return ex is MongoAuthenticationException authenticationException &&
+                   authenticationException.InnerException is MongoCommandException mongoCommandException &&
                    mongoCommandException.Code == (int)ServerErrorCode.AuthenticationFailed &&
                    !connection.IsInitialized;
         }

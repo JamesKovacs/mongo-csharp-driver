@@ -151,7 +151,7 @@ namespace MongoDB.Driver.Tests.Specifications.auth
                                             var callback = oidcAuthenticator.Configuration.Callback;
                                             switch (providerName)
                                             {
-                                                case "aws": callback.Should().BeOfType<FileOidcCallbackProvider>(); break;
+                                                case "aws": callback.Should().BeOfType<FileOidcCallback>(); break;
                                                 default: throw new ArgumentException($"Unsupported provider name {providerName}.");
                                             }
                                         }

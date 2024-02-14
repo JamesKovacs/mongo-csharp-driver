@@ -267,8 +267,8 @@ namespace MongoDB.Driver.Core.Configuration
         {
             var defaultSource = GetDefaultAuthSource(connectionString);
 
-            if (connectionString?.AuthMechanism == MongoAWSAuthenticator.MechanismName ||
-                connectionString?.AuthMechanism == MongoOidcAuthenticator.MechanismName)
+            if (connectionString.AuthMechanism == MongoAWSAuthenticator.MechanismName ||
+                connectionString.AuthMechanism == MongoOidcAuthenticator.MechanismName)
             {
                 return connectionString.AuthSource ?? defaultSource;
             }

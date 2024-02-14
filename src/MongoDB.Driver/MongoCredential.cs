@@ -266,13 +266,12 @@ namespace MongoDB.Driver
         /// <summary>
         /// Creates a credential used with MONGODB-OIDC.
         /// </summary>
-        /// <param name="callbackProvider">The OIDC callback provider.</param>
+        /// <param name="callback">The OIDC callback.</param>
         /// <param name="principalName">The principal name.</param>
         /// <returns>The OIDC credential.</returns>
-        public static MongoCredential CreateOidcCredential(IOidcCallbackProvider callbackProvider, string principalName = null)
+        public static MongoCredential CreateOidcCredential(IOidcCallback callback, string principalName = null)
             => CreateRawOidcCredential(principalName)
-                .WithMechanismProperty(MongoOidcAuthenticator.CallbackMechanismPropertyName, callbackProvider);
-
+                .WithMechanismProperty(MongoOidcAuthenticator.CallbackMechanismPropertyName, callback);
 
         /// <summary>
         /// Creates a credential used with MONGODB-OIDC.
@@ -585,7 +584,7 @@ namespace MongoDB.Driver
                         // MUST be "$external". Defaults to $external.
                         EnsureNullOrExternalSource(mechanism, source);
 
-                        if (evidence == null || (evidence is not ExternalEvidence))
+                        if (evidence is not ExternalEvidence)
                         {
                             throw new ArgumentException("A MONGODB-OIDC does not support a password.");
                         }

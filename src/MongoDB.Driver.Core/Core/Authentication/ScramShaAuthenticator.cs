@@ -131,7 +131,7 @@ namespace MongoDB.Driver.Core.Authentication
         public override BsonDocument CustomizeInitialHelloCommand(BsonDocument helloCommand, CancellationToken cancellationToken)
         {
             helloCommand = base.CustomizeInitialHelloCommand(helloCommand, cancellationToken);
-            _speculativeFirstStep = _mechanism.Initialize(null, null, null, default);
+            _speculativeFirstStep = _mechanism.Initialize(null, null, null, cancellationToken);
             var firstCommand = CreateStartCommand(_speculativeFirstStep);
             firstCommand.Add("db", DatabaseName);
             helloCommand.Add("speculativeAuthenticate", firstCommand);

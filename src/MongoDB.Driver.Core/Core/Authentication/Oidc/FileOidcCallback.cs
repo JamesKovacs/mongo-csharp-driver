@@ -13,52 +13,45 @@
 * limitations under the License.
 */
 
-using System;
 using System.IO;
-#if !NETSTANDARD2_1_OR_GREATER
-using System.Text;
-#endif
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Driver.Core.Misc;
 
 namespace MongoDB.Driver.Core.Authentication.Oidc
 {
-    internal class FileOidcCallbackProvider : IOidcCallbackProvider
+    internal sealed class FileOidcCallback : IOidcCallback
     {
         #region static
-        public static FileOidcCallbackProvider CreateFromEnvironmentVariable(string environmentVariableName, IEnvironmentVariableProvider environmentVariableProvider)
+        public static FileOidcCallback CreateFromEnvironmentVariable(string environmentVariableName, IEnvironmentVariableProvider environmentVariableProvider)
         {
             var tokenPath = Ensure.IsNotNull(environmentVariableProvider, nameof(environmentVariableProvider)).GetEnvironmentVariable(environmentVariableName);
-            return new FileOidcCallbackProvider(tokenPath);
+            return new FileOidcCallback(tokenPath);
         }
         #endregion
 
         private readonly string _path;
 
-        public FileOidcCallbackProvider(string path)
+        public FileOidcCallback(string path)
         {
             _path = Ensure.IsNotNullOrEmpty(path, nameof(path));
         }
 
-        public OidcCallbackResponse GetResponse(OidcCallbackParameters parameters, CancellationToken cancellationToken)
+        public OidcCallbackResponse GetOidcAccessToken(OidcCallbackParameters parameters, CancellationToken cancellationToken)
         {
             var accessToken = File.ReadAllText(_path);
-            return CreateOidcCallbackResponse(accessToken);
+            return new(accessToken, expiresIn: null);
         }
 
-        public async Task<OidcCallbackResponse> GetResponseAsync(OidcCallbackParameters parameters, CancellationToken cancellationToken)
+        public async Task<OidcCallbackResponse> GetOidcAccessTokenAsync(OidcCallbackParameters parameters, CancellationToken cancellationToken)
         {
 #if NETSTANDARD2_1_OR_GREATER
             var accessToken = await File.ReadAllTextAsync(_path, cancellationToken).ConfigureAwait(false);
 #else
-            using var streamReader = new StreamReader(_path, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+            using var streamReader = new StreamReader(_path, System.Text.Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
             var accessToken = await streamReader.ReadToEndAsync().ConfigureAwait(false); // no support for cancellationToken
 #endif
-            return CreateOidcCallbackResponse(accessToken);
+            return new(accessToken, expiresIn: null);
         }
-
-        private static OidcCallbackResponse CreateOidcCallbackResponse(string accessToken)
-            => new OidcCallbackResponse(accessToken, expiresIn: null);
     }
 }

@@ -24,13 +24,13 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication.Oidc
 {
     public class OidcConfigurationTests
     {
-        private static readonly IOidcCredentialsProviders __buildInProvidersMock;
-        private static readonly IOidcCallbackProvider __callbackMock = new Mock<IOidcCallbackProvider>().Object;
+        private static readonly IOidcKnownCallbackProviders __buildInProvidersMock;
+        private static readonly IOidcCallback __callbackMock = new Mock<IOidcCallback>().Object;
         private static readonly EndPoint __endPoint = new DnsEndPoint("localhost", 27017);
 
         static OidcConfigurationTests()
         {
-            var buildInProvidersMock = new Mock<IOidcCredentialsProviders>();
+            var buildInProvidersMock = new Mock<IOidcKnownCallbackProviders>();
             buildInProvidersMock.Setup(p => p.Aws)
                 .Returns(__callbackMock);
 

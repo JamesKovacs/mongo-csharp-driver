@@ -29,7 +29,7 @@ namespace MongoDB.Driver.Core.Authentication
         EndPoint CurrentEndPoint { get; }
     }
 
-    internal class AuthenticationContext : IAuthenticationContext
+    internal sealed class AuthenticationContext : IAuthenticationContext
     {
         public AuthenticationContext(EndPoint endPoint)
         {

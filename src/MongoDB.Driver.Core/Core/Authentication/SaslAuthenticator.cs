@@ -90,7 +90,7 @@ namespace MongoDB.Driver.Core.Authentication
                 ISaslStep currentStep;
                 BsonDocument result = null;
 
-                if (TrySkipSaslStart(description, out currentStep, out result))
+                if (TryGetSpeculativeFirstStep(description, out currentStep, out result))
                 {
                     currentStep = Transition(conversation, currentStep, result);
                 }
@@ -131,7 +131,7 @@ namespace MongoDB.Driver.Core.Authentication
                 ISaslStep currentStep;
                 BsonDocument result = null;
 
-                if (TrySkipSaslStart(description, out currentStep, out result))
+                if (TryGetSpeculativeFirstStep(description, out currentStep, out result))
                 {
                     currentStep = await TransitionAsync(conversation, currentStep, result, cancellationToken).ConfigureAwait(false);
                 }
@@ -175,7 +175,7 @@ namespace MongoDB.Driver.Core.Authentication
         /// <param name="firstStep">The first sasl step.</param>
         /// <param name="result">The result.</param>
         /// <returns>A flag whether saslStart command can be skipped.</returns>
-        private protected bool TrySkipSaslStart(ConnectionDescription description, out ISaslStep firstStep, out BsonDocument result)
+        private protected bool TryGetSpeculativeFirstStep(ConnectionDescription description, out ISaslStep firstStep, out BsonDocument result)
         {
             var speculativeAuthenticateResult = description.HelloResult.SpeculativeAuthenticate;
             if (_speculativeFirstStep != null && speculativeAuthenticateResult != null)
@@ -411,7 +411,7 @@ namespace MongoDB.Driver.Core.Authentication
         /// <summary>
         /// Represents a completed SASL step.
         /// </summary>
-        protected internal sealed class CompletedStep : ISaslStep
+        protected internal class CompletedStep : ISaslStep
         {
             // fields
             private readonly byte[] _bytesToSendToServer;

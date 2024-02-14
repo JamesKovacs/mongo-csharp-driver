@@ -25,7 +25,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
 
     internal class OidcCallbackAdapterCachingFactory : IOidcCallbackAdapterFactory
     {
-        public static readonly OidcCallbackAdapterCachingFactory Instance = new OidcCallbackAdapterCachingFactory(SystemClock.Instance);
+        public static readonly OidcCallbackAdapterCachingFactory Instance = new(SystemClock.Instance);
 
         private readonly IClock _clock;
         private readonly ConcurrentDictionary<OidcConfiguration, IOidcCallbackAdapter> _cache = new();

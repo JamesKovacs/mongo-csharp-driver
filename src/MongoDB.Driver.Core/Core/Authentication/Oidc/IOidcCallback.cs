@@ -69,7 +69,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
     /// <summary>
     /// Represents OIDC callback provider.
     /// </summary>
-    public interface IOidcCallbackProvider
+    public interface IOidcCallback
     {
         /// <summary>
         /// Get OIDC callback response.
@@ -77,7 +77,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
         /// <param name="parameters">The information used by callbacks to authenticate with the Identity Provider.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>OIDC callback response</returns>
-        OidcCallbackResponse GetResponse(OidcCallbackParameters parameters, CancellationToken cancellationToken);
+        OidcCallbackResponse GetOidcAccessToken(OidcCallbackParameters parameters, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get OIDC callback response.
@@ -85,6 +85,6 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
         /// <param name="parameters">The information used by callbacks to authenticate with the Identity Provider.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>OIDC callback response</returns>
-        Task<OidcCallbackResponse> GetResponseAsync(OidcCallbackParameters parameters, CancellationToken cancellationToken);
+        Task<OidcCallbackResponse> GetOidcAccessTokenAsync(OidcCallbackParameters parameters, CancellationToken cancellationToken);
     }
 }

@@ -321,18 +321,17 @@ namespace MongoDB.Driver.Core.Connections
 
         public void Reauthenticate(CancellationToken cancellationToken)
         {
-            foreach (var authenticator in _connectionInitializerContext.Authenticators)
-            {
-                if (authenticator is MongoOidcAuthenticator oidcAuthenticator)
-                {
-                    oidcAuthenticator.ClearCredentialsCache();
-                }
-            }
-
+            InvalidateAuthenticators();
             _connectionInitializerContext = _connectionInitializer.Authenticate(this, _connectionInitializerContext, cancellationToken);
         }
 
         public async Task ReauthenticateAsync(CancellationToken cancellationToken)
+        {
+            InvalidateAuthenticators();
+            _connectionInitializerContext = await _connectionInitializer.AuthenticateAsync(this, _connectionInitializerContext, cancellationToken).ConfigureAwait(false);
+        }
+
+        private void InvalidateAuthenticators()
         {
             foreach (var authenticator in _connectionInitializerContext.Authenticators)
             {
@@ -341,8 +340,6 @@ namespace MongoDB.Driver.Core.Connections
                     oidcAuthenticator.ClearCredentialsCache();
                 }
             }
-
-            _connectionInitializerContext = await _connectionInitializer.AuthenticateAsync(this, _connectionInitializerContext, cancellationToken).ConfigureAwait(false);
         }
 
         private IByteBuffer ReceiveBuffer(CancellationToken cancellationToken)
