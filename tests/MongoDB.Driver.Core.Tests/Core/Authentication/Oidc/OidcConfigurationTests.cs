@@ -79,5 +79,88 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication.Oidc
             new object[] { "name", new Dictionary<string, object> { ["OIDC_CALLBACK"] = "invalid type" } },
             new object[] { "name", new Dictionary<string, object> { ["OIDC_CALLBACK"] = __callbackMock, ["PROVIDER_NAME"] = "aws" } },
         };
+
+        [Theory]
+        [MemberData(nameof(ComparisonTestCases))]
+        public void Equals_should_compare_by_values(
+            bool expectedResult,
+            EndPoint endpoint1,
+            string principalName1,
+            IReadOnlyDictionary<string, object> mechanismProperties1,
+            EndPoint endpoint2,
+            string principalName2,
+            IReadOnlyDictionary<string, object> mechanismProperties2)
+        {
+            var configuration1 = new OidcConfiguration(endpoint1, principalName1, mechanismProperties1, __buildInProvidersMock);
+            var configuration2 = new OidcConfiguration(endpoint2, principalName2, mechanismProperties2, __buildInProvidersMock);
+
+            var result = configuration1.Equals(configuration2);
+
+            result.Should().Be(expectedResult);
+        }
+
+        public static IEnumerable<object[]> ComparisonTestCases = new[]
+        {
+            new object[]
+            {
+                true,
+                new IPEndPoint(IPAddress.Parse("127.0.0.1"), 27017), "name", new Dictionary<string, object> { ["OIDC_CALLBACK"] = __callbackMock },
+                new IPEndPoint(IPAddress.Parse("127.0.0.1"), 27017), "name", new Dictionary<string, object> { ["OIDC_CALLBACK"] = __callbackMock }
+            },
+            new object[]
+            {
+                true,
+                new DnsEndPoint("localhost", 27017), null, new Dictionary<string, object> { ["PROVIDER_NAME"] = "aws" },
+                new DnsEndPoint("localhost", 27017), null, new Dictionary<string, object> { ["PROVIDER_NAME"] = "aws" }
+            },
+            new object[]
+            {
+                true,
+                new DnsEndPoint("localhost", 27017), "name", new Dictionary<string, object> { ["PROVIDER_NAME"] = "aws" },
+                new DnsEndPoint("localhost", 27017), "name", new Dictionary<string, object> { ["PROVIDER_NAME"] = "aws" }
+            },
+            new object[]
+            {
+                true,
+                new DnsEndPoint("localhost", 27017), "name", new Dictionary<string, object> { ["OIDC_CALLBACK"] = __callbackMock },
+                new DnsEndPoint("localhost", 27017), "name", new Dictionary<string, object> { ["OIDC_CALLBACK"] = __callbackMock }
+            },
+            new object[]
+            {
+                false,
+                new DnsEndPoint("otherhost", 27017), "name", new Dictionary<string, object> { ["OIDC_CALLBACK"] = __callbackMock },
+                new DnsEndPoint("localhost", 27017), "name", new Dictionary<string, object> { ["OIDC_CALLBACK"] = __callbackMock }
+            },
+            new object[]
+            {
+                false,
+                new DnsEndPoint("localhost", 27017), "name", new Dictionary<string, object> { ["OIDC_CALLBACK"] = __callbackMock },
+                new DnsEndPoint("localhost", 27018), "name", new Dictionary<string, object> { ["OIDC_CALLBACK"] = __callbackMock }
+            },
+            new object[]
+            {
+                false,
+                new DnsEndPoint("localhost", 27017), "name", new Dictionary<string, object> { ["OIDC_CALLBACK"] = __callbackMock },
+                new IPEndPoint(IPAddress.Parse("127.0.0.1"), 27017), "name", new Dictionary<string, object> { ["OIDC_CALLBACK"] = __callbackMock }
+            },
+            new object[]
+            {
+                false,
+                new DnsEndPoint("localhost", 27017), null, new Dictionary<string, object> { ["PROVIDER_NAME"] = "aws" },
+                new DnsEndPoint("localhost", 27017), "name", new Dictionary<string, object> { ["PROVIDER_NAME"] = "aws" }
+            },
+            new object[]
+            {
+                false,
+                new DnsEndPoint("localhost", 27017), null, new Dictionary<string, object> { ["PROVIDER_NAME"] = "aws" },
+                new DnsEndPoint("localhost", 27017), null, new Dictionary<string, object> { ["OIDC_CALLBACK"] = __callbackMock }
+            },
+            new object[]
+            {
+                false,
+                new DnsEndPoint("localhost", 27017), null, new Dictionary<string, object> { ["OIDC_CALLBACK"] = __callbackMock },
+                new DnsEndPoint("localhost", 27017), null, new Dictionary<string, object> { ["OIDC_CALLBACK"] = new Mock<IOidcCallback>().Object }
+            },
+        };
     }
 }

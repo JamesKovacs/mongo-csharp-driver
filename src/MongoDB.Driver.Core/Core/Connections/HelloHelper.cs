@@ -66,11 +66,6 @@ namespace MongoDB.Driver.Core.Connections
             return authenticators.Count == 1 ? authenticators[0].CustomizeInitialHelloCommand(command, cancellationToken) : command;
         }
 
-        internal static Task<BsonDocument> CustomizeCommandAsync(BsonDocument command, IReadOnlyList<IAuthenticator> authenticators, CancellationToken cancellationToken)
-        {
-            return authenticators.Count == 1 ? authenticators[0].CustomizeInitialHelloCommandAsync(command, cancellationToken) : Task.FromResult(command);
-        }
-
         internal static CommandWireProtocol<BsonDocument> CreateProtocol(
             BsonDocument helloCommand,
             ServerApi serverApi,

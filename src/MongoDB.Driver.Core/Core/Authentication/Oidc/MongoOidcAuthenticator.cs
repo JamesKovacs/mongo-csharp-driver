@@ -151,22 +151,10 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
 
         public override BsonDocument CustomizeInitialHelloCommand(BsonDocument helloCommand, CancellationToken cancellationToken)
         {
-            _speculativeFirstStep = OidcMechanism.CreateSpeculativeAuthenticationStep(cancellationToken);
-            return AddSpeculativeInfo(helloCommand, _speculativeFirstStep);
-        }
-
-        public override async Task<BsonDocument> CustomizeInitialHelloCommandAsync(BsonDocument helloCommand, CancellationToken cancellationToken)
-        {
-            _speculativeFirstStep = await OidcMechanism.CreateSpeculativeAuthenticationStepAsync(cancellationToken).ConfigureAwait(false);
-            return AddSpeculativeInfo(helloCommand, _speculativeFirstStep);
-        }
-
-        public void ClearCredentialsCache() => OidcMechanism.ClearCache();
-
-        private BsonDocument AddSpeculativeInfo(BsonDocument helloCommand, ISaslStep speculativeFirstStep)
-        {
+            var speculativeFirstStep = OidcMechanism.CreateSpeculativeAuthenticationStep(cancellationToken);
             if (speculativeFirstStep != null)
             {
+                _speculativeFirstStep = speculativeFirstStep;
                 var firstCommand = CreateStartCommand(speculativeFirstStep);
                 firstCommand.Add("db", DatabaseName);
                 helloCommand.Add("speculativeAuthenticate", firstCommand);
@@ -174,6 +162,8 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
 
             return helloCommand;
         }
+
+        public void ClearCredentialsCache() => OidcMechanism.ClearCache();
 
         private static bool ShouldReauthenticateIfSaslError(Exception ex, IConnection connection)
         {

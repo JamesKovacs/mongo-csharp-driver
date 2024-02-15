@@ -140,7 +140,7 @@ namespace MongoDB.Driver.Core.Connections
         {
             Ensure.IsNotNull(connection, nameof(connection));
             var authenticators = CreateAuthenticators(connection);
-            var helloCommand = await CreateInitialHelloCommandAsync(authenticators, connection.Settings.LoadBalanced, cancellationToken).ConfigureAwait(false);
+            var helloCommand = CreateInitialHelloCommand(authenticators, connection.Settings.LoadBalanced, cancellationToken);
             var helloProtocol = HelloHelper.CreateProtocol(helloCommand, _serverApi);
             var helloResult = await HelloHelper.GetResultAsync(connection, helloProtocol, cancellationToken).ConfigureAwait(false);
             if (connection.Settings.LoadBalanced && !helloResult.ServiceId.HasValue)
@@ -171,14 +171,6 @@ namespace MongoDB.Driver.Core.Connections
             HelloHelper.AddClientDocumentToCommand(command, _clientDocument);
             HelloHelper.AddCompressorsToCommand(command, _compressors);
             return HelloHelper.CustomizeCommand(command, authenticators, cancellationToken);
-        }
-
-        private Task<BsonDocument> CreateInitialHelloCommandAsync(IReadOnlyList<IAuthenticator> authenticators, bool loadBalanced = false, CancellationToken cancellationToken = default)
-        {
-            var command = HelloHelper.CreateCommand(_serverApi, loadBalanced: loadBalanced);
-            HelloHelper.AddClientDocumentToCommand(command, _clientDocument);
-            HelloHelper.AddCompressorsToCommand(command, _compressors);
-            return HelloHelper.CustomizeCommandAsync(command, authenticators, cancellationToken);
         }
 
         private List<IAuthenticator> CreateAuthenticators(IConnection connection)

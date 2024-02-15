@@ -111,7 +111,7 @@ namespace MongoDB.Driver.Core.Authentication
             if (!description.HelloResult.HasSaslSupportedMechs
                 && Feature.ScramSha256Authentication.IsSupported(description.MaxWireVersion))
             {
-                var command = await CustomizeInitialHelloCommandAsync(HelloHelper.CreateCommand(_serverApi, loadBalanced: connection.Settings.LoadBalanced), cancellationToken).ConfigureAwait(false);
+                var command = CustomizeInitialHelloCommand(HelloHelper.CreateCommand(_serverApi, loadBalanced: connection.Settings.LoadBalanced), cancellationToken);
                 var helloProtocol = HelloHelper.CreateProtocol(command, _serverApi);
                 var helloResult = await HelloHelper.GetResultAsync(connection, helloProtocol, cancellationToken).ConfigureAwait(false);
                 var mergedHelloResult = new HelloResult(description.HelloResult.Wrapped.Merge(helloResult.Wrapped));
@@ -132,10 +132,6 @@ namespace MongoDB.Driver.Core.Authentication
             _speculativeAuthenticator = new ScramSha256Authenticator(_credential, _randomStringGenerator, _serverApi);
             return _speculativeAuthenticator.CustomizeInitialHelloCommand(helloCommand, cancellationToken);
         }
-
-        /// <inheritdoc/>
-        public Task<BsonDocument> CustomizeInitialHelloCommandAsync(BsonDocument helloCommand, CancellationToken cancellationToken)
-            => Task.FromResult(CustomizeInitialHelloCommand(helloCommand, cancellationToken));
 
         private static BsonDocument CreateSaslSupportedMechsRequest(string authenticationDatabaseName, string userName)
         {

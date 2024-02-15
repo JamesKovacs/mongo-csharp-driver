@@ -63,9 +63,6 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
             return CreateNoTransitionClientLastSaslStep(cachedCredentials);
         }
 
-        public Task<SaslAuthenticator.ISaslStep> CreateSpeculativeAuthenticationStepAsync(CancellationToken cancellationToken)
-            => Task.FromResult(CreateSpeculativeAuthenticationStep(cancellationToken));
-
         public void ClearCache() => _oidcCallback.ClearCache();
 
         public bool HasCachedCredentials() => _oidcCallback.CachedCredentials != null;

@@ -164,10 +164,6 @@ namespace MongoDB.Driver.Core.Authentication
         public virtual BsonDocument CustomizeInitialHelloCommand(BsonDocument helloCommand, CancellationToken cancellationToken)
             => helloCommand;
 
-        /// <inheritdoc/>
-        public virtual Task<BsonDocument> CustomizeInitialHelloCommandAsync(BsonDocument helloCommand, CancellationToken cancellationToken)
-            => Task.FromResult(CustomizeInitialHelloCommand(helloCommand, cancellationToken));
-
         /// <summary>
         /// Determines whether saslStart should be skipped.
         /// </summary>
