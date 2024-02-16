@@ -170,7 +170,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
             return ex is MongoAuthenticationException authenticationException &&
                    authenticationException.InnerException is MongoCommandException mongoCommandException &&
                    mongoCommandException.Code == (int)ServerErrorCode.AuthenticationFailed &&
-                   !connection.IsInitialized;
+                   !connection.IsInitialized();
         }
 
         private static Exception UnwrapMongoAuthenticationException(Exception ex)

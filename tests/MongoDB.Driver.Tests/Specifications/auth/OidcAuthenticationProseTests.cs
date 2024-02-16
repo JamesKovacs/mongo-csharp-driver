@@ -54,7 +54,7 @@ namespace MongoDB.Driver.Tests.Specifications.auth
         [ParameterAttributeData]
         public async Task Callback_authentication_callback_called_during_authentication([Values(false, true)]bool async)
         {
-            var callbackProviderMock = CreateOidcCallback(GetAccessTokenValue("test_user1_expires"));
+            var callbackProviderMock = CreateOidcCallback(GetAccessTokenValue("test_user1"));
             var clientSettings = CreateOidcMongoClientSettings(MongoCredential.CreateOidcCredential(callbackProviderMock.Object));
             var client = DriverTestConfiguration.CreateDisposableClient(clientSettings);
 

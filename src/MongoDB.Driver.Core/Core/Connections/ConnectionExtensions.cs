@@ -13,13 +13,8 @@
 * limitations under the License.
 */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.WireProtocol.Messages;
 using MongoDB.Driver.Core.WireProtocol.Messages.Encoders;
@@ -43,5 +38,8 @@ namespace MongoDB.Driver.Core.Connections
             Ensure.IsNotNull(connection, nameof(connection));
             return connection.SendMessagesAsync(new[] { message }, messageEncoderSettings, cancellationToken);
         }
+
+        public static bool IsInitialized(this IConnection connection)
+            => connection.Description?.ConnectionId?.LongServerValue.HasValue ?? false;
     }
 }

@@ -393,11 +393,6 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 get { return _disposed; }
             }
 
-            public bool IsInitialized
-            {
-                get { return _connection.IsInitialized; }
-            }
-
             public bool IsExpired
             {
                 get { return _disposed || _generation < _connectionPool.GetGeneration(_connection.Description?.ServiceId) || _connection.IsExpired; }
@@ -579,11 +574,6 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 {
                     return _connectionPool._poolState.IsDisposed || _reference.Instance.IsExpired;
                 }
-            }
-
-            public bool IsInitialized
-            {
-                get { return _reference.Instance.IsInitialized; }
             }
 
             public ConnectionSettings Settings

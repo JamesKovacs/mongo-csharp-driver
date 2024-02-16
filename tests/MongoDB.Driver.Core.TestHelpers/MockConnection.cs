@@ -35,7 +35,6 @@ namespace MongoDB.Driver.Core.TestHelpers
         private ConnectionId _connectionId;
         private readonly ConnectionSettings _connectionSettings;
         private bool? _isExpired;
-        private bool? _isInitialized;
         private readonly TaskCompletionSource<bool> _isExpiredTaskComletionSource;
         private DateTime _lastUsedAtUtc;
         private DateTime _openedAtUtc;
@@ -139,12 +138,6 @@ namespace MongoDB.Driver.Core.TestHelpers
             set => _isExpired = value;
         }
 
-        public bool IsInitialized
-        {
-            get => _isInitialized ?? Description?.ConnectionId?.LongServerValue.HasValue ?? false;
-            set => _isInitialized = value;
-        }
-
         public ConnectionSettings Settings => _connectionSettings;
 
         public bool? WasReadTimeoutChanged => _wasReadTimeoutChanged;
@@ -202,7 +195,6 @@ namespace MongoDB.Driver.Core.TestHelpers
             _lastUsedAtUtc = DateTime.UtcNow;
 
             _openedEventHandler?.Invoke(new ConnectionOpenedEvent(_connectionId, _connectionSettings, TimeSpan.Zero, null));
-            _isInitialized = true;
         }
 
         public Task OpenAsync(CancellationToken cancellationToken)
@@ -216,7 +208,6 @@ namespace MongoDB.Driver.Core.TestHelpers
 
             _openedEventHandler?.Invoke(new ConnectionOpenedEvent(_connectionId, _connectionSettings, TimeSpan.Zero, null));
 
-            _isInitialized = true;
             return Task.CompletedTask;
         }
 

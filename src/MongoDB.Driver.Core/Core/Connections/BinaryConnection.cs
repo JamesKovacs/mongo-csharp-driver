@@ -135,14 +135,6 @@ namespace MongoDB.Driver.Core.Connections
             }
         }
 
-        public bool IsInitialized
-        {
-            get
-            {
-                return _description?.ConnectionId?.LongServerValue.HasValue ?? false;
-            }
-        }
-
         public ConnectionSettings Settings
         {
             get { return _settings; }

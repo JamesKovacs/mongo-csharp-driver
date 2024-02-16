@@ -175,7 +175,7 @@ namespace MongoDB.Driver.Core.Connections
 
         private List<IAuthenticator> CreateAuthenticators(IConnection connection)
         {
-            if (connection.IsInitialized)
+            if (connection.IsInitialized())
             {
                 // should never be here.
                 throw new InvalidOperationException();
