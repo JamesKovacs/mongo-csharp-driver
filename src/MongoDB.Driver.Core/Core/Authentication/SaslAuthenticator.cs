@@ -88,11 +88,12 @@ namespace MongoDB.Driver.Core.Authentication
             using (var conversation = new SaslConversation(description.ConnectionId))
             {
                 ISaslStep currentStep;
-                BsonDocument result = null;
+                int? conversationId = null;
 
-                if (TryGetSpeculativeFirstStep(description, out currentStep, out result))
+                if (TryGetSpeculativeFirstStep(description, out currentStep, out var result))
                 {
                     currentStep = Transition(conversation, currentStep, result);
+                    conversationId = result.GetValue("conversationId").AsInt32;
                 }
                 else
                 {
@@ -101,14 +102,14 @@ namespace MongoDB.Driver.Core.Authentication
 
                 while (currentStep != null)
                 {
-                    var command = result == null
-                        ? CreateStartCommand(currentStep)
-                        : CreateContinueCommand(currentStep, result);
+                    var command = conversationId.HasValue
+                        ? CreateContinueCommand(currentStep, conversationId.Value)
+                        : CreateStartCommand(currentStep);
                     try
                     {
                         var protocol = CreateCommandProtocol(command);
-
-                        result = protocol.Execute(connection, cancellationToken);
+                        var response = protocol.Execute(connection, cancellationToken);
+                        conversationId ??= response?.GetValue("conversationId").AsInt32;
                     }
                     catch (MongoException ex)
                     {
@@ -129,11 +130,12 @@ namespace MongoDB.Driver.Core.Authentication
             using (var conversation = new SaslConversation(description.ConnectionId))
             {
                 ISaslStep currentStep;
-                BsonDocument result = null;
+                int? conversationId = null;
 
-                if (TryGetSpeculativeFirstStep(description, out currentStep, out result))
+                if (TryGetSpeculativeFirstStep(description, out currentStep, out var result))
                 {
                     currentStep = await TransitionAsync(conversation, currentStep, result, cancellationToken).ConfigureAwait(false);
+                    conversationId = result.GetValue("conversationId").AsInt32;
                 }
                 else
                 {
@@ -142,13 +144,14 @@ namespace MongoDB.Driver.Core.Authentication
 
                 while (currentStep != null)
                 {
-                    var command = result == null
-                        ? CreateStartCommand(currentStep)
-                        : CreateContinueCommand(currentStep, result);
+                    var command = conversationId.HasValue
+                        ? CreateContinueCommand(currentStep, conversationId.Value)
+                        : CreateStartCommand(currentStep);
                     try
                     {
                         var protocol = CreateCommandProtocol(command);
-                        result = await protocol.ExecuteAsync(connection, cancellationToken).ConfigureAwait(false);
+                        var response = await protocol.ExecuteAsync(connection, cancellationToken).ConfigureAwait(false);
+                        conversationId ??= response?.GetValue("conversationId").AsInt32;
                     }
                     catch (MongoException ex)
                     {
@@ -213,11 +216,11 @@ namespace MongoDB.Driver.Core.Authentication
             };
 
 
-        private BsonDocument CreateContinueCommand(ISaslStep currentStep, BsonDocument result)
+        private BsonDocument CreateContinueCommand(ISaslStep currentStep, int conversationId)
             => new BsonDocument
             {
                 { SaslContinueCommand, 1 },
-                { "conversationId", result["conversationId"].AsInt32 },
+                { "conversationId", conversationId },
                 { "payload", currentStep.BytesToSendToServer }
             };
 
