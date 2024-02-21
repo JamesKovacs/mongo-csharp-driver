@@ -26,15 +26,16 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
         public OidcConfiguration(
             EndPoint endpoint,
             string principalName,
-            IEnumerable<KeyValuePair<string, object>> properties,
+            IEnumerable<KeyValuePair<string, object>> authMechanismProperties,
             IOidcKnownCallbackProviders oidcKnownCallbackProviders)
         {
             EndPoint = Ensure.IsNotNull(endpoint, nameof(endpoint));
+            Ensure.IsNotNull(authMechanismProperties, nameof(authMechanismProperties));
             PrincipalName = principalName;
 
-            if (properties != null)
+            if (authMechanismProperties != null)
             {
-                foreach (var authorizationProperty in properties)
+                foreach (var authorizationProperty in authMechanismProperties)
                 {
                     switch (authorizationProperty.Key)
                     {
@@ -49,20 +50,23 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
                             }
                             break;
                         default:
-                            throw new ArgumentException($"Unknown OIDC property '{authorizationProperty.Key}'.",
-                                nameof(authorizationProperty));
+                            throw new ArgumentException(
+                                $"Unknown OIDC property '{authorizationProperty.Key}'.",
+                                authorizationProperty.Key);
                     }
                 }
             }
 
             ValidateOptions();
 
-            if (!string.IsNullOrEmpty(ProviderName))
+            if (ProviderName != null)
             {
                 Callback = ProviderName switch
                 {
                     "aws" => oidcKnownCallbackProviders.Aws,
-                    _ => throw new InvalidOperationException($"Not supported value of {MongoOidcAuthenticator.ProviderMechanismPropertyName} mechanism property: {ProviderName}.")
+                    _ => throw new ArgumentException(
+                        $"Not supported value of {MongoOidcAuthenticator.ProviderMechanismPropertyName} mechanism property: {ProviderName}.",
+                        MongoOidcAuthenticator.ProviderMechanismPropertyName)
                 };
             }
 
@@ -73,7 +77,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
                     return result;
                 }
 
-                throw new InvalidCastException($"Cannot read {property.Key} property as {typeof(T).Name}");
+                throw new ArgumentException($"Cannot read {property.Key} property as {typeof(T).Name}", property.Key);
             }
         }
 
@@ -104,14 +108,14 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
 
         private void ValidateOptions()
         {
-            if (string.IsNullOrEmpty(ProviderName) && Callback == null)
+            if (ProviderName == null && Callback == null)
             {
-                throw new InvalidOperationException($"{MongoOidcAuthenticator.ProviderMechanismPropertyName} or {MongoOidcAuthenticator.CallbackMechanismPropertyName} must be configured.");
+                throw new ArgumentException($"{MongoOidcAuthenticator.ProviderMechanismPropertyName} or {MongoOidcAuthenticator.CallbackMechanismPropertyName} must be configured.");
             }
 
-            if (!string.IsNullOrEmpty(ProviderName) && Callback != null)
+            if (ProviderName != null && Callback != null)
             {
-                throw new InvalidOperationException($"{MongoOidcAuthenticator.CallbackMechanismPropertyName} is mutually exclusive with {MongoOidcAuthenticator.ProviderMechanismPropertyName}.");
+                throw new ArgumentException($"{MongoOidcAuthenticator.CallbackMechanismPropertyName} is mutually exclusive with {MongoOidcAuthenticator.ProviderMechanismPropertyName}.");
             }
         }
     }

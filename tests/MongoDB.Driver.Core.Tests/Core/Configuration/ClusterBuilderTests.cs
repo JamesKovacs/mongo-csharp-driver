@@ -15,7 +15,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using FluentAssertions;
 using MongoDB.Bson.TestHelpers;
 using MongoDB.Driver.Core.Authentication;
@@ -37,7 +36,7 @@ namespace MongoDB.Driver.Core.Configuration
         public void CreateServerMonitorFactory_should_return_expected_result(int connectTimeoutMilliseconds, int heartbeatTimeoutMilliseconds, int expectedServerMonitorConnectTimeoutMilliseconds, int expectedServerMonitorSocketTimeoutMilliseconds)
         {
             var connectTimeout = TimeSpan.FromMilliseconds(connectTimeoutMilliseconds);
-            var authenticatorFactories = new[] { new AuthenticatorFactory(c => new DefaultAuthenticator(new UsernamePasswordCredential("source", "username", "password"), serverApi: null)) };
+            var authenticatorFactories = new[] { new AuthenticatorFactory(_ => new DefaultAuthenticator(new UsernamePasswordCredential("source", "username", "password"), serverApi: null)) };
             var heartbeatTimeout = TimeSpan.FromMilliseconds(heartbeatTimeoutMilliseconds);
             var expectedServerMonitorConnectTimeout = TimeSpan.FromMilliseconds(expectedServerMonitorConnectTimeoutMilliseconds);
             var expectedServerMonitorSocketTimeout = TimeSpan.FromMilliseconds(expectedServerMonitorSocketTimeoutMilliseconds);

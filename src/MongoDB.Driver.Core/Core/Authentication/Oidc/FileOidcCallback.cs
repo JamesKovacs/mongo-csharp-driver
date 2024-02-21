@@ -37,13 +37,13 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
             _path = Ensure.IsNotNullOrEmpty(path, nameof(path));
         }
 
-        public OidcCallbackResponse GetOidcAccessToken(OidcCallbackParameters parameters, CancellationToken cancellationToken)
+        public OidcAccessToken GetOidcAccessToken(OidcCallbackParameters parameters, CancellationToken cancellationToken)
         {
             var accessToken = File.ReadAllText(_path);
             return new(accessToken, expiresIn: null);
         }
 
-        public async Task<OidcCallbackResponse> GetOidcAccessTokenAsync(OidcCallbackParameters parameters, CancellationToken cancellationToken)
+        public async Task<OidcAccessToken> GetOidcAccessTokenAsync(OidcCallbackParameters parameters, CancellationToken cancellationToken)
         {
 #if NETSTANDARD2_1_OR_GREATER
             var accessToken = await File.ReadAllTextAsync(_path, cancellationToken).ConfigureAwait(false);

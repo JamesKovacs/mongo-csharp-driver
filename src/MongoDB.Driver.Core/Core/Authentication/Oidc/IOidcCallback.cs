@@ -42,14 +42,14 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
     /// <summary>
     /// Represents OIDC callback response.
     /// </summary>
-    public sealed class OidcCallbackResponse
+    public sealed class OidcAccessToken
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="OidcCallbackResponse" /> class.
+        /// Initializes a new instance of the <see cref="OidcAccessToken" /> class.
         /// </summary>
         /// <param name="accessToken">OIDC Access Token string.</param>
         /// <param name="expiresIn">Expiration duration for the Access Token.</param>
-        public OidcCallbackResponse(string accessToken, TimeSpan? expiresIn)
+        public OidcAccessToken(string accessToken, TimeSpan? expiresIn)
         {
             AccessToken = accessToken;
             ExpiresIn = expiresIn;
@@ -77,7 +77,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
         /// <param name="parameters">The information used by callbacks to authenticate with the Identity Provider.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>OIDC callback response</returns>
-        OidcCallbackResponse GetOidcAccessToken(OidcCallbackParameters parameters, CancellationToken cancellationToken);
+        OidcAccessToken GetOidcAccessToken(OidcCallbackParameters parameters, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get OIDC callback response.
@@ -85,6 +85,6 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
         /// <param name="parameters">The information used by callbacks to authenticate with the Identity Provider.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>OIDC callback response</returns>
-        Task<OidcCallbackResponse> GetOidcAccessTokenAsync(OidcCallbackParameters parameters, CancellationToken cancellationToken);
+        Task<OidcAccessToken> GetOidcAccessTokenAsync(OidcCallbackParameters parameters, CancellationToken cancellationToken);
     }
 }

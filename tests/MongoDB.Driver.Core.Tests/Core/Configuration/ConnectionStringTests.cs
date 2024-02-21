@@ -154,6 +154,8 @@ namespace MongoDB.Driver.Core.Configuration
                     actualAuthProperty.Value.Should().Be(expectedKeyValue[1]);
                 }
             }
+
+            actualAuthProperties.Count.Should().Be(list?.Count ?? 0);
         }
 
         [Theory]

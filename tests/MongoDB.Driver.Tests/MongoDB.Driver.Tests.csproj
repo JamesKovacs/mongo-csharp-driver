@@ -56,8 +56,4 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Specifications\auth\tests\unified\" />
-  </ItemGroup>
-
 </Project>
