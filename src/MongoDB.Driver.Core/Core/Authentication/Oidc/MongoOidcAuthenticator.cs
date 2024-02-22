@@ -89,11 +89,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
 
         public override void Authenticate(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
         {
-            // Capture the cache state to decide if we want retry on auth error or not.
-            // Not the best solution, but let us not to introduce the retry logic into SaslAuthenticator to reduce affected areas for now.
-            // Consider to move this code into SaslAuthenticator when retry logic will be applicable not only for Oidc Auth.
-            var allowRetryOnAuthError = OidcMechanism.HasCachedCredentials();
-            TryAuthenticate(allowRetryOnAuthError);
+            TryAuthenticate(true);
 
             void TryAuthenticate(bool retryOnFailure)
             {
@@ -120,11 +116,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
 
         public override Task AuthenticateAsync(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
         {
-            // Capture the cache state to decide if we want retry on auth error or not.
-            // Not the best solution, but let us not to introduce the retry logic into SaslAuthenticator to reduce affected areas for now.
-            // Consider to move this code into SaslAuthenticator when retry logic will be applicable not only for Oidc Auth.
-            var allowRetryOnAuthError = OidcMechanism.HasCachedCredentials();
-            return TryAuthenticateAsync(allowRetryOnAuthError);
+            return TryAuthenticateAsync(true);
 
             async Task TryAuthenticateAsync(bool retryOnFailure)
             {

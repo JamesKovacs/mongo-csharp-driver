@@ -108,8 +108,8 @@ namespace MongoDB.Driver.Core.Authentication
                     try
                     {
                         var protocol = CreateCommandProtocol(command);
-                        var response = protocol.Execute(connection, cancellationToken);
-                        conversationId ??= response?.GetValue("conversationId").AsInt32;
+                        result = protocol.Execute(connection, cancellationToken);
+                        conversationId ??= result?.GetValue("conversationId").AsInt32;
                     }
                     catch (MongoException ex)
                     {
@@ -150,8 +150,8 @@ namespace MongoDB.Driver.Core.Authentication
                     try
                     {
                         var protocol = CreateCommandProtocol(command);
-                        var response = await protocol.ExecuteAsync(connection, cancellationToken).ConfigureAwait(false);
-                        conversationId ??= response?.GetValue("conversationId").AsInt32;
+                        result = await protocol.ExecuteAsync(connection, cancellationToken).ConfigureAwait(false);
+                        conversationId ??= result?.GetValue("conversationId").AsInt32;
                     }
                     catch (MongoException ex)
                     {

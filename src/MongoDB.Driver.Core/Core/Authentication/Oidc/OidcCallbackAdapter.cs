@@ -24,7 +24,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
     {
         OidcCredentials CachedCredentials { get; }
 
-        void ClearCache();
+        void InvalidateCachedCredentials(OidcCredentials credentials);
 
         OidcCredentials GetCredentials(OidcCallbackParameters parameters, CancellationToken cancellationToken);
 
@@ -51,9 +51,25 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
 
         public OidcCredentials CachedCredentials => _cachedCredentials;
 
-        public void ClearCache()
+        public void InvalidateCachedCredentials(OidcCredentials credentials)
         {
-            _cachedCredentials = null;
+            if (credentials == null)
+            {
+                return;
+            }
+
+            _lock.Wait();
+            try
+            {
+                if (_cachedCredentials.AccessToken == credentials.AccessToken)
+                {
+                    _cachedCredentials = null;
+                }
+            }
+            finally
+            {
+                _lock.Release();
+            }
         }
 
         public OidcCredentials GetCredentials(OidcCallbackParameters parameters, CancellationToken cancellationToken)

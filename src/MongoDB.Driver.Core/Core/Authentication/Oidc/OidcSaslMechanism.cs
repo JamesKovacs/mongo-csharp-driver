@@ -24,6 +24,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
     internal sealed class OidcSaslMechanism : SaslAuthenticator.ISaslMechanism
     {
         private readonly IOidcCallbackAdapter _oidcCallback;
+        private OidcCredentials _usedCredentials;
 
         public OidcSaslMechanism(IOidcCallbackAdapter oidcCallback)
         {
@@ -39,6 +40,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
             CancellationToken cancellationToken)
         {
             var credentials = _oidcCallback.GetCredentials(new OidcCallbackParameters(1), cancellationToken);
+            _usedCredentials = credentials;
             return CreateNoTransitionClientLastSaslStep(credentials);
         }
 
@@ -48,7 +50,8 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
             ConnectionDescription description,
             CancellationToken cancellationToken)
         {
-            var credentials =  await _oidcCallback.GetCredentialsAsync(new OidcCallbackParameters(1), cancellationToken);
+            var credentials = await _oidcCallback.GetCredentialsAsync(new OidcCallbackParameters(1), cancellationToken);
+            _usedCredentials = credentials;
             return CreateNoTransitionClientLastSaslStep(credentials);
         }
 
@@ -63,9 +66,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
             return CreateNoTransitionClientLastSaslStep(cachedCredentials);
         }
 
-        public void ClearCache() => _oidcCallback.ClearCache();
-
-        public bool HasCachedCredentials() => _oidcCallback.CachedCredentials != null;
+        public void ClearCache() => _oidcCallback.InvalidateCachedCredentials(_usedCredentials);
 
         private static SaslAuthenticator.ISaslStep CreateNoTransitionClientLastSaslStep(OidcCredentials oidcCredentials)
         {
