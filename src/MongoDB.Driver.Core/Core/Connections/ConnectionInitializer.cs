@@ -57,7 +57,7 @@ namespace MongoDB.Driver.Core.Connections
             AuthenticationHelper.Authenticate(connection, description, authenticators, cancellationToken);
 
             // Connection description should be updated only on the initial handshake and not after reauthentication
-            if (!description.ConnectionId.LongServerValue.HasValue)
+            if (!description.IsInitialized())
             {
                 var connectionIdServerValue = description.HelloResult.ConnectionIdServerValue;
                 if (connectionIdServerValue.HasValue)
