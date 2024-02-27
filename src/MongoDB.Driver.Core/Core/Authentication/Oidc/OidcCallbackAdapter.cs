@@ -61,7 +61,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
             _lock.Wait();
             try
             {
-                if (_cachedCredentials.AccessToken == credentials.AccessToken)
+                if (_cachedCredentials?.AccessToken == credentials.AccessToken)
                 {
                     _cachedCredentials = null;
                 }
