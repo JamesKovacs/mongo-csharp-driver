@@ -23,6 +23,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Bson.TestHelpers;
 using MongoDB.Driver.Core.Authentication;
 using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Configuration;
@@ -43,6 +44,7 @@ namespace MongoDB.Driver.Core.Connections
     public class BinaryConnectionTests : LoggableTestClass
     {
         private ConnectionInitializerContext _connectionInitializerContext;
+        private ConnectionInitializerContext _connectionInitializerContextAfterAuthentication;
         private Mock<IConnectionInitializer> _mockConnectionInitializer;
         private ConnectionDescription _connectionDescription;
         private readonly IReadOnlyList<IAuthenticator> __emptyAuthenticators = new IAuthenticator[0];
@@ -65,6 +67,7 @@ namespace MongoDB.Driver.Core.Connections
             var helloResult = new HelloResult(new BsonDocument { { "ok", 1 }, { "maxMessageSizeBytes", 48000000 }, { "maxWireVersion", WireVersion.Server36 } });
             _connectionDescription = new ConnectionDescription(connectionId, helloResult);
             _connectionInitializerContext = new ConnectionInitializerContext(_connectionDescription, __emptyAuthenticators);
+            _connectionInitializerContextAfterAuthentication = new ConnectionInitializerContext(_connectionDescription, __emptyAuthenticators);
 
             _mockConnectionInitializer = new Mock<IConnectionInitializer>();
             _mockConnectionInitializer
@@ -72,13 +75,13 @@ namespace MongoDB.Driver.Core.Connections
                 .Returns(_connectionInitializerContext);
             _mockConnectionInitializer
                 .Setup(i => i.Authenticate(It.IsAny<IConnection>(), It.IsAny<ConnectionInitializerContext>(), CancellationToken.None))
-                .Returns(_connectionInitializerContext);
+                .Returns(_connectionInitializerContextAfterAuthentication);
             _mockConnectionInitializer
                 .Setup(i => i.SendHelloAsync(It.IsAny<IConnection>(), CancellationToken.None))
                 .ReturnsAsync(_connectionInitializerContext);
             _mockConnectionInitializer
                 .Setup(i => i.AuthenticateAsync(It.IsAny<IConnection>(), It.IsAny<ConnectionInitializerContext>(), CancellationToken.None))
-                .ReturnsAsync(_connectionInitializerContext);
+                .ReturnsAsync(_connectionInitializerContextAfterAuthentication);
 
             _subject = new BinaryConnection(
                 serverId: _serverId,
@@ -330,37 +333,37 @@ namespace MongoDB.Driver.Core.Connections
             _capturedEvents.Any().Should().BeFalse();
         }
 
-        // [Theory]
-        // [ParameterAttributeData]
-        // public async Task Reauthentication_should_use_the_same_auth_context_as_in_initial_authentication(
-        //     [Values(false, true)] bool async)
-        // {
-        //     _subject._connectionInitializerContext().Should().BeNull();
-        //
-        //     if (async)
-        //     {
-        //         await _subject.OpenAsync(CancellationToken.None);
-        //     }
-        //     else
-        //     {
-        //         _subject.Open(CancellationToken.None);
-        //     }
-        //
-        //     _subject._connectionInitializerContext().Should().Be(_connectionInitializerContext);
-        //
-        //     if (async)
-        //     {
-        //         await _subject.ReauthenticateAsync(CancellationToken.None);
-        //         _mockConnectionInitializer.Verify(c => c.AuthenticateAsync(It.IsAny<IConnection>(), It.Is<ConnectionInitializerContext>(cxt => cxt == _connectionInitializerContext), CancellationToken.None), Times.Exactly(1));
-        //         _mockConnectionInitializer.Verify(c => c.AuthenticateAsync(It.IsAny<IConnection>(), It.Is<ConnectionInitializerContext>(cxt => cxt == _connectionInitializerContextAfterAuthentication), CancellationToken.None), Times.Exactly(1));
-        //     }
-        //     else
-        //     {
-        //         _subject.Reauthenticate(CancellationToken.None);
-        //         _mockConnectionInitializer.Verify(c => c.Authenticate(It.IsAny<IConnection>(), It.Is<ConnectionInitializerContext>(cxt => cxt == _connectionInitializerContext), CancellationToken.None), Times.Exactly(1));
-        //         _mockConnectionInitializer.Verify(c => c.Authenticate(It.IsAny<IConnection>(), It.Is<ConnectionInitializerContext>(cxt => cxt == _connectionInitializerContextAfterAuthentication), CancellationToken.None), Times.Exactly(1));
-        //     }
-        // }
+        [Theory]
+        [ParameterAttributeData]
+        public async Task Reauthentication_should_use_the_same_auth_context_as_in_initial_authentication(
+            [Values(false, true)] bool async)
+        {
+            _subject._connectionInitializerContext().Should().BeNull();
+
+            if (async)
+            {
+                await _subject.OpenAsync(CancellationToken.None);
+            }
+            else
+            {
+                _subject.Open(CancellationToken.None);
+            }
+
+            _subject._connectionInitializerContext().Should().Be(_connectionInitializerContextAfterAuthentication);
+
+            if (async)
+            {
+                await _subject.ReauthenticateAsync(CancellationToken.None);
+                _mockConnectionInitializer.Verify(c => c.AuthenticateAsync(It.IsAny<IConnection>(), It.Is<ConnectionInitializerContext>(cxt => cxt == _connectionInitializerContext), CancellationToken.None), Times.Exactly(1));
+                _mockConnectionInitializer.Verify(c => c.AuthenticateAsync(It.IsAny<IConnection>(), It.Is<ConnectionInitializerContext>(cxt => cxt == _connectionInitializerContextAfterAuthentication), CancellationToken.None), Times.Exactly(1));
+            }
+            else
+            {
+                _subject.Reauthenticate(CancellationToken.None);
+                _mockConnectionInitializer.Verify(c => c.Authenticate(It.IsAny<IConnection>(), It.Is<ConnectionInitializerContext>(cxt => cxt == _connectionInitializerContext), CancellationToken.None), Times.Exactly(1));
+                _mockConnectionInitializer.Verify(c => c.Authenticate(It.IsAny<IConnection>(), It.Is<ConnectionInitializerContext>(cxt => cxt == _connectionInitializerContextAfterAuthentication), CancellationToken.None), Times.Exactly(1));
+            }
+        }
 
         [Theory]
         [ParameterAttributeData]
@@ -922,5 +925,11 @@ namespace MongoDB.Driver.Core.Connections
                 // do nothing else
             }
         }
+    }
+
+    internal static class BinaryConnectionReflector
+    {
+        public static ConnectionInitializerContext _connectionInitializerContext(this BinaryConnection subject)
+            => (ConnectionInitializerContext)Reflector.GetFieldValue(subject, nameof(_connectionInitializerContext));
     }
 }
