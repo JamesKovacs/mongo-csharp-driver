@@ -110,7 +110,7 @@ namespace MongoDB.Bson.TestHelpers
                 }
             });
 
-            var taskAll = Task.WhenAll(allTasks.Select(t => t.Result));
+            var taskAll = Task.WhenAll(allTasks);
             if (await Task.WhenAny(taskAll, Task.Delay(timeoutMilliseconds)) != taskAll)
             {
                 exceptions.Add(new TimeoutException());

@@ -61,7 +61,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
 
             if (source != "$external")
             {
-                throw new ArgumentException("MONGODB-OIDC authentication may only use the $external source.", nameof(source));
+                throw new ArgumentException("MONGODB-OIDC authentication must use the $external authentication source.", nameof(source));
             }
 
             var configuration = new OidcConfiguration(endPoints, principalName, properties, oidcKnownCallbackProviders);
@@ -138,7 +138,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
 
                     if (retryOnFailure && ShouldReauthenticateIfSaslError(ex, connection))
                     {
-                        Thread.Sleep(100);
+                        await Task.Delay(100).ConfigureAwait(false);
                         await TryAuthenticateAsync(false).ConfigureAwait(false);
                     }
                     else
@@ -170,7 +170,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
             return ex is MongoAuthenticationException authenticationException &&
                    authenticationException.InnerException is MongoCommandException mongoCommandException &&
                    mongoCommandException.Code == (int)ServerErrorCode.AuthenticationFailed &&
-                   !connection.IsInitialized();
+                   !connection.Description.IsInitialized();
         }
 
         private static Exception UnwrapMongoAuthenticationException(Exception ex)

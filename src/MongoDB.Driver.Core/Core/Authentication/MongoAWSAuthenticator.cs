@@ -366,10 +366,7 @@ namespace MongoDB.Driver.Core.Authentication
                 return new NoTransitionClientLastSaslStep(clientSecondMessageBytes);
             }
 
-            public Task<ISaslStep> TransitionAsync(
-                SaslConversation conversation,
-                byte[] bytesReceivedFromServer,
-                CancellationToken cancellationToken = default)
+            public Task<ISaslStep> TransitionAsync(SaslConversation conversation, byte[] bytesReceivedFromServer, CancellationToken cancellationToken)
                 => Task.FromResult(Transition(conversation, bytesReceivedFromServer));
         }
     }

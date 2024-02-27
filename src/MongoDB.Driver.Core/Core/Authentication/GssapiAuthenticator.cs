@@ -32,12 +32,13 @@ namespace MongoDB.Driver.Core.Authentication
     {
         // constants
         /// <summary>
-        /// Gets the name of the mechanism.
-        /// </summary>
-        /// <value>
         /// The name of the mechanism.
-        /// </value>
+        /// </summary>
         public const string MechanismName = "GSSAPI";
+        /// <summary>
+        /// The default service name.
+        /// </summary>
+        public const string DefaultServiceName = "mongodb";
         private const string __canonicalizeHostNamePropertyName = "CANONICALIZE_HOST_NAME";
         private const string __realmPropertyName = "REALM";
         private const string __serviceNamePropertyName = "SERVICE_NAME";
@@ -53,17 +54,6 @@ namespace MongoDB.Driver.Core.Authentication
         public static string CanonicalizeHostNamePropertyName
         {
             get { return __canonicalizeHostNamePropertyName; }
-        }
-
-        /// <summary>
-        /// Gets the default service name.
-        /// </summary>
-        /// <value>
-        /// The default service name.
-        /// </value>
-        public static string DefaultServiceName
-        {
-            get { return "mongodb"; }
         }
 
         /// <summary>
@@ -316,10 +306,7 @@ namespace MongoDB.Driver.Core.Authentication
                 return new NegotiateStep(_authorizationId, _context, bytesToSendToServer);
             }
 
-            public Task<ISaslStep> TransitionAsync(
-                SaslConversation conversation,
-                byte[] bytesReceivedFromServer,
-                CancellationToken cancellationToken = default)
+            public Task<ISaslStep> TransitionAsync(SaslConversation conversation, byte[] bytesReceivedFromServer, CancellationToken cancellationToken)
                 => Task.FromResult(Transition(conversation, bytesReceivedFromServer));
         }
 
@@ -366,10 +353,7 @@ namespace MongoDB.Driver.Core.Authentication
                 return new NegotiateStep(_authorizationId, _context, bytesToSendToServer);
             }
 
-            public Task<ISaslStep> TransitionAsync(
-                SaslConversation conversation,
-                byte[] bytesReceivedFromServer,
-                CancellationToken cancellationToken = default)
+            public Task<ISaslStep> TransitionAsync(SaslConversation conversation, byte[] bytesReceivedFromServer, CancellationToken cancellationToken)
                 => Task.FromResult(Transition(conversation, bytesReceivedFromServer));
         }
 
@@ -440,10 +424,7 @@ namespace MongoDB.Driver.Core.Authentication
                 return new CompletedStep(bytesToSendToServer);
             }
 
-            public Task<ISaslStep> TransitionAsync(
-                SaslConversation conversation,
-                byte[] bytesReceivedFromServer,
-                CancellationToken cancellationToken = default)
+            public Task<ISaslStep> TransitionAsync(SaslConversation conversation, byte[] bytesReceivedFromServer, CancellationToken cancellationToken)
                 => Task.FromResult(Transition(conversation, bytesReceivedFromServer));
         }
     }

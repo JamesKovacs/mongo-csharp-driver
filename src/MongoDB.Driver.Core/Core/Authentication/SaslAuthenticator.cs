@@ -404,7 +404,7 @@ namespace MongoDB.Driver.Core.Authentication
             /// <param name="bytesReceivedFromServer">The bytes received from server.</param>
             /// <param name="cancellationToken">The cancellation token.</param>
             /// <returns>The next SASL step.</returns>
-            Task<ISaslStep> TransitionAsync(SaslConversation conversation, byte[] bytesReceivedFromServer, CancellationToken cancellationToken = default);
+            Task<ISaslStep> TransitionAsync(SaslConversation conversation, byte[] bytesReceivedFromServer, CancellationToken cancellationToken);
         }
 
         /// <summary>
@@ -459,10 +459,7 @@ namespace MongoDB.Driver.Core.Authentication
             }
 
             /// <inheritdoc/>
-            public Task<ISaslStep> TransitionAsync(
-                SaslConversation conversation,
-                byte[] bytesReceivedFromServer,
-                CancellationToken cancellationToken = default)
+            public Task<ISaslStep> TransitionAsync(SaslConversation conversation, byte[] bytesReceivedFromServer, CancellationToken cancellationToken)
                 => Task.FromResult(Transition(conversation, bytesReceivedFromServer));
         }
     }

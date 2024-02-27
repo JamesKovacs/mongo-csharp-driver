@@ -305,10 +305,7 @@ namespace MongoDB.Driver.Core.Authentication
                 return new ClientLast(encoding.GetBytes(clientFinalMessage), serverSignature);
             }
 
-            public Task<ISaslStep> TransitionAsync(
-                SaslConversation conversation,
-                byte[] bytesReceivedFromServer,
-                CancellationToken cancellationToken = default)
+            public Task<ISaslStep> TransitionAsync(SaslConversation conversation, byte[] bytesReceivedFromServer, CancellationToken cancellationToken)
                 => Task.FromResult(Transition(conversation, bytesReceivedFromServer));
 
             private byte[] XOR(byte[] a, byte[] b)
@@ -352,10 +349,7 @@ namespace MongoDB.Driver.Core.Authentication
                 return new CompletedStep();
             }
 
-            public Task<ISaslStep> TransitionAsync(
-                SaslConversation conversation,
-                byte[] bytesReceivedFromServer,
-                CancellationToken cancellationToken = default)
+            public Task<ISaslStep> TransitionAsync(SaslConversation conversation, byte[] bytesReceivedFromServer, CancellationToken cancellationToken)
                 => Task.FromResult(Transition(conversation, bytesReceivedFromServer));
 
             private bool ConstantTimeEquals(byte[] a, byte[] b)

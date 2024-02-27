@@ -38,8 +38,5 @@ namespace MongoDB.Driver.Core.Connections
             Ensure.IsNotNull(connection, nameof(connection));
             return connection.SendMessagesAsync(new[] { message }, messageEncoderSettings, cancellationToken);
         }
-
-        public static bool IsInitialized(this IConnection connection)
-            => connection.Description?.ConnectionId?.LongServerValue.HasValue ?? false;
     }
 }

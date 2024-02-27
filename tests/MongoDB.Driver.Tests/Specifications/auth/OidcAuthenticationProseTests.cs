@@ -22,8 +22,10 @@ using FluentAssertions;
 using MongoDB.Bson;
 using MongoDB.Bson.TestHelpers;
 using MongoDB.Driver.Core;
+using MongoDB.Driver.Core.Authentication;
 using MongoDB.Driver.Core.Authentication.Oidc;
 using MongoDB.Driver.Core.Bindings;
+using MongoDB.Driver.Core.Events;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.TestHelpers;
 using MongoDB.Driver.Core.TestHelpers.Logging;
@@ -55,18 +57,19 @@ namespace MongoDB.Driver.Tests.Specifications.auth
         [ParameterAttributeData]
         public async Task Callback_authentication_callback_called_during_authentication([Values(false, true)]bool async)
         {
-            var callbackProviderMock = CreateOidcCallback(GetAccessTokenValue());
-            var clientSettings = CreateOidcMongoClientSettings(MongoCredential.CreateOidcCredential(callbackProviderMock.Object));
-            var client = DriverTestConfiguration.CreateDisposableClient(clientSettings);
-
-            var db = client.GetDatabase(DatabaseName);
-            var collection = db.GetCollection<BsonDocument>(CollectionName);
+            var callbackMock = new Mock<IOidcCallback>();
+            ConfigureOidcCallback(callbackMock, GetAccessTokenValue());
+            var credential = MongoCredential.CreateOidcCredential(callbackMock.Object);
+            var eventCapturer = new EventCapturer().CaptureCommandEvents(SaslAuthenticator.SaslStartCommand);
+            var collection = CreateMongoCollection(credential, eventCapturer);
 
             _ = async
                 ? await collection.FindAsync(Builders<BsonDocument>.Filter.Empty)
                 : collection.FindSync(Builders<BsonDocument>.Filter.Empty);
 
-            VerifyCallbackUsage(callbackProviderMock, async, Times.Once());
+            VerifyCallbackUsage(callbackMock, async, Times.Once());
+            eventCapturer.Events.Select(e => e.GetType())
+                .Should().Equal(typeof(CommandStartedEvent), typeof(CommandSucceededEvent));
         }
 
         // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L48
@@ -74,12 +77,10 @@ namespace MongoDB.Driver.Tests.Specifications.auth
         [ParameterAttributeData]
         public async Task Callback_authentication_callback_called_once_for_multiple_connections([Values(false, true)]bool async)
         {
-            var callbackProviderMock = CreateOidcCallback(GetAccessTokenValue());
-            var clientSettings = CreateOidcMongoClientSettings(MongoCredential.CreateOidcCredential(callbackProviderMock.Object));
-            var client = DriverTestConfiguration.CreateDisposableClient(clientSettings);
-
-            var db = client.GetDatabase(DatabaseName);
-            var collection = db.GetCollection<BsonDocument>(CollectionName);
+            var callbackMock = new Mock<IOidcCallback>();
+            ConfigureOidcCallback(callbackMock, GetAccessTokenValue());
+            var credential = MongoCredential.CreateOidcCredential(callbackMock.Object);
+            var collection = CreateMongoCollection(credential);
 
             await ThreadingUtilities.ExecuteTasksOnNewThreads(10, async t =>
             {
@@ -91,7 +92,7 @@ namespace MongoDB.Driver.Tests.Specifications.auth
                 }
             });
 
-            VerifyCallbackUsage(callbackProviderMock, async, Times.Once());
+            VerifyCallbackUsage(callbackMock, async, Times.Once());
         }
 
         // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L57
@@ -99,18 +100,19 @@ namespace MongoDB.Driver.Tests.Specifications.auth
         [ParameterAttributeData]
         public async Task Callback_validation_valid_callback_inputs([Values(false, true)] bool async)
         {
-            var callbackProviderMock = CreateOidcCallback(GetAccessTokenValue());
-            var clientSettings = CreateOidcMongoClientSettings(MongoCredential.CreateOidcCredential(callbackProviderMock.Object));
-            var client = DriverTestConfiguration.CreateDisposableClient(clientSettings);
-
-            var db = client.GetDatabase(DatabaseName);
-            var collection = db.GetCollection<BsonDocument>(CollectionName);
+            var callbackMock = new Mock<IOidcCallback>();
+            ConfigureOidcCallback(callbackMock, GetAccessTokenValue());
+            var credential = MongoCredential.CreateOidcCredential(callbackMock.Object);
+            var eventCapturer = new EventCapturer().CaptureCommandEvents(SaslAuthenticator.SaslStartCommand);
+            var collection = CreateMongoCollection(credential, eventCapturer);
 
             _ = async
                 ? await collection.FindAsync(Builders<BsonDocument>.Filter.Empty)
                 : collection.FindSync(Builders<BsonDocument>.Filter.Empty);
 
-            VerifyCallbackUsage(callbackProviderMock, async, Times.Once());
+            VerifyCallbackUsage(callbackMock, async, Times.Once());
+            eventCapturer.Events.Select(e => e.GetType())
+                .Should().Equal(typeof(CommandStartedEvent), typeof(CommandSucceededEvent));
         }
 
         // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L64
@@ -118,19 +120,18 @@ namespace MongoDB.Driver.Tests.Specifications.auth
         [ParameterAttributeData]
         public async Task Callback_validation_callback_returns_null([Values(false, true)] bool async)
         {
-            var callbackProviderMock = new Mock<IOidcCallback>();
-            var clientSettings = CreateOidcMongoClientSettings(MongoCredential.CreateOidcCredential(callbackProviderMock.Object));
-            var client = DriverTestConfiguration.CreateDisposableClient(clientSettings);
-
-            var db = client.GetDatabase(DatabaseName);
-            var collection = db.GetCollection<BsonDocument>(CollectionName);
+            var callbackMock = new Mock<IOidcCallback>();
+            var credential = MongoCredential.CreateOidcCredential(callbackMock.Object);
+            var eventCapturer = new EventCapturer().CaptureCommandEvents(SaslAuthenticator.SaslStartCommand);
+            var collection = CreateMongoCollection(credential, eventCapturer);
 
             var exception = async
                 ? await Record.ExceptionAsync(() => collection.FindAsync(Builders<BsonDocument>.Filter.Empty))
                 : Record.Exception(() => collection.FindSync(Builders<BsonDocument>.Filter.Empty));
 
             exception.Should().BeOfType<MongoConnectionException>();
-            VerifyCallbackUsage(callbackProviderMock, async, Times.Once());
+            VerifyCallbackUsage(callbackMock, async, Times.Once());
+            eventCapturer.Events.Should().BeEmpty();
         }
 
         // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L70
@@ -138,19 +139,21 @@ namespace MongoDB.Driver.Tests.Specifications.auth
         [ParameterAttributeData]
         public async Task Callback_validation_callback_returns_missing_data([Values(false, true)] bool async)
         {
-            var callbackProviderMock = CreateOidcCallback("wrong token");
-            var clientSettings = CreateOidcMongoClientSettings(MongoCredential.CreateOidcCredential(callbackProviderMock.Object));
-            var client = DriverTestConfiguration.CreateDisposableClient(clientSettings);
-
-            var db = client.GetDatabase(DatabaseName);
-            var collection = db.GetCollection<BsonDocument>(CollectionName);
+            var callbackMock = new Mock<IOidcCallback>();
+            ConfigureOidcCallback(callbackMock, "wrong token");
+            var credential = MongoCredential.CreateOidcCredential(callbackMock.Object);
+            var eventCapturer = new EventCapturer().CaptureCommandEvents(SaslAuthenticator.SaslStartCommand);
+            var collection = CreateMongoCollection(credential, eventCapturer);
 
             var exception = async
                 ? await Record.ExceptionAsync(() => collection.FindAsync(Builders<BsonDocument>.Filter.Empty))
                 : Record.Exception(() => collection.FindSync(Builders<BsonDocument>.Filter.Empty));
 
             exception.Should().BeOfType<MongoConnectionException>();
-            VerifyCallbackUsage(callbackProviderMock, async, Times.Once());
+            VerifyCallbackUsage(callbackMock, async, Times.Once());
+
+            eventCapturer.Events.Select(e => e.GetType())
+                .Should().Equal(typeof(CommandStartedEvent), typeof(CommandFailedEvent));
         }
 
         // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L77
@@ -158,79 +161,79 @@ namespace MongoDB.Driver.Tests.Specifications.auth
         [ParameterAttributeData]
         public async Task Callback_validation_invalid_client_configuration([Values(false, true)] bool async)
         {
-            var callbackProviderMock = CreateOidcCallback(GetAccessTokenValue());
-            var credential = MongoCredential.CreateOidcCredential(callbackProviderMock.Object)
+            var callbackMock = new Mock<IOidcCallback>();
+            ConfigureOidcCallback(callbackMock, GetAccessTokenValue());
+            var credential = MongoCredential.CreateOidcCredential(callbackMock.Object)
                 .WithMechanismProperty("PROVIDER_NAME", "aws");
-            var clientSettings = CreateOidcMongoClientSettings(credential);
-            var client = DriverTestConfiguration.CreateDisposableClient(clientSettings);
-
-            var db = client.GetDatabase(DatabaseName);
-            var collection = db.GetCollection<BsonDocument>(CollectionName);
+            var eventCapturer = new EventCapturer().CaptureCommandEvents(SaslAuthenticator.SaslStartCommand);
+            var collection = CreateMongoCollection(credential, eventCapturer);
 
             var exception = async
                 ? await Record.ExceptionAsync(() => collection.FindAsync(Builders<BsonDocument>.Filter.Empty))
                 : Record.Exception(() => collection.FindSync(Builders<BsonDocument>.Filter.Empty));
 
             exception.Should().BeOfType<MongoConnectionException>();
-            VerifyCallbackUsage(callbackProviderMock, async, Times.Never());
+            VerifyCallbackUsage(callbackMock, async, Times.Never());
+            eventCapturer.Events.Should().BeEmpty();
         }
 
         // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L84
-        // [Theory]
-        // [ParameterAttributeData]
-        // public async Task Authentication_failure_with_cached_tokens_fetch_new_and_retry([Values(false, true)] bool async)
-        // {
-        //     var callbackProviderMock = CreateOidcCallback("wrong token", GetAccessTokenValue("test_user1"));
-        //     var clientSettings = CreateOidcMongoClientSettings(MongoCredential.CreateOidcCredential(callbackProviderMock.Object));
-        //     var client = DriverTestConfiguration.CreateDisposableClient(clientSettings);
-        //
-        //     var db = client.GetDatabase(DatabaseName);
-        //     var collection = db.GetCollection<BsonDocument>(CollectionName);
-        //
-        //     var exception = async
-        //         ? await Record.ExceptionAsync(() => collection.FindAsync(Builders<BsonDocument>.Filter.Empty))
-        //         : Record.Exception(() => collection.FindSync(Builders<BsonDocument>.Filter.Empty));
-        //
-        //     exception.Should().BeNull();
-        //     if (async)
-        //     {
-        //         callbackProviderMock.Verify(x => x.GetResponse(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
-        //         // Check for 2 calls because first call will return poisoned response that cause failure of initial auth, clear the cache and second call to get proper token
-        //         callbackProviderMock.Verify(x => x.GetResponseAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
-        //     }
-        //     else
-        //     {
-        //         // Check for 2 calls because first call will return poisoned response that cause failure of initial auth, clear the cache and second call to get proper token
-        //         callbackProviderMock.Verify(x => x.GetResponse(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
-        //         callbackProviderMock.Verify(x => x.GetResponseAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
-        //     }
-        // }
+        [Theory]
+        [ParameterAttributeData]
+        public async Task Authentication_failure_with_cached_tokens_fetch_new_and_retry([Values(false, true)] bool async)
+        {
+            var callbackMock = new Mock<IOidcCallback>();
+            var credential = MongoCredential.CreateOidcCredential(callbackMock.Object);
+
+            // have to access to the adapter directly to poison the cached access token.
+            var callbackAdapter = OidcCallbackAdapterCachingFactory.Instance.Get(new OidcConfiguration(
+                CoreTestConfiguration.ConnectionString.Hosts,
+                credential.Username,
+                credential._mechanismProperties(),
+                OidcKnownCallbackProviders.Instance));
+
+            ConfigureOidcCallback(callbackMock, "wrong token");
+            var callbackParameters = new OidcCallbackParameters(1);
+            _ = async
+                ? await callbackAdapter.GetCredentialsAsync(callbackParameters, default)
+                : callbackAdapter.GetCredentials(callbackParameters, default);
+
+            // configure mock with valid access token
+            ConfigureOidcCallback(callbackMock, GetAccessTokenValue());
+
+            // callbackAdapter should have cached wrong access token at this point.
+            var eventCapturer = new EventCapturer().CaptureCommandEvents(SaslAuthenticator.SaslStartCommand);
+            var collection = CreateMongoCollection(credential, eventCapturer);
+
+            _ = async
+                ? await collection.FindAsync(Builders<BsonDocument>.Filter.Empty)
+                : collection.FindSync(Builders<BsonDocument>.Filter.Empty);
+
+            VerifyCallbackUsage(callbackMock, async, Times.Once());
+            eventCapturer.Events.Select(e => e.GetType())
+                .Should().Equal(typeof(CommandStartedEvent), typeof(CommandFailedEvent), typeof(CommandStartedEvent), typeof(CommandSucceededEvent));
+        }
 
         // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L92
         [Theory]
         [ParameterAttributeData]
         public async Task Authentication_failure_without_cached_tokens_return_error([Values(false, true)] bool async)
         {
-            var callbackProviderMock = CreateOidcCallback("wrong token");
-            var clientSettings = CreateOidcMongoClientSettings(MongoCredential.CreateOidcCredential(callbackProviderMock.Object));
-            var client = DriverTestConfiguration.CreateDisposableClient(clientSettings);
-
-            var db = client.GetDatabase(DatabaseName);
-            var collection = db.GetCollection<BsonDocument>(CollectionName);
+            var callbackMock = new Mock<IOidcCallback>();
+            ConfigureOidcCallback(callbackMock, "wrong token");
+            var credential = MongoCredential.CreateOidcCredential(callbackMock.Object);
+            var eventCapturer = new EventCapturer().CaptureCommandEvents(SaslAuthenticator.SaslStartCommand);
+            var collection = CreateMongoCollection(credential, eventCapturer);
 
             var exception = async
                 ? await Record.ExceptionAsync(() => collection.FindAsync(Builders<BsonDocument>.Filter.Empty))
                 : Record.Exception(() => collection.FindSync(Builders<BsonDocument>.Filter.Empty));
 
             exception.Should().BeOfType<MongoConnectionException>();
-            VerifyCallbackUsage(callbackProviderMock, async, Times.Once());
-        }
+            VerifyCallbackUsage(callbackMock, async, Times.Once());
 
-        [Fact]
-        public async ValueTask DoFailureAsync()
-        {
-            await Task.Delay(10);
-            throw new InvalidOperationException("Do not even try!!!");
+            eventCapturer.Events.Select(e => e.GetType())
+                .Should().Equal(typeof(CommandStartedEvent), typeof(CommandFailedEvent));
         }
 
         // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L99
@@ -238,12 +241,11 @@ namespace MongoDB.Driver.Tests.Specifications.auth
         [ParameterAttributeData]
         public async Task ReAuthentication([Values(false, true)] bool async)
         {
-            var callbackProviderMock = CreateOidcCallback(GetAccessTokenValue());
-            var clientSettings = CreateOidcMongoClientSettings(MongoCredential.CreateOidcCredential(callbackProviderMock.Object));
-            var client = DriverTestConfiguration.CreateDisposableClient(clientSettings);
-
-            var db = client.GetDatabase(DatabaseName);
-            var collection = db.GetCollection<BsonDocument>(CollectionName);
+            var callbackMock = new Mock<IOidcCallback>();
+            ConfigureOidcCallback(callbackMock, GetAccessTokenValue());
+            var credential = MongoCredential.CreateOidcCredential(callbackMock.Object);
+            var eventCapturer = new EventCapturer().CaptureCommandEvents(SaslAuthenticator.SaslStartCommand);
+            var collection = CreateMongoCollection(credential, eventCapturer);
 
             using (ConfigureFailPoint(1, (int)ServerErrorCode.ReauthenticationRequired, "find"))
             {
@@ -252,15 +254,23 @@ namespace MongoDB.Driver.Tests.Specifications.auth
                     : collection.FindSync(Builders<BsonDocument>.Filter.Empty);
             }
 
-            VerifyCallbackUsage(callbackProviderMock, async, Times.Exactly(2));
+            VerifyCallbackUsage(callbackMock, async, Times.Exactly(2));
+            eventCapturer.Events.Select(e => e.GetType())
+                .Should().Equal(typeof(CommandStartedEvent), typeof(CommandSucceededEvent), typeof(CommandStartedEvent), typeof(CommandSucceededEvent));
         }
 
-        private void EnsureOidcIsConfigured() =>
-            // EG also requires aws_test_secrets_role
-            RequireEnvironment
-                .Check()
-                .EnvironmentVariable(OidcTokensDirEnvName)
-                .EnvironmentVariable("OIDC_TESTS_ENABLED");
+        private void ConfigureOidcCallback(Mock<IOidcCallback> callbackMock, string accessToken)
+        {
+            callbackMock.Reset();
+
+            var response = new OidcAccessToken(accessToken, null);
+            callbackMock
+                .Setup(c => c.GetOidcAccessToken(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()))
+                .Returns(response);
+            callbackMock
+                .Setup(c => c.GetOidcAccessTokenAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(response));
+        }
 
         private FailPoint ConfigureFailPoint(
             int times,
@@ -287,10 +297,9 @@ namespace MongoDB.Driver.Tests.Specifications.auth
             return FailPoint.Configure(cluster, session, failPointCommand);
         }
 
-        private MongoClientSettings CreateOidcMongoClientSettings(MongoCredential credential, string applicationName = null, EventCapturer eventCapturer = null)
+        private MongoClientSettings CreateOidcMongoClientSettings(MongoCredential credential, EventCapturer eventCapturer = null)
         {
             var settings = DriverTestConfiguration.GetClientSettings();
-            settings.ApplicationName = applicationName;
             settings.RetryReads = false;
             settings.RetryWrites = false;
             settings.MinConnectionPoolSize = 0;
@@ -303,19 +312,21 @@ namespace MongoDB.Driver.Tests.Specifications.auth
             return settings;
         }
 
-        private Mock<IOidcCallback> CreateOidcCallback(string accessToken)
+        private IMongoCollection<BsonDocument> CreateMongoCollection(MongoCredential credential, EventCapturer eventCapturer = null)
         {
-            var callbackProvider = new Mock<IOidcCallback>();
-            var response = new OidcAccessToken(accessToken, null);
-            callbackProvider
-                .Setup(c => c.GetOidcAccessToken(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()))
-                .Returns(response);
-            callbackProvider
-                .Setup(c => c.GetOidcAccessTokenAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(response));
+            var clientSettings = CreateOidcMongoClientSettings(credential, eventCapturer);
+            var client = DriverTestConfiguration.CreateDisposableClient(clientSettings);
 
-            return callbackProvider;
+            var db = client.GetDatabase(DatabaseName);
+            return db.GetCollection<BsonDocument>(CollectionName);
         }
+
+        private void EnsureOidcIsConfigured() =>
+            // EG also requires aws_test_secrets_role
+            RequireEnvironment
+                .Check()
+                .EnvironmentVariable(OidcTokensDirEnvName)
+                .EnvironmentVariable("OIDC_TESTS_ENABLED");
 
         private string GetAccessTokenValue()
         {
@@ -325,17 +336,17 @@ namespace MongoDB.Driver.Tests.Specifications.auth
             return File.ReadAllText(tokenPath);
         }
 
-        private void VerifyCallbackUsage(Mock<IOidcCallback> callbackProviderMock, bool async, Times times)
+        private void VerifyCallbackUsage(Mock<IOidcCallback> callbackMock, bool async, Times times)
         {
             if (async)
             {
-                callbackProviderMock.Verify(x => x.GetOidcAccessToken(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
-                callbackProviderMock.Verify(x => x.GetOidcAccessTokenAsync(It.Is<OidcCallbackParameters>(p => p.Version == 1), It.IsAny<CancellationToken>()), times);
+                callbackMock.Verify(x => x.GetOidcAccessToken(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
+                callbackMock.Verify(x => x.GetOidcAccessTokenAsync(It.Is<OidcCallbackParameters>(p => p.Version == 1), It.IsAny<CancellationToken>()), times);
             }
             else
             {
-                callbackProviderMock.Verify(x => x.GetOidcAccessToken(It.Is<OidcCallbackParameters>(p => p.Version == 1), It.IsAny<CancellationToken>()), times);
-                callbackProviderMock.Verify(x => x.GetOidcAccessTokenAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
+                callbackMock.Verify(x => x.GetOidcAccessToken(It.Is<OidcCallbackParameters>(p => p.Version == 1), It.IsAny<CancellationToken>()), times);
+                callbackMock.Verify(x => x.GetOidcAccessTokenAsync(It.IsAny<OidcCallbackParameters>(), It.IsAny<CancellationToken>()), Times.Never());
             }
         }
     }
