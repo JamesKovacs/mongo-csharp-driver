@@ -14,7 +14,6 @@
 */
 
 using System;
-using System.Net;
 using FluentAssertions;
 using MongoDB.Driver.Core.Authentication;
 using Xunit;
@@ -34,9 +33,8 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
         [Fact]
         public void Create_should_create_authenticator_based_on_the_provided_delegate()
         {
-            var endpoint = new DnsEndPoint("localhost", 80);
-            var subject = new AuthenticatorFactory((endpoint) => new PlainAuthenticator(new UsernamePasswordCredential("source", "user", "password"), serverApi: null));
-            var authenticator = subject.Create(new AuthenticationContext(endpoint));
+            var subject = new AuthenticatorFactory(() => new PlainAuthenticator(new UsernamePasswordCredential("source", "user", "password"), serverApi: null));
+            var authenticator = subject.Create();
 
             var typedAuthenticator = authenticator.Should().BeOfType<PlainAuthenticator>().Subject;
             typedAuthenticator.DatabaseName.Should().Be("source");
@@ -45,10 +43,9 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
         [Fact]
         public void Multiple_Create_calls_should_return_different_authenticators_instances()
         {
-            var endpoint = new DnsEndPoint("localhost", 80);
-            var subject = new AuthenticatorFactory((endpoint) => new PlainAuthenticator(new UsernamePasswordCredential("source", "user", "password"), serverApi: null));
-            var authenticator1 = subject.Create(new AuthenticationContext(endpoint));
-            var authenticator2 = subject.Create(new AuthenticationContext(endpoint));
+            var subject = new AuthenticatorFactory(() => new PlainAuthenticator(new UsernamePasswordCredential("source", "user", "password"), serverApi: null));
+            var authenticator1 = subject.Create();
+            var authenticator2 = subject.Create();
 
             authenticator1.Should().NotBeSameAs(authenticator2);
         }

@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Security;
 using MongoDB.Driver.Core.Authentication;
 using MongoDB.Driver.Core.Authentication.Oidc;
@@ -416,10 +417,7 @@ namespace MongoDB.Driver
         }
 
         // internal methods
-        internal IAuthenticator ToAuthenticator(
-            IAuthenticationContext authenticationContext,
-            ServerApi serverApi,
-            IEnvironmentVariableProvider environmentVariableProvider = null)
+        internal IAuthenticator ToAuthenticator(IReadOnlyList<EndPoint> endPoints, ServerApi serverApi)
         {
             var passwordEvidence = _evidence as PasswordEvidence;
             if (passwordEvidence != null)
@@ -497,7 +495,7 @@ namespace MongoDB.Driver
                         _identity.Source,
                         _identity.Username,
                         _mechanismProperties,
-                        authenticationContext,
+                        endPoints,
                         serverApi);
                 }
             }

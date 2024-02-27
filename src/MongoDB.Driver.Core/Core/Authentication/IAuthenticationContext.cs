@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using System.Collections.Generic;
 using System.Net;
 using MongoDB.Driver.Core.Misc;
 
@@ -26,16 +27,16 @@ namespace MongoDB.Driver.Core.Authentication
         /// <summary>
         /// The current endpoint.
         /// </summary>
-        EndPoint CurrentEndPoint { get; }
+        IEnumerable<EndPoint> EndPoints { get; }
     }
 
     internal sealed class AuthenticationContext : IAuthenticationContext
     {
-        public AuthenticationContext(EndPoint endPoint)
+        public AuthenticationContext(IReadOnlyList<EndPoint> endPoints)
         {
-            CurrentEndPoint = Ensure.IsNotNull(endPoint, nameof(endPoint));
+            EndPoints = Ensure.IsNotNullOrEmpty(endPoints, nameof(endPoints));
         }
 
-        public EndPoint CurrentEndPoint { get; }
+        public IEnumerable<EndPoint> EndPoints { get; }
     }
 }

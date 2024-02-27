@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
@@ -34,13 +35,13 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
             string source,
             string principalName,
             IEnumerable<KeyValuePair<string, object>> properties,
-            IAuthenticationContext context,
+            IReadOnlyList<EndPoint> endPoints,
             ServerApi serverApi)
             => CreateAuthenticator(
                 source,
                 principalName,
                 properties,
-                context,
+                endPoints,
                 serverApi,
                 OidcCallbackAdapterCachingFactory.Instance,
                 OidcKnownCallbackProviders.Instance);
@@ -49,13 +50,12 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
             string source,
             string principalName,
             IEnumerable<KeyValuePair<string, object>> properties,
-            IAuthenticationContext context,
+            IReadOnlyList<EndPoint> endPoints,
             ServerApi serverApi,
             IOidcCallbackAdapterFactory callbackAdapterFactory,
             IOidcKnownCallbackProviders oidcKnownCallbackProviders)
         {
-            Ensure.IsNotNull(context, nameof(context));
-            var endPoint = Ensure.IsNotNull(context.CurrentEndPoint, nameof(context.CurrentEndPoint));
+            Ensure.IsNotNull(endPoints, nameof(endPoints));
             Ensure.IsNotNull(callbackAdapterFactory, nameof(callbackAdapterFactory));
             Ensure.IsNotNull(oidcKnownCallbackProviders, nameof(oidcKnownCallbackProviders));
 
@@ -64,7 +64,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
                 throw new ArgumentException("MONGODB-OIDC authentication may only use the $external source.", nameof(source));
             }
 
-            var configuration = new OidcConfiguration(endPoint, principalName, properties, oidcKnownCallbackProviders);
+            var configuration = new OidcConfiguration(endPoints, principalName, properties, oidcKnownCallbackProviders);
             var callbackAdapter = callbackAdapterFactory.Get(configuration);
             var mechanism = new OidcSaslMechanism(callbackAdapter);
             return new MongoOidcAuthenticator(mechanism, serverApi, configuration);
@@ -89,7 +89,11 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
 
         public override void Authenticate(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
         {
-            TryAuthenticate(true);
+            // Capture the cache state to decide if we want retry on auth error or not.
+            // Not the best solution, but let us not to introduce the retry logic into SaslAuthenticator to reduce affected areas for now.
+            // Consider to move this code into SaslAuthenticator when retry logic will be applicable not only for Oidc Auth.
+            var allowRetryOnAuthError = OidcMechanism.HasCachedCredentials;
+            TryAuthenticate(allowRetryOnAuthError);
 
             void TryAuthenticate(bool retryOnFailure)
             {
@@ -116,7 +120,11 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
 
         public override Task AuthenticateAsync(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
         {
-            return TryAuthenticateAsync(true);
+            // Capture the cache state to decide if we want retry on auth error or not.
+            // Not the best solution, but let us not to introduce the retry logic into SaslAuthenticator to reduce affected areas for now.
+            // Consider to move this code into SaslAuthenticator when retry logic will be applicable not only for Oidc Auth.
+            var allowRetryOnAuthError = OidcMechanism.HasCachedCredentials;
+            return TryAuthenticateAsync(allowRetryOnAuthError);
 
             async Task TryAuthenticateAsync(bool retryOnFailure)
             {

@@ -67,7 +67,7 @@ namespace MongoDB.Driver.Tests.Specifications.auth
             if (parseException == null && !SkipActualAuthenticatorCreating(testCase.Name))
             {
                 var dummyEndpoint = new DnsEndPoint("localhost", 27017);
-                parseException = Record.Exception(() => authenticator = mongoCredential?.ToAuthenticator(new AuthenticationContext(dummyEndpoint), serverApi: null));
+                parseException = Record.Exception(() => authenticator = mongoCredential?.ToAuthenticator(new[] { dummyEndpoint }, serverApi: null));
             }
             if (parseException == null)
             {

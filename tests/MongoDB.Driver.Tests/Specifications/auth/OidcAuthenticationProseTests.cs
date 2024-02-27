@@ -53,7 +53,7 @@ namespace MongoDB.Driver.Tests.Specifications.auth
         // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L41
         [Theory]
         [ParameterAttributeData]
-        public async ValueTask Callback_authentication_callback_called_during_authentication([Values(false, true)]bool async)
+        public async Task Callback_authentication_callback_called_during_authentication([Values(false, true)]bool async)
         {
             var callbackProviderMock = CreateOidcCallback(GetAccessTokenValue());
             var clientSettings = CreateOidcMongoClientSettings(MongoCredential.CreateOidcCredential(callbackProviderMock.Object));
@@ -72,7 +72,7 @@ namespace MongoDB.Driver.Tests.Specifications.auth
         // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L48
         [Theory]
         [ParameterAttributeData]
-        public async ValueTask Callback_authentication_callback_called_once_for_multiple_connections([Values(false, true)]bool async)
+        public async Task Callback_authentication_callback_called_once_for_multiple_connections([Values(false, true)]bool async)
         {
             var callbackProviderMock = CreateOidcCallback(GetAccessTokenValue());
             var clientSettings = CreateOidcMongoClientSettings(MongoCredential.CreateOidcCredential(callbackProviderMock.Object));
@@ -81,7 +81,7 @@ namespace MongoDB.Driver.Tests.Specifications.auth
             var db = client.GetDatabase(DatabaseName);
             var collection = db.GetCollection<BsonDocument>(CollectionName);
 
-            var tasks = ThreadingUtilities.ExecuteTasksOnNewThreads(10, async t =>
+            await ThreadingUtilities.ExecuteTasksOnNewThreads(10, async t =>
             {
                 for (var i = 0; i < 100; i++)
                 {
@@ -91,15 +91,13 @@ namespace MongoDB.Driver.Tests.Specifications.auth
                 }
             });
 
-            await Task.WhenAll(tasks);
-
             VerifyCallbackUsage(callbackProviderMock, async, Times.Once());
         }
 
         // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L57
         [Theory]
         [ParameterAttributeData]
-        public async ValueTask Callback_validation_valid_callback_inputs([Values(false, true)] bool async)
+        public async Task Callback_validation_valid_callback_inputs([Values(false, true)] bool async)
         {
             var callbackProviderMock = CreateOidcCallback(GetAccessTokenValue());
             var clientSettings = CreateOidcMongoClientSettings(MongoCredential.CreateOidcCredential(callbackProviderMock.Object));
@@ -118,7 +116,7 @@ namespace MongoDB.Driver.Tests.Specifications.auth
         // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L64
         [Theory]
         [ParameterAttributeData]
-        public async ValueTask Callback_validation_callback_returns_null([Values(false, true)] bool async)
+        public async Task Callback_validation_callback_returns_null([Values(false, true)] bool async)
         {
             var callbackProviderMock = new Mock<IOidcCallback>();
             var clientSettings = CreateOidcMongoClientSettings(MongoCredential.CreateOidcCredential(callbackProviderMock.Object));
@@ -138,7 +136,7 @@ namespace MongoDB.Driver.Tests.Specifications.auth
         // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L70
         [Theory]
         [ParameterAttributeData]
-        public async ValueTask Callback_validation_callback_returns_missing_data([Values(false, true)] bool async)
+        public async Task Callback_validation_callback_returns_missing_data([Values(false, true)] bool async)
         {
             var callbackProviderMock = CreateOidcCallback("wrong token");
             var clientSettings = CreateOidcMongoClientSettings(MongoCredential.CreateOidcCredential(callbackProviderMock.Object));
@@ -158,7 +156,7 @@ namespace MongoDB.Driver.Tests.Specifications.auth
         // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L77
         [Theory]
         [ParameterAttributeData]
-        public async ValueTask Callback_validation_invalid_client_configuration([Values(false, true)] bool async)
+        public async Task Callback_validation_invalid_client_configuration([Values(false, true)] bool async)
         {
             var callbackProviderMock = CreateOidcCallback(GetAccessTokenValue());
             var credential = MongoCredential.CreateOidcCredential(callbackProviderMock.Object)
@@ -211,7 +209,7 @@ namespace MongoDB.Driver.Tests.Specifications.auth
         // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L92
         [Theory]
         [ParameterAttributeData]
-        public async ValueTask Authentication_failure_without_cached_tokens_return_error([Values(false, true)] bool async)
+        public async Task Authentication_failure_without_cached_tokens_return_error([Values(false, true)] bool async)
         {
             var callbackProviderMock = CreateOidcCallback("wrong token");
             var clientSettings = CreateOidcMongoClientSettings(MongoCredential.CreateOidcCredential(callbackProviderMock.Object));
@@ -228,10 +226,17 @@ namespace MongoDB.Driver.Tests.Specifications.auth
             VerifyCallbackUsage(callbackProviderMock, async, Times.Once());
         }
 
+        [Fact]
+        public async ValueTask DoFailureAsync()
+        {
+            await Task.Delay(10);
+            throw new InvalidOperationException("Do not even try!!!");
+        }
+
         // https://github.com/mongodb/specifications/blob/ac903bf6edb859456c1005a439efcd0769e10870/source/auth/tests/mongodb-oidc.md?plain=1#L99
         [Theory]
         [ParameterAttributeData]
-        public async ValueTask ReAuthentication([Values(false, true)] bool async)
+        public async Task ReAuthentication([Values(false, true)] bool async)
         {
             var callbackProviderMock = CreateOidcCallback(GetAccessTokenValue());
             var clientSettings = CreateOidcMongoClientSettings(MongoCredential.CreateOidcCredential(callbackProviderMock.Object));

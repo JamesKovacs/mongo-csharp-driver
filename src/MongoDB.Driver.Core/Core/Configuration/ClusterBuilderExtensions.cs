@@ -25,7 +25,6 @@ using MongoDB.Driver.Core.Authentication.Oidc;
 using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Events.Diagnostics;
 using MongoDB.Driver.Core.Misc;
-using MongoDB.Shared;
 
 namespace MongoDB.Driver.Core.Configuration
 {
@@ -161,7 +160,7 @@ namespace MongoDB.Driver.Core.Configuration
             // Connection
             if (connectionString.Username != null)
             {
-                var authenticatorFactory = new AuthenticatorFactory((context) => CreateAuthenticator(connectionString, context, serverApi));
+                var authenticatorFactory = new AuthenticatorFactory(() => CreateAuthenticator(connectionString, serverApi));
                 builder = builder.ConfigureConnection(s => s.With(authenticatorFactories: new[] { authenticatorFactory }));
             }
             if (connectionString.ApplicationName != null)
@@ -289,7 +288,7 @@ namespace MongoDB.Driver.Core.Configuration
             return "admin";
         }
 
-        private static IAuthenticator CreateAuthenticator(ConnectionString connectionString, IAuthenticationContext context, ServerApi serverApi)
+        private static IAuthenticator CreateAuthenticator(ConnectionString connectionString, ServerApi serverApi)
         {
             if (connectionString.Password != null)
             {
@@ -353,7 +352,7 @@ namespace MongoDB.Driver.Core.Configuration
                         connectionString.AuthSource,
                         connectionString.Username,
                         connectionString.AuthMechanismProperties?.Select(pair => new KeyValuePair<string, object>(pair.Key, pair.Value)),
-                        context,
+                        connectionString.Hosts,
                         serverApi);
                 }
             }

@@ -170,7 +170,7 @@ namespace MongoDB.Driver.Core.Connections
 
             var authenticatorFactoryMock = new Mock<IAuthenticatorFactory>();
             authenticatorFactoryMock
-                .Setup(a => a.Create(It.IsAny<IAuthenticationContext>()))
+                .Setup(a => a.Create())
                 .Returns(authenticatorMock.Object);
 
             using var subject = new BinaryConnection(
@@ -191,7 +191,7 @@ namespace MongoDB.Driver.Core.Connections
                 subject.Open(CancellationToken.None);
             }
 
-            authenticatorFactoryMock.Verify(f => f.Create(It.IsAny<IAuthenticationContext>()), Times.Once());
+            authenticatorFactoryMock.Verify(f => f.Create(), Times.Once());
 
             ResponseMessage CreateResponseMessage()
             {

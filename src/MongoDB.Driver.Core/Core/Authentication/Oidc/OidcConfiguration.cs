@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Shared;
@@ -23,13 +24,15 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
 {
     internal sealed class OidcConfiguration
     {
+        private readonly int _hashCode;
+
         public OidcConfiguration(
-            EndPoint endpoint,
+            IEnumerable<EndPoint> endPoints,
             string principalName,
             IEnumerable<KeyValuePair<string, object>> authMechanismProperties,
             IOidcKnownCallbackProviders oidcKnownCallbackProviders)
         {
-            EndPoint = Ensure.IsNotNull(endpoint, nameof(endpoint));
+            EndPoints = Ensure.IsNotNullOrEmpty(endPoints, nameof(endPoints));
             Ensure.IsNotNull(authMechanismProperties, nameof(authMechanismProperties));
             PrincipalName = principalName;
 
@@ -58,6 +61,7 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
             }
 
             ValidateOptions();
+            _hashCode = CalculateHashCode();
 
             if (ProviderName != null)
             {
@@ -81,18 +85,12 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
             }
         }
 
-        public EndPoint EndPoint { get; }
+        public IEnumerable<EndPoint> EndPoints { get; }
         public string PrincipalName { get; }
         public string ProviderName { get; }
         public IOidcCallback Callback { get; }
 
-        // public methods
-        public override int GetHashCode() =>
-            new Hasher()
-                .Hash(ProviderName)
-                .Hash(EndPoint)
-                .Hash(PrincipalName)
-                .GetHashCode();
+        public override int GetHashCode() => _hashCode;
 
         public override bool Equals(object obj)
         {
@@ -103,8 +101,15 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
                 ProviderName == rhs.ProviderName &&
                 PrincipalName == rhs.PrincipalName &&
                 object.Equals(Callback, rhs.Callback) &&
-                EndPointHelper.Equals(EndPoint, rhs.EndPoint);
+                EndPoints.SequenceEqual(rhs.EndPoints, EndPointHelper.EndPointEqualityComparer);
         }
+
+        private int CalculateHashCode()
+            => new Hasher()
+                .Hash(ProviderName)
+                .Hash(PrincipalName)
+                .HashElements(EndPoints)
+                .GetHashCode();
 
         private void ValidateOptions()
         {

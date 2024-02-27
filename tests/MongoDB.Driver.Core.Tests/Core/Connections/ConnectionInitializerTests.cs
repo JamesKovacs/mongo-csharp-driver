@@ -200,7 +200,7 @@ namespace MongoDB.Driver.Core.Connections
             var credentials = new UsernamePasswordCredential(
                 source: "Voyager", username: "Seven of Nine", password: "Omega-Phi-9-3");
             var authenticator = CreateAuthenticator(authenticatorType, credentials);
-            var connectionSettings = new ConnectionSettings(new[] { new AuthenticatorFactory(c => authenticator) });
+            var connectionSettings = new ConnectionSettings(new[] { new AuthenticatorFactory(() => authenticator) });
             var connection = new MockConnection(__serverId, connectionSettings, eventSubscriber: null);
             connection.EnqueueReplyMessage(legacyHelloReply);
 
@@ -357,7 +357,7 @@ namespace MongoDB.Driver.Core.Connections
             var credentials = new UsernamePasswordCredential(
                 source: "Voyager", username: "Seven of Nine", password: "Omega-Phi-9-3");
             var authenticator = CreateAuthenticator("default", credentials);
-            var connectionSettings = new ConnectionSettings(new[] { new AuthenticatorFactory(c => authenticator) });
+            var connectionSettings = new ConnectionSettings(new[] { new AuthenticatorFactory(() => authenticator) });
             var connection = new MockConnection(__serverId, connectionSettings, eventSubscriber: null);
             connection.EnqueueReplyMessage(legacyHelloReply);
 

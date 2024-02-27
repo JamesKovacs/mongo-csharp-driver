@@ -33,6 +33,8 @@ namespace MongoDB.Driver.Core.Authentication.Oidc
 
         public string Name => MongoOidcAuthenticator.MechanismName;
 
+        public bool HasCachedCredentials => _oidcCallback.CachedCredentials != null;
+
         public SaslAuthenticator.ISaslStep Initialize(
             IConnection connection,
             SaslAuthenticator.SaslConversation conversation,
