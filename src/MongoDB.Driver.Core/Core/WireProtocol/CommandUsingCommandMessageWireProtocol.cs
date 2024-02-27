@@ -157,12 +157,12 @@ namespace MongoDB.Driver.Core.WireProtocol
 
                 try
                 {
-                    return await SendMessageAsync(message, responseTo, connection, cancellationToken).ConfigureAwait(false);
+                    return await SendMessageAndProcessResponseAsync(message, responseTo, connection, cancellationToken).ConfigureAwait(false);
                 }
                 catch (MongoCommandException commandException) when (RetryabilityHelper.IsReauthenticationRequested(commandException, _command))
                 {
                     await connection.ReauthenticateAsync(cancellationToken).ConfigureAwait(false);
-                    return await SendMessageAsync(message, responseTo, connection, cancellationToken).ConfigureAwait(false);
+                    return await SendMessageAndProcessResponseAsync(message, responseTo, connection, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception exception)
@@ -575,7 +575,7 @@ namespace MongoDB.Driver.Core.WireProtocol
             }
         }
 
-        private async Task<TCommandResult> SendMessageAsync(CommandRequestMessage message, int responseTo, IConnection connection, CancellationToken cancellationToken)
+        private async Task<TCommandResult> SendMessageAndProcessResponseAsync(CommandRequestMessage message, int responseTo, IConnection connection, CancellationToken cancellationToken)
         {
             var responseExpected = true;
             if (message != null)
