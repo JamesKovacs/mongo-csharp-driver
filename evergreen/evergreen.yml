@@ -584,9 +584,11 @@ functions:
       type: test
       params:
         working_dir: mongo-csharp-driver
+        include_expansions_in_env:
+          - "ATLAS_SEARCH"
         script: |
           ${PREPARE_SHELL}
-          ATLAS_SEARCH="${ATLAS_SEARCH}" evergreen/run-atlas-search-test.sh
+          evergreen/run-atlas-search-test.sh
 
   run-atlas-search-index-helpers-test:
     - command: shell.exec
@@ -1922,20 +1924,22 @@ task_groups:
       - command: shell.exec
         params:
           shell: "bash"
+          env:
+            AZUREKMS_CLIENTID : ${testazurekms_clientid}
+            AZUREKMS_TENANTID : ${testazurekms_tenantid}
+            AZUREKMS_SECRET= : ${testazurekms_secret}
+            AZUREKMS_RESOURCEGROUP: ${testazurekms_resourcegroup}
+            AZUREKMS_SCOPE : ${testazurekms_scope}
           script: |
             ${PREPARE_SHELL}
             echo '${testazurekms_publickey}' > /tmp/testazurekms_publickey
             echo '${testazurekms_privatekey}' > /tmp/testazurekms_privatekey
             # Set 600 permissions on private key file. Otherwise ssh / scp may error with permissions "are too open".
             chmod 600 /tmp/testazurekms_privatekey
-            export AZUREKMS_CLIENTID=${testazurekms_clientid}
-            export AZUREKMS_TENANTID=${testazurekms_tenantid}
-            export AZUREKMS_SECRET=${testazurekms_secret}
+
             export AZUREKMS_DRIVERS_TOOLS=$DRIVERS_TOOLS
-            export AZUREKMS_RESOURCEGROUP=${testazurekms_resourcegroup}
             export AZUREKMS_PUBLICKEYPATH=/tmp/testazurekms_publickey
             export AZUREKMS_PRIVATEKEYPATH=/tmp/testazurekms_privatekey
-            export AZUREKMS_SCOPE=${testazurekms_scope}
             export AZUREKMS_VMNAME_PREFIX=CSHARPDRIVER
             $DRIVERS_TOOLS/.evergreen/csfle/azurekms/create-and-setup-vm.sh
       - command: expansions.update
@@ -1950,10 +1954,11 @@ task_groups:
       - command: shell.exec
         params:
           shell: "bash"
+          env:
+            AZUREKMS_VMNAME : ${AZUREKMS_VMNAME}
+            AZUREKMS_RESOURCEGROUP : ${testazurekms_resourcegroup}
           script: |
             ${PREPARE_SHELL}
-            export AZUREKMS_VMNAME=${AZUREKMS_VMNAME}
-            export AZUREKMS_RESOURCEGROUP=${testazurekms_resourcegroup}
             $DRIVERS_TOOLS/.evergreen/csfle/azurekms/delete-vm.sh
     tasks:
       - test-csfle-with-azure-kms
@@ -1971,12 +1976,13 @@ task_groups:
       - command: shell.exec
         params:
           shell: "bash"
+          include_expansions_in_env:
+            - "GCPKMS_SERVICEACCOUNT"
           script: |
             ${PREPARE_SHELL}
             echo '${GOOGLE_APPLICATION_CREDENTIALS_CONTENT}' > /tmp/testgcpkms_key_file.json
             export GCPKMS_KEYFILE=/tmp/testgcpkms_key_file.json
             export GCPKMS_DRIVERS_TOOLS=$DRIVERS_TOOLS
-            export GCPKMS_SERVICEACCOUNT="${GCPKMS_SERVICEACCOUNT}"
             export GCPKMS_MACHINETYPE="e2-standard-4"
             $DRIVERS_TOOLS/.evergreen/csfle/gcpkms/create-and-setup-instance.sh
       # Load the GCPKMS_GCLOUD, GCPKMS_INSTANCE, GCPKMS_REGION, and GCPKMS_ZONE expansions.
