@@ -1924,6 +1924,7 @@ task_groups:
       - command: shell.exec
         params:
           shell: "bash"
+          silent: true
           env:
             AZUREKMS_CLIENTID : ${testazurekms_clientid}
             AZUREKMS_TENANTID : ${testazurekms_tenantid}
@@ -1976,6 +1977,7 @@ task_groups:
       - command: shell.exec
         params:
           shell: "bash"
+          silent: true
           include_expansions_in_env:
             - "GCPKMS_SERVICEACCOUNT"
           script: |
