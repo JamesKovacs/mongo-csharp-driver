@@ -51,10 +51,10 @@ namespace MongoDB.Driver
         private readonly TimeSpan _maxConnectionLifeTime;
         private readonly int _maxConnectionPoolSize;
         private readonly int _minConnectionPoolSize;
-        private readonly int _receiveBufferSize;
+        private readonly int? _receiveBufferSize;
         private readonly string _replicaSetName;
         private readonly ConnectionStringScheme _scheme;
-        private readonly int _sendBufferSize;
+        private readonly int? _sendBufferSize;
         private readonly ServerApi _serverApi;
         private readonly IReadOnlyList<MongoServerAddress> _servers;
         private readonly ServerMonitoringMode _serverMonitoringMode;
@@ -93,10 +93,10 @@ namespace MongoDB.Driver
             TimeSpan maxConnectionLifeTime,
             int maxConnectionPoolSize,
             int minConnectionPoolSize,
-            int receiveBufferSize,
+            int? receiveBufferSize,
             string replicaSetName,
             ConnectionStringScheme scheme,
-            int sendBufferSize,
+            int? sendBufferSize,
             ServerApi serverApi,
             IReadOnlyList<MongoServerAddress> servers,
             ServerMonitoringMode serverMonitoringMode,
@@ -199,10 +199,10 @@ namespace MongoDB.Driver
         public TimeSpan MaxConnectionLifeTime { get { return _maxConnectionLifeTime; } }
         public int MaxConnectionPoolSize { get { return _maxConnectionPoolSize; } }
         public int MinConnectionPoolSize { get { return _minConnectionPoolSize; } }
-        public int ReceiveBufferSize { get { return _receiveBufferSize; } }
+        public int? ReceiveBufferSize { get { return _receiveBufferSize; } }
         public string ReplicaSetName { get { return _replicaSetName; } }
         public ConnectionStringScheme Scheme { get { return _scheme; } }
-        public int SendBufferSize { get { return _sendBufferSize; } }
+        public int? SendBufferSize { get { return _sendBufferSize; } }
         public ServerApi ServerApi { get { return _serverApi; } }
         public IReadOnlyList<MongoServerAddress> Servers { get { return _servers; } }
         public ServerMonitoringMode ServerMonitoringMode { get { return _serverMonitoringMode; } }

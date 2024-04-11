@@ -34,8 +34,8 @@ namespace MongoDB.Driver.Core.Configuration
             subject.AddressFamily.Should().Be(AddressFamily.InterNetwork);
             subject.ConnectTimeout.Should().Be(Timeout.InfiniteTimeSpan);
             subject.ReadTimeout.Should().Be(null);
-            subject.ReceiveBufferSize.Should().Be(64 * 1024);
-            subject.SendBufferSize.Should().Be(64 * 1024);
+            subject.ReceiveBufferSize.Should().Be(null);
+            subject.SendBufferSize.Should().Be(null);
             subject.SocketConfigurator.Should().BeNull();
             subject.WriteTimeout.Should().Be(null);
         }

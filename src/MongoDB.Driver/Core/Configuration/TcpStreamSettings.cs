@@ -29,8 +29,8 @@ namespace MongoDB.Driver.Core.Configuration
         private readonly AddressFamily _addressFamily;
         private readonly TimeSpan _connectTimeout;
         private readonly TimeSpan? _readTimeout;
-        private readonly int _receiveBufferSize;
-        private readonly int _sendBufferSize;
+        private readonly int? _receiveBufferSize;
+        private readonly int? _sendBufferSize;
         private readonly Action<Socket> _socketConfigurator;
         private readonly TimeSpan? _writeTimeout;
 
@@ -49,18 +49,18 @@ namespace MongoDB.Driver.Core.Configuration
             Optional<AddressFamily> addressFamily = default(Optional<AddressFamily>),
             Optional<TimeSpan> connectTimeout = default(Optional<TimeSpan>),
             Optional<TimeSpan?> readTimeout = default(Optional<TimeSpan?>),
-            Optional<int> receiveBufferSize = default(Optional<int>),
-            Optional<int> sendBufferSize = default(Optional<int>),
+            Optional<int?> receiveBufferSize = default(Optional<int?>),
+            Optional<int?> sendBufferSize = default(Optional<int?>),
             Optional<Action<Socket>> socketConfigurator = default(Optional<Action<Socket>>),
             Optional<TimeSpan?> writeTimeout = default(Optional<TimeSpan?>))
         {
             _addressFamily = addressFamily.WithDefault(AddressFamily.InterNetwork);
-            _connectTimeout = Ensure.IsInfiniteOrGreaterThanOrEqualToZero(connectTimeout.WithDefault(Timeout.InfiniteTimeSpan), "connectTimeout");
-            _readTimeout = Ensure.IsNullOrInfiniteOrGreaterThanOrEqualToZero(readTimeout.WithDefault(null), "readTimeout");
-            _receiveBufferSize = Ensure.IsGreaterThanZero(receiveBufferSize.WithDefault(64 * 1024), "receiveBufferSize");
-            _sendBufferSize = Ensure.IsGreaterThanZero(sendBufferSize.WithDefault(64 * 1024), "sendBufferSize");
+            _connectTimeout = Ensure.IsInfiniteOrGreaterThanOrEqualToZero(connectTimeout.WithDefault(Timeout.InfiniteTimeSpan), nameof(connectTimeout));
+            _readTimeout = Ensure.IsNullOrInfiniteOrGreaterThanOrEqualToZero(readTimeout.WithDefault(null), nameof(readTimeout));
+            _receiveBufferSize = Ensure.IsNullOrGreaterThanZero(receiveBufferSize.WithDefault(null), nameof(receiveBufferSize));
+            _sendBufferSize = Ensure.IsNullOrGreaterThanZero(sendBufferSize.WithDefault(null), nameof(sendBufferSize));
             _socketConfigurator = socketConfigurator.WithDefault(null);
-            _writeTimeout = Ensure.IsNullOrInfiniteOrGreaterThanOrEqualToZero(writeTimeout.WithDefault(null), "writeTimeout");
+            _writeTimeout = Ensure.IsNullOrInfiniteOrGreaterThanOrEqualToZero(writeTimeout.WithDefault(null), nameof(writeTimeout));
         }
 
         internal TcpStreamSettings(TcpStreamSettings other)
@@ -114,7 +114,7 @@ namespace MongoDB.Driver.Core.Configuration
         /// <value>
         /// The size of the receive buffer.
         /// </value>
-        public int ReceiveBufferSize
+        public int? ReceiveBufferSize
         {
             get { return _receiveBufferSize; }
         }
@@ -125,7 +125,7 @@ namespace MongoDB.Driver.Core.Configuration
         /// <value>
         /// The size of the send buffer.
         /// </value>
-        public int SendBufferSize
+        public int? SendBufferSize
         {
             get { return _sendBufferSize; }
         }
@@ -168,8 +168,8 @@ namespace MongoDB.Driver.Core.Configuration
             Optional<AddressFamily> addressFamily = default(Optional<AddressFamily>),
             Optional<TimeSpan> connectTimeout = default(Optional<TimeSpan>),
             Optional<TimeSpan?> readTimeout = default(Optional<TimeSpan?>),
-            Optional<int> receiveBufferSize = default(Optional<int>),
-            Optional<int> sendBufferSize = default(Optional<int>),
+            Optional<int?> receiveBufferSize = default(Optional<int?>),
+            Optional<int?> sendBufferSize = default(Optional<int?>),
             Optional<Action<Socket>> socketConfigurator = default(Optional<Action<Socket>>),
             Optional<TimeSpan?> writeTimeout = default(Optional<TimeSpan?>))
         {

@@ -187,6 +187,34 @@ namespace MongoDB.Driver.Core.Connections
 
         [Theory]
         [ParameterAttributeData]
+        public void CreateStream_should_set_socket_buffer_sizes_when_tcp_buffer_sizes_are_configured(
+            [Values(false, true)]
+            bool async)
+        {
+            RequireServer.Check();
+            var settings = new TcpStreamSettings().With(receiveBufferSize: 12345, sendBufferSize: 54321);
+            var subject = new TcpStreamFactory(settings);
+            var endPoint = CoreTestConfiguration.ConnectionString.Hosts[0];
+            Stream stream = null;
+
+            if (async)
+            {
+                stream = subject.CreateStreamAsync(endPoint, CancellationToken.None).GetAwaiter().GetResult();
+            }
+            else
+            {
+                stream = subject.CreateStream(endPoint, CancellationToken.None);
+            }
+
+#if NET5_0_OR_GREATER
+            var socket = ((NetworkStream)stream).Socket;
+            socket.ReceiveBufferSize.Should().Be(12345);
+            socket.SendBufferSize.Should().Be(54321);
+#endif
+        }
+
+        [Theory]
+        [ParameterAttributeData]
         public void SocketConfigurator_can_be_used_to_set_keepAlive(
             [Values(false, true)]
             bool async)

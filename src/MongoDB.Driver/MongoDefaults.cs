@@ -41,8 +41,8 @@ namespace MongoDB.Driver
         private static UTF8Encoding __readEncoding = Utf8Encodings.Strict;
         private static TimeSpan __serverSelectionTimeout = TimeSpan.FromSeconds(30);
         private static TimeSpan __socketTimeout = TimeSpan.Zero; // use operating system default (presumably infinite)
-        private static int __tcpReceiveBufferSize = 64 * 1024; // 64KiB (note: larger than 2MiB fails on Mac using Mono)
-        private static int __tcpSendBufferSize = 64 * 1024; // 64KiB (TODO: what is the optimum value for the buffers?)
+        private static int? __tcpReceiveBufferSize = null; // use operating system default (note: larger than 2MiB fails on Mac using Mono)
+        private static int? __tcpSendBufferSize = null; // use operating system default
         private static double __waitQueueMultiple = 5.0; // default wait queue multiple is 5.0
         private static int __waitQueueSize = 0; // use multiple by default
         private static TimeSpan __waitQueueTimeout = TimeSpan.FromMinutes(2); // default wait queue timeout is 2 minutes
@@ -226,7 +226,7 @@ namespace MongoDB.Driver
         /// <summary>
         /// Gets or sets the TCP receive buffer size.
         /// </summary>
-        public static int TcpReceiveBufferSize
+        public static int? TcpReceiveBufferSize
         {
             get { return __tcpReceiveBufferSize; }
             set { __tcpReceiveBufferSize = value; }
@@ -235,7 +235,7 @@ namespace MongoDB.Driver
         /// <summary>
         /// Gets or sets the TCP send buffer size.
         /// </summary>
-        public static int TcpSendBufferSize
+        public static int? TcpSendBufferSize
         {
             get { return __tcpSendBufferSize; }
             set { __tcpSendBufferSize = value; }
