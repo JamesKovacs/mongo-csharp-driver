@@ -1,45 +1,46 @@
-/* Copyright 2010-present MongoDB Inc.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
-
 using System;
-using System.IO;
+using System.Linq;
 using MongoDB.Bson;
-using MongoDB.Driver.Core.Configuration;
-using MongoDB.Driver.Core.Events.Diagnostics;
+using MongoDB.Driver;
 
-namespace MongoDB.Driver.TestConsoleApplication
+var client = new MongoClient();
+var db = client.GetDatabase("test");
+var coll = db.GetCollection<Series>("library");
+
+// var book1 = new Book(ObjectId.GenerateNewId(), [new Chapter("Chapter 1"), new Chapter("Chapter 2")]);
+// var book2 = new Book(ObjectId.GenerateNewId(), [new Chapter("John Coltrane"), new Chapter("Miles Davis"), new Chapter("Weather Report")]);
+// var book3 = new Book(ObjectId.GenerateNewId(), [new Chapter("Life"), new Chapter("The Universe"), new Chapter("Everything"), new Chapter("42")]);
+// var series1 = new Series([book1, book2, book3]);
+// Series[] library = [series1];
+
+// var l2oChained = library.AsQueryable().SelectMany(series => series.Books).SelectMany(book => book.Chapters).Select(chapter => chapter.Title);
+// Dump(l2oChained);
+// var l2oNested = library.AsQueryable().SelectMany(series => series.Books.SelectMany(book => book.Chapters.Select(chapter => chapter.Title)));
+// Dump(l2oNested);
+var linq3Chained = coll.AsQueryable().SelectMany(series => series.Books).SelectMany(book => book.Chapters).Select(chapter => chapter.Title);
+Dump(linq3Chained);
+// var linq3Nested = coll.AsQueryable().SelectMany(series => series.Books.SelectMany(book => book.Chapters.Select(chapter => chapter.Title)));
+// Dump(linq3Nested);
+var aggUnwind = coll.Aggregate().Unwind<Series, Book>(series => series.Books).Unwind<Book, Chapter>(book => book.Chapters).Project(chapter => chapter.Title);
+Console.WriteLine(aggUnwind);
+var aggNested = coll.Aggregate().Project(series => series.Books.SelectMany(book => book.Chapters.Select(chapter => chapter.Title)));
+Console.WriteLine(aggNested);
+
+void Dump<T>(IQueryable<T> query)
 {
-    class Program
+    Console.WriteLine(query);
+    foreach (var item in query.ToList())
     {
-        static void Main(string[] args)
-        {
-            //FilterMeasuring.TestAsync().GetAwaiter().GetResult();
-            int numConcurrentWorkers = 50;
-            //new CoreApi().Run(numConcurrentWorkers, ConfigureCluster);
-            new CoreApiSync().Run(numConcurrentWorkers, ConfigureCluster);
-
-            new Api().Run(numConcurrentWorkers, ConfigureCluster);
-
-            //new LegacyApi().Run(numConcurrentWorkers, ConfigureCluster);
-        }
-
-        private static void ConfigureCluster(ClusterBuilder cb)
-        {
-#if NET472
-            cb.UsePerformanceCounters("test", true);
-#endif
-        }
+        Console.WriteLine(item);
     }
+}
+
+record Series(Book[] Books);
+record Book(ObjectId Id, Chapter[] Chapters);
+record Chapter(string Title);
+
+namespace System.Runtime.CompilerServices
+{
+    [ComponentModel.EditorBrowsable(ComponentModel.EditorBrowsableState.Never)]
+    internal class IsExternalInit{}
 }
