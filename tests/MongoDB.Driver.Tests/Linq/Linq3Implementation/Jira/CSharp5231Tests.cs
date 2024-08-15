@@ -15,6 +15,8 @@
 
 using System.Linq;
 using FluentAssertions;
+using MongoDB.Driver.Core.Misc;
+using MongoDB.Driver.Core.TestHelpers.XunitExtensions;
 using MongoDB.Driver.Linq;
 using Xunit;
 
@@ -25,6 +27,8 @@ namespace MongoDB.Driver.Tests.Linq.Linq3Implementation.Jira
         [Fact]
         public void Concat_should_work()
         {
+            RequireServer.Check().Supports(Feature.AggregateUnionWith);
+
             var collection1 = GetCollection1();
             var collection2 = GetCollection2();
 
@@ -45,6 +49,8 @@ namespace MongoDB.Driver.Tests.Linq.Linq3Implementation.Jira
         [Fact]
         public void Union_should_work()
         {
+            RequireServer.Check().Supports(Feature.AggregateUnionWith);
+
             var collection1 = GetCollection1();
             var collection2 = GetCollection2();
 
