@@ -317,6 +317,13 @@ namespace MongoDB.Driver.Core.Clusters
             return Equals(obj as ClusterDescription);
         }
 
+         /// <summary>
+        /// Gets the highest wire version that can be safely targeted because it is the highest wire version supported by all connected servers.
+        /// </summary>
+        /// <returns>The highest wire version that is supported by all connected servers, or null if not connected to any servers.</returns>
+        public int? GetTargetWireVersion() =>
+            _servers.Min(s => s.WireVersionRange?.Max);
+
         /// <inheritdoc/>
         public override int GetHashCode()
         {

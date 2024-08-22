@@ -25,6 +25,7 @@ using MongoDB.Driver.Core;
 using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Configuration;
 using MongoDB.Driver.Core.Logging;
+using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.Servers;
 using MongoDB.Driver.Encryption;
 using MongoDB.Driver.TestHelpers;
@@ -208,6 +209,24 @@ namespace MongoDB.Driver.Tests
             clientSettings.ServerApi = CoreTestConfiguration.ServerApi;
 
             return clientSettings;
+        }
+
+        public static int GetTargetWireVersion()
+        {
+            var cluster = Client.Cluster;
+            if (cluster?.Description == null)
+            {
+                // cluster and Description should not be null but can be when testing with mocks that are not completely set up
+                return WireVersion.Server40;
+            }
+
+            int? targetWireVersion = null;
+            SpinWait.SpinUntil(() => (targetWireVersion = cluster.Description.GetTargetWireVersion()).HasValue, TimeSpan.FromSeconds(10));
+            if (!targetWireVersion.HasValue)
+            {
+                throw new InvalidOperationException($"Unable to determine target wire version: {cluster.Description}.");
+            }
+            return targetWireVersion.Value;
         }
 
         public static bool IsReplicaSet(IMongoClient client)

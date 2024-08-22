@@ -141,6 +141,25 @@ namespace MongoDB.Driver.Core.Clusters
         }
 
         [Theory]
+        [InlineData(null, null, null)]
+        [InlineData(null, WireVersion.Server40, WireVersion.Server40)]
+        [InlineData(WireVersion.Server36, WireVersion.Server40, WireVersion.Server36)]
+        [InlineData(WireVersion.Server40, WireVersion.Server40, WireVersion.Server40)]
+        [InlineData(WireVersion.Server70, WireVersion.Server40, WireVersion.Server40)]
+        [InlineData(WireVersion.Server80, WireVersion.Server80, WireVersion.Server80)]
+        public void TargetWireVersion_should_return_expected_value(int? maxWireVersion0, int? maxWireVersion1, int? expectedWireVersion)
+        {
+            var clusterDescription = CreateSubject();
+            var server0 = clusterDescription.Servers[0].With(wireVersionRange: maxWireVersion0.HasValue ? new Range<int>(WireVersion.Server36, maxWireVersion0.Value) : null);
+            var server1 = clusterDescription.Servers[1].With(wireVersionRange: maxWireVersion1.HasValue ? new Range<int>(WireVersion.Server36, maxWireVersion1.Value) : null);
+            var subject = clusterDescription.WithServerDescription(server0).WithServerDescription(server1);
+
+            var result = subject.GetTargetWireVersion();
+
+            result.Should().Be(expectedWireVersion);
+        }
+
+        [Theory]
         [InlineData(new int[0], true)]
         [InlineData(new int[] { 0 }, false)]
         [InlineData(new int[] { 1 }, true)]

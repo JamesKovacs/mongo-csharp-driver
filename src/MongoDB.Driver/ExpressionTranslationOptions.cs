@@ -19,13 +19,39 @@ namespace MongoDB.Driver
     /// <summary>
     /// Options for controlling translation from .NET expression trees into MongoDB expressions.
     /// </summary>
-    public class ExpressionTranslationOptions
+    public sealed class ExpressionTranslationOptions
     {
         internal static ExpressionTranslationOptions Default = new ExpressionTranslationOptions();
 
         /// <summary>
-        /// Gets or sets the string translation mode.
+        /// Gets or sets the server version to target when translating Expressions.
         /// </summary>
-        public AggregateStringTranslationMode? StringTranslationMode { get; set; }
+        public TargetServerVersion? TargetServerVersion { get; set; }
+
+        /// <inheritdoc/>
+        public override bool Equals(object obj)
+        {
+            if (object.ReferenceEquals(obj, null)) { return false; }
+            if (object.ReferenceEquals(this, obj)) { return true; }
+            return
+                base.Equals(obj) &&
+                obj is ExpressionTranslationOptions other &&
+                TargetServerVersion.Equals(other.TargetServerVersion);
+        }
+
+        /// <inheritdoc/>
+        public override int GetHashCode() => 0;
+
+        /// <inheritdoc/>
+        public override string ToString() => $"{{ TargetServerVersion = {TargetServerVersion} }}";
+    }
+
+    internal static class ExpressionTranslationOptionsExtensions
+    {
+        public static ExpressionTranslationOptions AddMissingOptionsFrom(this ExpressionTranslationOptions translationOptions, ExpressionTranslationOptions from)
+        {
+            // in the future ExpressionTranslationOptions might have more properties
+            return (translationOptions?.TargetServerVersion).HasValue ? translationOptions : from;
+        }
     }
 }
