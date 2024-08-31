@@ -121,7 +121,7 @@ namespace MongoDB.Driver.Core.Misc
         /// </summary>
         public const int Server80 = 25;
 
-        // note: when adding a new value here add it to TargetServerVersion also
+        // note: keep WireVersion.cs and ServerVersion.cs in sync
 
         #region static
         private static readonly List<WireVersionInfo> __knownWireVersions = new()

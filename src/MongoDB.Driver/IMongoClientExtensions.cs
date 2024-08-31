@@ -111,8 +111,5 @@ namespace MongoDB.Driver
 
         // internal static methods
         internal static IClusterInternal GetClusterInternal(this IMongoClient client) => (IClusterInternal)client.Cluster;
-
-        internal static int? GetTargetWireVersion(this IMongoClient client) =>
-            client.Cluster?.Description?.GetTargetWireVersion();
     }
 }

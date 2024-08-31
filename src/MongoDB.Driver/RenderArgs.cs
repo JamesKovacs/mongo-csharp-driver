@@ -48,7 +48,7 @@ namespace MongoDB.Driver
         /// <param name="renderDollarForm">Value that specifies whether full dollar for should be rendered.</param>
         /// <param name="renderForFind">Value that specifies whether rendering a find operation.</param>
         /// <param name="renderForElemMatch">Value that specifies whether rendering an $elemMatch.</param>
-        /// <param name="translationOptions">The target wire version (will default to server 4.0 if null).</param>
+        /// <param name="translationOptions">The translation options.</param>
         public RenderArgs(
             IBsonSerializer<TDocument> documentSerializer,
             IBsonSerializerRegistry serializerRegistry,

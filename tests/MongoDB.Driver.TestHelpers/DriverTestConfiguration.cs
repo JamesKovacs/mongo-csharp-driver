@@ -211,7 +211,7 @@ namespace MongoDB.Driver.Tests
             return clientSettings;
         }
 
-        public static int GetTargetWireVersion()
+        public static int GetSupportedWireVersion()
         {
             var cluster = Client.Cluster;
             if (cluster?.Description == null)
@@ -220,13 +220,13 @@ namespace MongoDB.Driver.Tests
                 return WireVersion.Server40;
             }
 
-            int? targetWireVersion = null;
-            SpinWait.SpinUntil(() => (targetWireVersion = cluster.Description.GetTargetWireVersion()).HasValue, TimeSpan.FromSeconds(10));
-            if (!targetWireVersion.HasValue)
+            int? supportedWireVersion = null;
+            SpinWait.SpinUntil(() => (supportedWireVersion = cluster.Description.GetSupportedWireVersion()).HasValue, TimeSpan.FromSeconds(10));
+            if (!supportedWireVersion.HasValue)
             {
-                throw new InvalidOperationException($"Unable to determine target wire version: {cluster.Description}.");
+                throw new InvalidOperationException($"Unable to determine supported wire version: {cluster.Description}.");
             }
-            return targetWireVersion.Value;
+            return supportedWireVersion.Value;
         }
 
         public static bool IsReplicaSet(IMongoClient client)

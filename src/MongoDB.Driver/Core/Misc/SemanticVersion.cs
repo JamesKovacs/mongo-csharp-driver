@@ -153,11 +153,6 @@ namespace MongoDB.Driver.Core.Misc
                 return result;
             }
 
-            if (IsInternalServerBuild() || other.IsInternalServerBuild())
-            {
-                return this.AsServerVersion().CompareTo(other.AsServerVersion());
-            }
-
             result = ComparePreReleases();
             if (result != 0)
             {
@@ -364,23 +359,6 @@ namespace MongoDB.Driver.Core.Misc
         public static bool operator <=(SemanticVersion a, SemanticVersion b)
         {
             return !(b < a);
-        }
-
-        // private methods
-        private ServerVersion AsServerVersion()
-        {
-            return new ServerVersion(_major, _minor, _patch, _preRelease);
-        }
-
-        private bool IsInternalServerBuild()
-        {
-            if (_preRelease != null)
-            {
-                var internalBuildPattern = @"^(.+-)?\d+-g[0-9a-fA-F]{4,40}$";
-                return Regex.IsMatch(_preRelease, internalBuildPattern);
-            }
-
-            return false;
         }
     }
 }

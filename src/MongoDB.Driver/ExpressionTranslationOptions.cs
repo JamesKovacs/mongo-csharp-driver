@@ -26,7 +26,7 @@ namespace MongoDB.Driver
         /// <summary>
         /// Gets or sets the server version to target when translating Expressions.
         /// </summary>
-        public TargetServerVersion? TargetServerVersion { get; set; }
+        public ServerVersion? CompatibilityLevel { get; set; }
 
         /// <inheritdoc/>
         public override bool Equals(object obj)
@@ -36,14 +36,14 @@ namespace MongoDB.Driver
             return
                 base.Equals(obj) &&
                 obj is ExpressionTranslationOptions other &&
-                TargetServerVersion.Equals(other.TargetServerVersion);
+                CompatibilityLevel.Equals(other.CompatibilityLevel);
         }
 
         /// <inheritdoc/>
         public override int GetHashCode() => 0;
 
         /// <inheritdoc/>
-        public override string ToString() => $"{{ TargetServerVersion = {TargetServerVersion} }}";
+        public override string ToString() => $"{{ CompatibilityLevel = {CompatibilityLevel} }}";
     }
 
     internal static class ExpressionTranslationOptionsExtensions
@@ -51,7 +51,7 @@ namespace MongoDB.Driver
         public static ExpressionTranslationOptions AddMissingOptionsFrom(this ExpressionTranslationOptions translationOptions, ExpressionTranslationOptions from)
         {
             // in the future ExpressionTranslationOptions might have more properties
-            return (translationOptions?.TargetServerVersion).HasValue ? translationOptions : from;
+            return (translationOptions?.CompatibilityLevel).HasValue ? translationOptions : from;
         }
     }
 }

@@ -152,7 +152,7 @@ namespace MongoDB.Driver
         /// </summary>
         /// <param name="inputSerializer">The input serializer.</param>
         /// <param name="serializerRegistry">The serializer registry.</param>
-        /// <param name="translationOptions">The target wire version.</param>
+        /// <param name="translationOptions">The translation options.</param>
         /// <returns>An <see cref="IRenderedPipelineStageDefinition" /></returns>
         IRenderedPipelineStageDefinition Render(IBsonSerializer inputSerializer, IBsonSerializerRegistry serializerRegistry, ExpressionTranslationOptions translationOptions);
 

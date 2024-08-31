@@ -19,165 +19,165 @@ using MongoDB.Driver.Core.Misc;
 namespace MongoDB.Driver
 {
     /// <summary>
-    /// Represents target server versions when translation Expressions to MQL.
+    /// Represents server versions.
     /// </summary>
     /// <note>Only major/minor versions are represented.</note>
-    public enum TargetServerVersion
+    public enum ServerVersion
     {
         /// <summary>
         /// Server version 2.6.
         /// </summary>
-        Server26 = 2,
+        Server26,
 
         /// <summary>
         /// Server version 3.0.
         /// </summary>
-        Server30 = 3,
+        Server30,
 
         /// <summary>
         /// Server version 3.2.
         /// </summary>
-        Server32 = 4,
+        Server32,
 
         /// <summary>
         /// Server version 2.6.
         /// </summary>
-        Server34 = 5,
+        Server34,
 
         /// <summary>
         /// Server version 3.6.
         /// </summary>
-        Server36 = 6,
+        Server36,
 
         /// <summary>
         /// Server version 4.0.
         /// </summary>
-        Server40 = 7,
+        Server40,
 
         /// <summary>
         /// Server version 4.2.
         /// </summary>
-        Server42 = 8,
+        Server42,
 
         /// <summary>
         /// Server version 4.4.
         /// </summary>
-        Server44 = 9,
+        Server44,
 
         /// <summary>
         /// Server version 4.7.
         /// </summary>
-        Server47 = 10,
+        Server47,
 
         /// <summary>
         /// Server version 4.8.
         /// </summary>
-        Server48 = 11,
+        Server48,
 
         /// <summary>
         /// Server version 4.9.
         /// </summary>
-        Server49 = 12,
+        Server49,
 
         /// <summary>
         /// Server version 5.0.
         /// </summary>
-        Server50 = 13,
+        Server50,
 
         /// <summary>
         /// Server version 5.1.
         /// </summary>
-        Server51 = 14,
+        Server51,
 
         /// <summary>
         /// Server version 5.2.
         /// </summary>
-        Server52 = 15,
+        Server52,
 
         /// <summary>
         /// Server version 5.3.
         /// </summary>
-        Server53 = 16,
+        Server53,
 
         /// <summary>
         /// Server version 6.0.
         /// </summary>
-        Server60 = 17,
+        Server60,
 
         /// <summary>
         /// Server version 6.1.
         /// </summary>
-        Server61 = 18,
+        Server61,
 
         /// <summary>
         /// Server version 6.2.
         /// </summary>
-        Server62 = 19,
+        Server62,
 
         /// <summary>
         /// Server version 6.3.
         /// </summary>
-        Server63 = 20,
+        Server63,
 
         /// <summary>
         /// Server version 7.0.
         /// </summary>
-        Server70 = 21,
+        Server70,
 
         /// <summary>
         /// Server version 7.1.
         /// </summary>
-        Server71 = 22,
+        Server71,
 
         /// <summary>
         /// Server version 7.2.
         /// </summary>
-        Server72 = 23,
+        Server72,
 
         /// <summary>
         /// Server version 7.3.
         /// </summary>
-        Server73 = 24,
+        Server73,
 
         /// <summary>
         /// Server version 8.0.
         /// </summary>
-        Server80 = 25
+        Server80
 
-        // note: when adding new enum values update the ToWireVersion method below
+        // note: keep Server.cs and WireVersion.cs in sync
     }
 
     internal static class ServerVersionExtensions
     {
-        public static int ToWireVersion(this TargetServerVersion? serverVersion)
+        public static int ToWireVersion(this ServerVersion? serverVersion)
         {
             return serverVersion switch
             {
                 null => WireVersion.Server40,
-                TargetServerVersion.Server26 => WireVersion.Server26,
-                TargetServerVersion.Server30 => WireVersion.Server30,
-                TargetServerVersion.Server32 => WireVersion.Server32,
-                TargetServerVersion.Server34 => WireVersion.Server34,
-                TargetServerVersion.Server36 => WireVersion.Server36,
-                TargetServerVersion.Server40 => WireVersion.Server40,
-                TargetServerVersion.Server42 => WireVersion.Server42,
-                TargetServerVersion.Server44 => WireVersion.Server44,
-                TargetServerVersion.Server47 => WireVersion.Server47,
-                TargetServerVersion.Server48 => WireVersion.Server48,
-                TargetServerVersion.Server49 => WireVersion.Server49,
-                TargetServerVersion.Server50 => WireVersion.Server50,
-                TargetServerVersion.Server51 => WireVersion.Server51,
-                TargetServerVersion.Server52 => WireVersion.Server52,
-                TargetServerVersion.Server53 => WireVersion.Server53,
-                TargetServerVersion.Server60 => WireVersion.Server60,
-                TargetServerVersion.Server61 => WireVersion.Server61,
-                TargetServerVersion.Server62 => WireVersion.Server62,
-                TargetServerVersion.Server63 => WireVersion.Server63,
-                TargetServerVersion.Server70 => WireVersion.Server70,
-                TargetServerVersion.Server71 => WireVersion.Server71,
-                TargetServerVersion.Server72 => WireVersion.Server72,
-                TargetServerVersion.Server73 => WireVersion.Server73,
-                TargetServerVersion.Server80 => WireVersion.Server80,
+                ServerVersion.Server26 => WireVersion.Server26,
+                ServerVersion.Server30 => WireVersion.Server30,
+                ServerVersion.Server32 => WireVersion.Server32,
+                ServerVersion.Server34 => WireVersion.Server34,
+                ServerVersion.Server36 => WireVersion.Server36,
+                ServerVersion.Server40 => WireVersion.Server40,
+                ServerVersion.Server42 => WireVersion.Server42,
+                ServerVersion.Server44 => WireVersion.Server44,
+                ServerVersion.Server47 => WireVersion.Server47,
+                ServerVersion.Server48 => WireVersion.Server48,
+                ServerVersion.Server49 => WireVersion.Server49,
+                ServerVersion.Server50 => WireVersion.Server50,
+                ServerVersion.Server51 => WireVersion.Server51,
+                ServerVersion.Server52 => WireVersion.Server52,
+                ServerVersion.Server53 => WireVersion.Server53,
+                ServerVersion.Server60 => WireVersion.Server60,
+                ServerVersion.Server61 => WireVersion.Server61,
+                ServerVersion.Server62 => WireVersion.Server62,
+                ServerVersion.Server63 => WireVersion.Server63,
+                ServerVersion.Server70 => WireVersion.Server70,
+                ServerVersion.Server71 => WireVersion.Server71,
+                ServerVersion.Server72 => WireVersion.Server72,
+                ServerVersion.Server73 => WireVersion.Server73,
+                ServerVersion.Server80 => WireVersion.Server80,
                 _ => throw new ArgumentException($"Invalid server version: {serverVersion}.", nameof(serverVersion))
             };
         }
